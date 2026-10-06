@@ -81,6 +81,10 @@ ignore = [
     "RET504",  # asignación antes de return: útil para depurar
 ]
 
+[tool.ruff.lint.isort]
+# Explícito: la detección automática por `src` no reconoce el paquete desde `tests/` en Windows.
+known-first-party = ["saber_uli"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106", "S311", "ARG001", "ARG002"]
 

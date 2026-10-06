@@ -689,8 +689,20 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     de Dexie o bloquea; T080 llamará a `invalidate()` al ingresar y al salir). Páginas mínimas de
     `/ingresar`, `/acceso`, `/bienvenida/datos`, `/bienvenida/perfil` (las completan T080, T085,
     T097) y `/sin-conexion`. Frontend: 95 pruebas, `lint`, `typecheck` y `build` en verde.
-- [ ] T068 [P] Configurar la PWA en `frontend/vite.config.ts` (vite-plugin-pwa: manifest con nombre "Saber Uli", `lang: es-CO`, íconos 192/512 y maskable en `frontend/public/icons/`, `display: standalone`, precache del shell) y la guía de instalación para iPhone en `frontend/src/shared/ui/InstallHint.tsx` con su prueba `frontend/src/shared/ui/InstallHint.test.tsx` → Qwen
+- [x] T068 [P] Configurar la PWA en `frontend/vite.config.ts` (vite-plugin-pwa: manifest con nombre "Saber Uli", `lang: es-CO`, íconos 192/512 y maskable en `frontend/public/icons/`, `display: standalone`, precache del shell) y la guía de instalación para iPhone en `frontend/src/shared/ui/InstallHint.tsx` con su prueba `frontend/src/shared/ui/InstallHint.test.tsx` → Qwen
   - Terminado: `npm run build` genera `sw.js` y `manifest.webmanifest`; la prueba del componente pasa.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos; la prueba del
+    componente falló primero (commit `b97e15f`). `vite-plugin-pwa` 2 con `generateSW`: manifiesto
+    "Saber Uli" (`lang: es-CO`, `display: standalone`, `start_url: /inicio`, color
+    `#15803d`, íconos 192/512 y `maskable`), precache del shell, `navigateFallback` a
+    `index.html` sin `/api/` y registro con `injectRegister: "script"` (`/registerSW.js`
+    externo: la CSP no permite scripts en línea). `InstallHint` en el shell: solo en iPhone/iPad
+    sin instalar, explica "Compartir → Agregar a inicio", se puede cerrar y lo recuerda (tolera
+    almacenamiento bloqueado). `tests/setup.ts` inicializa i18n para que las pruebas usen los
+    textos reales. Íconos provisionales generados por script (verde con círculo blanco):
+    reemplazarlos por el diseño institucional. Verificado: `npm run build` genera `sw.js` y
+    `manifest.webmanifest`, y la imagen del proxy los sirve con `Service-Worker-Allowed: /` y
+    `no-cache`. Frontend: 100 pruebas en verde.
 - [ ] T069 [P] Configurar Playwright en `frontend/playwright.config.ts` (viewport móvil Pixel 7 e iPhone 14, `locale: es-CO`) y los fixtures `frontend/tests/e2e/fixtures/{auth.ts,mailpit.ts,axe.ts,api.ts}` (ingreso con el proveedor de prueba eligiendo usuario del inquilino o externo; lectura de correos de Mailpit; chequeo axe nivel AA; llamadas API como administrador) → Qwen
   - Terminado: una prueba de humo abre `/` contra el stack con perfil `e2e`.
 - [ ] T070 Revisión de seguridad de la fase 2 (T010, T011, T029–T030, T035–T036, T045–T050, T062–T063) en `specs/001-identidad-acceso/tasks.md`: ASVS 4.0.3 V2, V3, V4 y V7 aplicables; secretos solo por entorno; ningún dato personal en logs ni outbox → Opus

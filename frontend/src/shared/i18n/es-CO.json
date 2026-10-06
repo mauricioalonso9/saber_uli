@@ -35,5 +35,11 @@
   },
   "offline": {
     "title": "Sin conexión"
+  },
+  "install": {
+    "title": "Instala Saber Uli",
+    "ios": "Para tenerla en tu iPhone como una app, toca el botón Compartir de Safari y luego «Agregar a inicio».",
+    "dismiss": "Cerrar la guía de instalación",
+    "dismissShort": "Entendido"
   }
 }

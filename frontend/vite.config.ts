@@ -1,10 +1,53 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
 
-// La configuración de la PWA (vite-plugin-pwa) se agrega en T068.
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    // PWA instalable (T068; ADR 0006). El registro va en un script externo (`registerSW.js`):
+    // la CSP de Nginx no permite scripts en línea. La API nunca se precachea ni se usa como
+    // fallback de navegación (los tokens y datos personales no se guardan en caché).
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: "script",
+      filename: "sw.js",
+      manifestFilename: "manifest.webmanifest",
+      includeAssets: ["icons/apple-touch-icon-180.png"],
+      manifest: {
+        name: "Saber Uli",
+        short_name: "Saber Uli",
+        description:
+          "Prepárate para los módulos genéricos de las pruebas Saber Pro con la Universidad Libre.",
+        lang: "es-CO",
+        dir: "ltr",
+        start_url: "/inicio",
+        scope: "/",
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#ffffff",
+        theme_color: "#15803d",
+        icons: [
+          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          {
+            src: "/icons/maskable-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api\//],
+        cleanupOutdatedCaches: true,
+      },
+    }),
+  ],
   resolve: {
     alias: {
       "@": import.meta.dirname + "/src",

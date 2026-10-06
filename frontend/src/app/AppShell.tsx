@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/shared/lib/utils";
 import { useOnlineStatus } from "@/shared/lib/use-online-status";
+import { InstallHint } from "@/shared/ui/InstallHint";
 
 /**
  * Estructura común: enlace para saltar al contenido (primer elemento enfocable), cabecera con la
@@ -38,6 +39,7 @@ export function AppShell() {
           {online ? t("connection.online") : t("connection.offline")}
         </p>
       </header>
+      <InstallHint />
       <nav aria-label={t("app.mainNavigation")} className="border-b px-4 py-2">
         <ul className="flex gap-4">
           <li>

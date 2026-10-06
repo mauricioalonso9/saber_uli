@@ -19,9 +19,9 @@ case "$service" in
     exec celery -A saber_uli.worker worker --loglevel "${LOG_LEVEL:-INFO}" "$@"
     ;;
   beat)
-    # El latido /tmp/beat-heartbeat lo escribe la app Celery (T034); el health check lo revisa.
+    # HeartbeatScheduler (T034) toca /tmp/beat-heartbeat en cada ciclo; el health check lo revisa.
     exec celery -A saber_uli.worker beat --loglevel "${LOG_LEVEL:-INFO}" \
-      --schedule /tmp/celerybeat-schedule "$@"
+      --scheduler saber_uli.worker:HeartbeatScheduler --schedule /tmp/celerybeat-schedule "$@"
     ;;
   migrate)
     exec saber-uli migrate "$@"

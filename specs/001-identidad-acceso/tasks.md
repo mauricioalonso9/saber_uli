@@ -358,10 +358,23 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     (máx. 1 h) guardando solo la clase de la excepción; un evento sin manejador se marca
     procesado. `purge_processed` borra lo procesado hace más de 7 días. Todas las fechas con el
     reloj inyectado. `OutboxEventRow` registrado en `migrations/env.py`. 10 pruebas en verde.
-- [ ] T033 [P] Prueba: programación de Celery en `backend/tests/unit/test_worker_schedule.py` (zona `America/Bogota`; `dispatch_outbox` cada 5 s; `expire_invitations` cada hora; `process_retention` diaria 02:00; `process_deletion_requests` cada 15 min; `purge_expired_auth_artifacts` diaria; research R-09) → Qwen
+- [x] T033 [P] Prueba: programación de Celery en `backend/tests/unit/test_worker_schedule.py` (zona `America/Bogota`; `dispatch_outbox` cada 5 s; `expire_invitations` cada hora; `process_retention` diaria 02:00; `process_deletion_requests` cada 15 min; `purge_expired_auth_artifacts` diaria; research R-09) → Qwen
   - Terminado: la prueba falla.
-- [ ] T034 Implementar `backend/src/saber_uli/worker.py` (app Celery, Beat, tarea `dispatch_outbox`; las demás tareas como registros que cada historia completa) → Qwen
+  - Estado: ver T034.
+- [x] T034 Implementar `backend/src/saber_uli/worker.py` (app Celery, Beat, tarea `dispatch_outbox`; las demás tareas como registros que cada historia completa) → Qwen
   - Terminado: T033 en verde; el servicio `worker` responde a `celery inspect ping`.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T033 falló por
+    `ImportError` (commit `38ce691`). `saber_uli/worker.py`: app Celery sobre Redis (zona
+    America/Bogota, `acks_late`, `reject_on_worker_lost`, `prefetch=1`, logs JSON vía
+    `setup_logging`), las cinco tareas de R-09 programadas (`dispatch_outbox` cada 5 s con
+    `expires=5`; `expire_invitations` cada hora; `process_retention` 02:00;
+    `process_deletion_requests` cada 15 min; `purge_expired_auth_artifacts` 03:30, que por ahora
+    purga el outbox). `dispatch_outbox` usa `OutboxDispatcher`; las demás quedan registradas para
+    T126, T156, T157 y US4/US7. `HeartbeatScheduler` toca `/tmp/beat-heartbeat` en cada ciclo
+    (Beat arranca con `--scheduler saber_uli.worker:HeartbeatScheduler`). Override de mypy
+    acotado a `saber_uli.worker` por falta de tipos de Celery. 9 pruebas de T033 en verde.
+    Verificado en Compose: T007 con 10 de 11 pruebas en verde (todos los servicios `healthy`,
+    incluidos `worker` y `beat`, y `migrate` con código 0); falta solo `test_flujo_de_ci` (T014).
 - [x] T035 [P] Prueba: limitación de peticiones en `backend/tests/integration/shared/test_rate_limit.py` (ventanas de research R-31: 5/h por hash de correo y 20/h por IP en solicitud de enlace; 10/min por IP en consumo de enlace; 30/min por IP en ingreso Microsoft y renovación; 300/min por usuario en el resto; respuesta 429 `rate-limited` con `Retry-After`; la clave por correo usa hash, nunca el correo) → Opus
   - Terminado: la prueba falla.
   - Estado: ver T036.

@@ -69,7 +69,7 @@ def test_el_scheduler_escribe_el_latido_en_cada_tick(
 ) -> None:
     heartbeat = tmp_path / "beat-heartbeat"
     monkeypatch.setenv("BEAT_HEARTBEAT_FILE", str(heartbeat))
-    monkeypatch.setattr(PersistentScheduler, "tick", lambda self, *a, **k: 1.0)
+    monkeypatch.setattr(PersistentScheduler, "tick", lambda *_, **__: 1.0)
     scheduler = HeartbeatScheduler(app=celery_app, schedule_filename=str(tmp_path / "schedule"))
 
     assert scheduler.tick() == 1.0

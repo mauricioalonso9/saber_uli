@@ -326,10 +326,20 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `ON DELETE SET NULL` (los lotes se purgan a los 30 días). T027 (27 pruebas, con
     `saber_migrator` porque los permisos de `saber_app` llegan en 0003) en verde;
     `downgrade base` y `upgrade head` en verde. Suite: 198 en verde.
-- [ ] T029 [P] Prueba: permisos de base de datos en `backend/tests/integration/identity/test_db_grants.py`: con el rol `saber_app`, `UPDATE` y `DELETE` sobre `identity.audit_events` y `identity.consents` fallan, `UPDATE` sobre `identity.policy_versions` falla, `INSERT`/`SELECT` funcionan; `saber_app` no puede ejecutar DDL; `saber_bi` no lee el esquema `identity` (FR-035, research R-07) → Opus
+- [x] T029 [P] Prueba: permisos de base de datos en `backend/tests/integration/identity/test_db_grants.py`: con el rol `saber_app`, `UPDATE` y `DELETE` sobre `identity.audit_events` y `identity.consents` fallan, `UPDATE` sobre `identity.policy_versions` falla, `INSERT`/`SELECT` funcionan; `saber_app` no puede ejecutar DDL; `saber_bi` no lee el esquema `identity` (FR-035, research R-07) → Opus
   - Terminado: la prueba falla.
-- [ ] T030 Implementar `backend/migrations/versions/0003_identity_grants.py` (grants por rol, `ALTER DEFAULT PRIVILEGES`, revocaciones de `UPDATE`/`DELETE` en tablas de solo inserción) → Opus
+  - Estado: ver T030.
+- [x] T030 Implementar `backend/migrations/versions/0003_identity_grants.py` (grants por rol, `ALTER DEFAULT PRIVILEGES`, revocaciones de `UPDATE`/`DELETE` en tablas de solo inserción) → Opus
   - Terminado: T029 en verde.
+  - Estado: implementadas por Opus (2026-10-06); T029 falló en lo que depende de los permisos
+    (commit `d68abae`). Migración 0003: `saber_app` con DML en `identity` y en
+    `shared.outbox_events` (sin DDL, sin `TRUNCATE`, sin acceso de escritura a
+    `alembic_version`); `UPDATE` y `DELETE` revocados en `audit_events`, `consents` y
+    `policy_versions`; `DELETE` revocado en `users` (la supresión deja lápida, FR-033); privilegios
+    por defecto de `saber_migrator` en `identity` y `shared` para tablas futuras. `saber_bi` sin
+    acceso a `identity` ni `shared`. Downgrade simétrico. T029 (12 pruebas) en verde; suite: 210.
+  - Nota para migraciones futuras: los privilegios por defecto dan DML completo a `saber_app`;
+    una tabla nueva de solo inserción debe revocar `UPDATE` y `DELETE` en su propia migración.
 
 ### Outbox, worker y límites
 

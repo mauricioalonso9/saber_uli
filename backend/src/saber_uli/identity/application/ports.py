@@ -3,12 +3,15 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 from uuid import UUID
 
 from saber_uli.identity.domain.consent import ConsentRecord
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
+
+if TYPE_CHECKING:
+    from saber_uli.identity.application.audit import AuditEntry
 
 ACCESS_TOKEN_TTL_SECONDS = 600
 
@@ -68,6 +71,10 @@ class GuestAccessReader(Protocol):
     async def status_for(self, user_id: UUID, *, now: datetime) -> GuestAccessStatus:
         """Estado del acceso derivado de la invitación más reciente del invitado (§4.2)."""
         ...
+
+
+class AuditRepository(Protocol):
+    async def add(self, entry: "AuditEntry") -> None: ...
 
 
 class ConsentReader(Protocol):

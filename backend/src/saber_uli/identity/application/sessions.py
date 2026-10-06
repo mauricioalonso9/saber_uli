@@ -19,6 +19,7 @@ from saber_uli.identity.application.access_guard import (
     GuestAccessExpiredError,
     GuestAccessRevokedError,
 )
+from saber_uli.identity.application.audit import AuditAction, AuditTarget, record_audit
 from saber_uli.identity.application.ports import (
     ACCESS_TOKEN_TTL_SECONDS,
     AccessTokenClaims,
@@ -92,12 +93,22 @@ class SessionService:
             await self._ensure_can_continue(uow, user, now)
 
             new_plaintext, new_hash = self._refresh_tokens.new()
+            was_revoked = session.revoked_at is not None
             try:
                 new_token = rotate_refresh_token(session, current, new_hash=new_hash, now=now)
             except SessionRevokedError:
-                if session.revoked_reason == "token_reuse" and session.revoked_at == now:
-                    # La revocación por reutilización se confirma aunque la petición falle.
+                if not was_revoked and session.revoked_reason == "token_reuse":
+                    # La revocación por reutilización se confirma (y se audita) aunque la
+                    # petición falle.
                     await uow.sessions.save(session)
+                    await record_audit(
+                        uow,
+                        AuditAction.SESSION_REUSE_DETECTED,
+                        target=AuditTarget.SESSION,
+                        target_id=session.id,
+                        subject_user_id=user.id,
+                        now=now,
+                    )
                     await uow.commit()
                 raise
 

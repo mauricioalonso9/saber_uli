@@ -3,12 +3,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from saber_uli.identity.application.ports import (
+    AuditRepository,
     ConsentReader,
     GuestAccessReader,
     SessionRepository,
     UserRepository,
 )
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
+from saber_uli.identity.infrastructure.repositories.audit import SqlAlchemyAuditRepository
 from saber_uli.identity.infrastructure.repositories.consents import SqlAlchemyConsentReader
 from saber_uli.identity.infrastructure.repositories.guest_access import (
     SqlAlchemyGuestAccessReader,
@@ -38,3 +40,7 @@ class SqlAlchemyIdentityUnitOfWork(SqlAlchemyUnitOfWork, IdentityUnitOfWork):
     @property
     def consents(self) -> ConsentReader:
         return SqlAlchemyConsentReader(self.session)
+
+    @property
+    def audit(self) -> AuditRepository:
+        return SqlAlchemyAuditRepository(self.session)

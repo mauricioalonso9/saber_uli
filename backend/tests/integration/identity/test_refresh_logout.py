@@ -102,6 +102,10 @@ async def login(
             {"ids": created},
         )
         await conn.execute(
+            text("DELETE FROM identity.audit_events WHERE subject_user_id = ANY(:ids)"),
+            {"ids": created},
+        )
+        await conn.execute(
             text("DELETE FROM identity.users WHERE id = ANY(:ids)"), {"ids": created}
         )
     await engine.dispose()
@@ -177,8 +181,10 @@ async def test_renueva_rota_la_cookie_y_entrega_el_token(
     assert int(new["max-age"]) == int(timedelta(days=7).total_seconds())
 
 
-async def test_reutilizar_un_token_rotado_revoca_la_familia(app: FastAPI, login: Login) -> None:
-    _, cookie = await login()
+async def test_reutilizar_un_token_rotado_revoca_la_familia(
+    app: FastAPI, login: Login, app_engine: AsyncEngine
+) -> None:
+    user, cookie = await login()
     rotated = set_cookie(await refresh(app, cookie)).value
 
     reused = await refresh(app, cookie)
@@ -187,6 +193,15 @@ async def test_reutilizar_un_token_rotado_revoca_la_familia(app: FastAPI, login:
     assert set_cookie(reused)["max-age"] == "0"
     # El token más reciente de la familia también quedó inválido.
     assert problem(await refresh(app, rotated)) == "session-revoked"
+    # La reutilización queda auditada (sin datos personales).
+    async with app_engine.connect() as conn:
+        actions = (
+            await conn.execute(
+                text("SELECT action FROM identity.audit_events WHERE subject_user_id = :u"),
+                {"u": user.id},
+            )
+        ).scalars()
+        assert list(actions) == ["session.reuse_detected"]
 
 
 async def test_cuenta_desactivada(app: FastAPI, login: Login, app_engine: AsyncEngine) -> None:

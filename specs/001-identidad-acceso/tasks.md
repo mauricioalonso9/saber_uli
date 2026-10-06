@@ -491,8 +491,7 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Decisión pendiente: el contrato exige `X-Requested-With: saber-uli` en refresh y logout pero
     no documenta un 4xx para su ausencia. Implementado: refresh → 401 `unauthenticated` (código
     documentado) y logout → 204 sin revocar nada. Opción: documentar 401 (o 403) en ambas rutas.
-  - Pendiente para T054: auditar `session.reuse_detected` cuando se revoca una sesión por
-    reutilización (el escritor de auditoría aún no existe).
+  - Resuelto en T054: la revocación por reutilización se audita como `session.reuse_detected`.
 - [x] T051 [P] Prueba: estado de autorización y guardia de consentimiento en `backend/tests/unit/identity/test_consent_status.py` (vigente solo si el último registro es `accepted` y su versión es la vigente; sin registros, `rejected`, `revoked` o versión anterior → `consent_required`) y `backend/tests/integration/identity/test_consent_guard.py` (ruta sin `x-consent-exempt` → 403 `consent-required`; rutas exentas responden; FR-014) → Qwen
   - Terminado: las pruebas fallan.
   - Estado: ver T052.
@@ -510,10 +509,19 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     el conftest de integración. 15 pruebas en verde.
   - Nota: mientras no se publique una versión de la política (US2), toda ruta no exenta de
     `/api/v1` responde 403 `consent-required`.
-- [ ] T053 [P] Prueba: auditoría en `backend/tests/integration/identity/test_audit_writer.py` (el evento se escribe en la misma transacción que la acción; `action` del catálogo de data-model §5; rechaza `details` con claves `email`, `name`, `display_name` o valores con forma de correo; `actor_id` `NULL` = sistema) → Qwen
+- [x] T053 [P] Prueba: auditoría en `backend/tests/integration/identity/test_audit_writer.py` (el evento se escribe en la misma transacción que la acción; `action` del catálogo de data-model §5; rechaza `details` con claves `email`, `name`, `display_name` o valores con forma de correo; `actor_id` `NULL` = sistema) → Qwen
   - Terminado: la prueba falla.
-- [ ] T054 Implementar `backend/src/saber_uli/identity/application/audit.py` y `backend/src/saber_uli/identity/infrastructure/repositories/audit.py` → Qwen
+  - Estado: ver T054.
+- [x] T054 Implementar `backend/src/saber_uli/identity/application/audit.py` y `backend/src/saber_uli/identity/infrastructure/repositories/audit.py` → Qwen
   - Terminado: T053 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T053 falló por
+    `ImportError` (commit `fbc368d`). `AuditAction` (catálogo cerrado de data-model §5; una
+    prueba lo compara con el documento), `AuditTarget`, `AuditEntry` y `record_audit`, que
+    escribe con la misma unidad de trabajo que la acción (`uow.audit`) y rechaza antes de escribir
+    claves de nombre o correo (también anidadas y sin distinguir mayúsculas) y cualquier valor con
+    forma de correo (`PersonalDataInAuditError`). `SqlAlchemyAuditRepository` solo inserta.
+    Cerrado el pendiente de T050: la renovación audita `session.reuse_detected` una sola vez al
+    revocar por reutilización. T053 (11 pruebas) en verde; suite: 331.
 - [ ] T055 [P] Prueba: parámetros en `backend/tests/unit/identity/test_settings.py` (valores por defecto `teacher_max_access_days`=180, `default_guest_access_days`=90, `invitation_link_ttl_days`=7, `sign_in_link_ttl_minutes`=15; rangos del contrato: 1–730, 1–730, 1–30, 5–60) → Qwen
   - Terminado: la prueba falla.
 - [ ] T056 Implementar `backend/src/saber_uli/identity/domain/settings.py` y `backend/src/saber_uli/identity/infrastructure/repositories/settings.py` (con semilla de valores por defecto en la migración `backend/migrations/versions/0004_identity_settings_seed.py`) → Qwen

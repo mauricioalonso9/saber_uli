@@ -107,7 +107,14 @@ follow_untyped_imports = true
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "-ra"
+# Las pruebas de infraestructura (T007) levantan todo el stack: se ejecutan aparte con
+# `pytest -m infra tests/infra` (trabajo `infra` de CI).
+addopts = "-ra -m 'not infra'"
+markers = [
+    "infra: prueba de infraestructura con Docker Compose (T007)",
+    "full_stack: necesita api, worker, beat y migrate (se exige al cerrar T058)",
+    "integration: prueba con contenedores de PostgreSQL y Redis (T024)",
+]
 
 # Cobertura (constitución IV): mínimo 80 % en las capas domain y application de cada contexto.
 [tool.coverage.run]

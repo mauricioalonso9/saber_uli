@@ -115,8 +115,14 @@ de forma independiente a partir de la fase 2.
     `--log-config`: cada worker llama a `configure_logging`. Verificado: `id -u` = 10001; imagen
     de 380 MB; `migrate` y `api` fallan solo porque faltan `cli.py` (T026) y `main.py` (T058).
     `alembic.ini` no se copia: `run_migrations` arma la configuración por código (lote 04).
-- [ ] T009 [P] Crear `frontend/Dockerfile` multi-etapa (build con Node 24; final `nginxinc/nginx-unprivileged` que copia `dist/` y `infra/nginx/`) → Qwen
+- [x] T009 [P] Crear `frontend/Dockerfile` multi-etapa (build con Node 24; final `nginxinc/nginx-unprivileged` que copia `dist/` y `infra/nginx/`) → Qwen
   - Terminado: la imagen sirve `index.html` en el puerto 8080 sin root; la imagen corre sin UID 0 según T007.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos. Build con
+    `node:24-alpine` (`npm ci` con caché y `npm run build`); final
+    `nginxinc/nginx-unprivileged:1.29-alpine` (UID 101, puerto 8080) con la disposición de
+    `infra/nginx/default.conf`. Verificado: `nginx -t` correcto; `/` con CSP sin `unsafe-inline`
+    en `script-src`, `nosniff`, `no-referrer` y `DENY`; `/sw.js` (404 hasta T068) con
+    `Service-Worker-Allowed: /` y `no-cache`; fallback SPA a `index.html`.
 - [ ] T010 [P] Escribir la configuración de Nginx en `infra/nginx/default.conf` y `infra/nginx/security-headers.conf`: proxy de `/api/` a `api:8000`; `sw.js` y `manifest.webmanifest` con `Cache-Control: no-cache` y `Service-Worker-Allowed: /`; fallback SPA a `index.html`; cabeceras `Content-Security-Policy` (sin `unsafe-inline` en `script-src`, `connect-src 'self'`), `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Permissions-Policy` restrictiva, `X-Frame-Options: DENY`; HSTS solo en `infra/nginx/tls.conf` para producción (research R-33) → Opus
   - Estado: implementada por Opus en `infra/nginx/{default.conf,locations.conf,security-headers.conf,tls.conf}`; falta verificarla en contenedor con T007.
   - Nota para T009: copiar `default.conf` a `/etc/nginx/conf.d/default.conf` y los demás archivos de `infra/nginx/` a `/etc/nginx/saber/` (no a `conf.d/`, porque Nginx incluye todo `conf.d/*.conf` en el contexto http).

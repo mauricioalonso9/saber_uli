@@ -175,14 +175,22 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     el valor recibido ni el texto de una excepción.
 - [ ] T021 Implementar `backend/src/saber_uli/shared/api/problems.py` (excepciones de dominio → Problem, manejadores de FastAPI, incluido 422 de validación) y `backend/src/saber_uli/shared/api/pagination.py` → Qwen
   - Terminado: T020 en verde.
-- [ ] T022 [P] Prueba: bloques de dominio en `backend/tests/unit/shared/test_domain_base.py` (`DomainEvent` con `event_id` uuid y `occurred_at`; `Clock` del sistema y `FixedClock` para pruebas; errores de dominio con slug) → Qwen
+- [x] T022 [P] Prueba: bloques de dominio en `backend/tests/unit/shared/test_domain_base.py` (`DomainEvent` con `event_id` uuid y `occurred_at`; `Clock` del sistema y `FixedClock` para pruebas; errores de dominio con slug) → Qwen
   - Terminado: la prueba falla.
   - Nota de Opus (2026-10-06): API definida en `handoffs/qwen-02-T016-T017-T022-T023.md`;
     errores con categorías `NotFoundError`, `PermissionDeniedError`, `ConflictError` y
     `RuleViolationError` que T021 traduce a 404, 403, 409 y 422.
-- [ ] T023 Implementar `backend/src/saber_uli/shared/domain/{events.py,clock.py,errors.py}` → Qwen
+  - Estado: ver T023.
+- [x] T023 Implementar `backend/src/saber_uli/shared/domain/{events.py,clock.py,errors.py}` → Qwen
   - Terminado: T022 en verde; `lint-imports` confirma que `shared.domain` no importa infraestructura.
   - Nota de Opus (2026-10-06): agregar la fixture `fixed_clock` a `backend/tests/conftest.py`.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T022 falló por
+    `ImportError` (commit `c22aa50`). `DomainEvent` (dataclass congelada, `event_id` uuid4,
+    `occurred_at` obligatorio en UTC, `event_type` validado al definir la subclase),
+    `SystemClock`/`FixedClock` (normaliza a UTC, rechaza fechas sin zona) y errores por categoría
+    (`NotFoundError`, `PermissionDeniedError`, `ConflictError`, `RuleViolationError`; slug
+    kebab-case validado; `DomainError` no instanciable). Fixture `fixed_clock` en
+    `backend/tests/conftest.py`. `lint-imports`: 5 KEPT.
 - [ ] T024 [P] Crear fixtures de pruebas en `backend/tests/conftest.py` y `backend/tests/integration/conftest.py`: contenedores `postgres:18` (con los scripts de `infra/postgres/init/`) y `redis:8`, aplicación de migraciones, sesión por prueba con rollback, `FixedClock`, cliente `httpx.AsyncClient` sobre la app ASGI, fábrica de usuarios por rol y emisor de tokens de prueba → Qwen
   - Terminado: una prueba de humo de integración arranca los contenedores y hace `SELECT 1` con el rol `saber_app`.
   - Nota de Opus (2026-10-06): alcance. T024 entrega contenedores, motores por rol, sesión con

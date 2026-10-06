@@ -1,0 +1,6 @@
+{% extends "base.txt.j2" %}
+{% block content %}{{ title }}
+{% for paragraph in paragraphs %}
+{{ paragraph }}
+{% endfor %}
+{{ action_label }}: {{ action_path | absolute_url }}{% endblock %}

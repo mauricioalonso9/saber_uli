@@ -408,10 +408,23 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
 
 ### Correo (contexto notifications)
 
-- [ ] T037 [P] Prueba: correo en `backend/tests/unit/notifications/test_templates.py` (plantillas HTML y texto en es-CO, autoescape activo, enlaces absolutos con `PUBLIC_BASE_URL`) y `backend/tests/integration/notifications/test_smtp_sender.py` (envío real a un contenedor Mailpit, verificado por su API) → Qwen
+- [x] T037 [P] Prueba: correo en `backend/tests/unit/notifications/test_templates.py` (plantillas HTML y texto en es-CO, autoescape activo, enlaces absolutos con `PUBLIC_BASE_URL`) y `backend/tests/integration/notifications/test_smtp_sender.py` (envío real a un contenedor Mailpit, verificado por su API) → Qwen
   - Terminado: las pruebas fallan.
-- [ ] T038 Implementar `backend/src/saber_uli/notifications/application/public.py` (fachada `send_email(template, to, context)`), `backend/src/saber_uli/notifications/application/ports.py` (`EmailSender`), `backend/src/saber_uli/notifications/infrastructure/smtp.py` (smtplib) y `backend/src/saber_uli/notifications/infrastructure/templates/base.{html,txt}.j2` → Qwen
+  - Estado: ver T038.
+- [x] T038 Implementar `backend/src/saber_uli/notifications/application/public.py` (fachada `send_email(template, to, context)`), `backend/src/saber_uli/notifications/application/ports.py` (`EmailSender`), `backend/src/saber_uli/notifications/infrastructure/smtp.py` (smtplib) y `backend/src/saber_uli/notifications/infrastructure/templates/base.{html,txt}.j2` → Qwen
   - Terminado: T037 en verde; los logs del envío no contienen el destinatario.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T037 falló por
+    `ImportError` (commit `c5a39a7`). Puertos `TemplateRenderer` y `EmailSender`; fachada
+    `EmailService.send_email(template, to, context)` (valida una sola dirección sin saltos de
+    línea; registra `email_sent` solo con la plantilla, nunca el destinatario).
+    `JinjaTemplateRenderer`: por plantilla `<nombre>.subject.j2`, `.html.j2` (autoescape) y
+    `.txt.j2`; `StrictUndefined`; el filtro `absolute_url` solo acepta rutas que empiezan por
+    `/` y las une a `PUBLIC_BASE_URL` (ningún enlace a otros dominios); el asunto se limpia de
+    saltos de línea. Plantillas `base` (es-CO, pie de la Universidad Libre) y `aviso` (genérica:
+    título, párrafos y botón). `SmtpEmailSender` con `smtplib` en un hilo (multipart texto y
+    HTML, STARTTLS y autenticación opcionales). T037: 11 pruebas en verde, incluido el envío real
+    a un contenedor Mailpit verificado por su API. Las plantillas viajan en la imagen Docker
+    (verificado).
 
 ### Identidad: usuarios, permisos, sesiones y guardias
 

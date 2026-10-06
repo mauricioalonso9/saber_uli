@@ -115,6 +115,12 @@ de forma independiente a partir de la fase 2.
   - Terminado: la parte de roles y extensiones de T007 pasa al iniciar `db` desde cero; el superusuario no se usa en ningún otro servicio.
 - [ ] T012 Crear `compose.yaml` (servicios `proxy`, `api`, `worker`, `beat`, `migrate`, `db` con volumen en `/var/lib/postgresql`, `redis`), `compose.override.yaml` (recarga en caliente, `mailpit`, puertos locales) y `compose.prod.yaml` (TLS, `tls.conf`, sin mailpit); perfil `e2e` con `oidc` (`ghcr.io/navikt/mock-oauth2-server`, configuración en `infra/docker/mock-oauth2.json` con un emisor del inquilino válido y otro externo) y `mailpit`; `user:` explícito sin privilegios en `mailpit` y `oidc`; health checks y `depends_on` según la tabla de servicios de plan.md → Qwen
   - Terminado: T007 pasa completa (Compose válido, servicios `healthy`, `migrate` con código 0 y ningún proceso principal con UID 0).
+  - Nota de Opus (2026-10-06): secuencia. T012 necesita antes T008, T009 y T013. Su verificación
+    se hace en dos tiempos: al entregarla, `docker compose config` es válido en las tres
+    combinaciones y `db`, `redis`, `proxy`, `mailpit` y `oidc` quedan `healthy`, con las pruebas de
+    T007 de cabeceras, roles, extensiones y UID en verde sobre esos servicios. Las comprobaciones de
+    `api`, `worker`, `beat` y `migrate` dependen de T026, T034 y T058, y T007 completa se exige al
+    cerrar T058.
 - [ ] T013 [P] Crear `.env.example` documentado: `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_AUTHORITY`, `PUBLIC_BASE_URL`, `INSTITUTIONAL_EMAIL_DOMAINS`, `JWT_SIGNING_KEY`, `JWT_KEY_ID`, `SESSION_COOKIE_SECRET`, `DATABASE_URL` (por rol), `REDIS_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `OTEL_ENABLED`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` (reservadas para la spec 009), contraseñas de roles de base de datos → Qwen
   - Terminado: cada variable tiene comentario en español; ningún valor real; `.env` está en `.gitignore`.
 - [ ] T014 [P] Crear `.github/workflows/ci.yml` con los trabajos `infra` (`pytest backend/tests/infra`), `backend-quality` (ruff, mypy, lint-imports), `backend-tests` (pytest con cobertura y `fail_under`), `contract` (Schemathesis), `frontend-quality` (lint, typecheck, vitest, verificación de que `npm run api:generate` no deja cambios), `e2e` (compose perfil `e2e` + Playwright), `lighthouse`, `build` (imágenes) y `security` (Trivy sobre imágenes y sistema de archivos, falla con severidad CRITICAL/HIGH); y `.github/dependabot.yml` para pip, npm, docker y actions → Qwen
@@ -160,12 +166,20 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Terminado: la prueba falla.
 - [ ] T023 Implementar `backend/src/saber_uli/shared/domain/{events.py,clock.py,errors.py}` → Qwen
   - Terminado: T022 en verde; `lint-imports` confirma que `shared.domain` no importa infraestructura.
+  - Nota de Opus (2026-10-06): agregar la fixture `fixed_clock` a `backend/tests/conftest.py`.
 - [ ] T024 [P] Crear fixtures de pruebas en `backend/tests/conftest.py` y `backend/tests/integration/conftest.py`: contenedores `postgres:18` (con los scripts de `infra/postgres/init/`) y `redis:8`, aplicación de migraciones, sesión por prueba con rollback, `FixedClock`, cliente `httpx.AsyncClient` sobre la app ASGI, fábrica de usuarios por rol y emisor de tokens de prueba → Qwen
   - Terminado: una prueba de humo de integración arranca los contenedores y hace `SELECT 1` con el rol `saber_app`.
+  - Nota de Opus (2026-10-06): alcance. T024 entrega contenedores, motores por rol, sesión con
+    rollback, cliente de Redis y la fixture que aplica migraciones (usable desde T026). Las demás
+    fixtures las agrega la tarea que crea lo que necesitan: `fixed_clock` en T023, fábrica de
+    usuarios en T044, emisor de tokens de prueba en T046 y cliente ASGI en T058.
 - [ ] T025 [P] Prueba: unidad de trabajo en `backend/tests/integration/shared/test_unit_of_work.py` (commit persiste; excepción hace rollback; eventos del bus en proceso se despachan solo tras el commit) → Qwen
   - Terminado: la prueba falla.
 - [ ] T026 Implementar `backend/src/saber_uli/shared/infrastructure/db.py` (engine asyncpg, sesiones), `backend/src/saber_uli/shared/application/unit_of_work.py`, `backend/src/saber_uli/shared/application/event_bus.py` y `backend/migrations/env.py` (Alembic asíncrono, varios esquemas, `alembic_version` en `shared`) → Qwen
   - Terminado: T025 en verde; `saber-uli migrate` aplica cero migraciones sin error.
+  - Nota de Opus (2026-10-06): T026 crea también `backend/src/saber_uli/cli.py` con el comando
+    `migrate` (`alembic upgrade head` con el rol `saber_migrator`); lo usan el servicio `migrate` de
+    Compose (T008, T012) y la fixture de migraciones de T024.
 
 ### Esquema de datos
 
@@ -223,10 +237,14 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Terminado: la prueba falla.
 - [ ] T044 Implementar `backend/src/saber_uli/identity/infrastructure/orm.py` (mapeos SQLAlchemy de data-model.md) y `backend/src/saber_uli/identity/infrastructure/repositories/users.py` → Qwen
   - Terminado: T043 en verde.
+  - Nota de Opus (2026-10-06): agregar la fábrica de usuarios por rol a
+    `backend/tests/integration/conftest.py`.
 - [ ] T045 [P] Prueba: política de sesión y tokens en `backend/tests/unit/identity/test_session_policy.py` (JWT HS256 de 600 s con `kid` y claims `sub`, `sid`, `roles`, `epoch`, `priv`, `iat`, `exp`; token de renovación de 256 bits guardado solo como SHA-256; rotación en cada uso; reutilizar un token rotado revoca la sesión; inactividad 7 días y absoluto 30 días; `priv=true` solo con rol privilegiado, `auth_time` < 12 h y actividad privilegiada < 30 min; una sesión recién creada o reautenticada inicializa `last_privileged_activity_at = auth_time`, así que un administrador recién autenticado obtiene `priv=true`; con 31 min sin actividad privilegiada obtiene `priv=false`; research R-14 y R-15) → Opus
   - Terminado: la prueba falla.
 - [ ] T046 Implementar `backend/src/saber_uli/identity/domain/session.py`, `backend/src/saber_uli/identity/infrastructure/tokens.py` y `backend/src/saber_uli/identity/infrastructure/repositories/sessions.py` → Opus
   - Terminado: T045 en verde.
+  - Nota de Opus (2026-10-06): agregar el emisor de tokens de prueba a
+    `backend/tests/integration/conftest.py`.
 - [ ] T047 [P] Prueba: dependencia de autenticación en `backend/tests/integration/identity/test_auth_dependency.py` (sin token → 401 `unauthenticated`; `epoch` distinto → 401 con causa `account-disabled`, `guest-access-expired`, `guest-access-revoked` o `session-revoked`; ruta `x-requires-privileged-session` sin `priv` → 401 `reauthentication-required`; `auth_epoch` leído de Redis con respaldo en base de datos si Redis falla; la actividad privilegiada actualiza `last_privileged_activity_at`; research R-16) → Opus
   - Terminado: la prueba falla.
 - [ ] T048 Implementar `backend/src/saber_uli/shared/api/auth.py` (dependencias `current_user` y `require_privileged`), `backend/src/saber_uli/identity/application/access_guard.py` y `backend/src/saber_uli/identity/infrastructure/epoch_cache.py` → Opus
@@ -251,6 +269,9 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Terminado: la prueba falla.
 - [ ] T058 Implementar `backend/src/saber_uli/main.py` (app FastAPI, routers, manejadores de problemas, logging, `SessionMiddleware` acotada a `/api/auth/microsoft`) y `backend/src/saber_uli/shared/api/health.py` → Qwen
   - Terminado: T057 en verde; `docker compose up` deja `api` en `healthy`.
+  - Nota de Opus (2026-10-06): agregar el cliente `httpx.AsyncClient` sobre la app ASGI a
+    `backend/tests/integration/conftest.py`. Al cerrar T058, T007 debe pasar completa (servicios
+    `api`, `worker`, `beat` y `migrate` incluidos; ver la nota de T012).
 - [ ] T059 Crear el arnés de contrato `backend/tests/contract/test_openapi_contract.py` con Schemathesis sobre la app ASGI, autenticado con tokens de prueba por rol, y la lista `backend/tests/contract/implemented_operations.py` (cada historia agrega sus `operationId`) → Qwen
   - Terminado: corre en verde con las operaciones de la fase 2 (`getHealth`, `getReadiness`, `refreshSession`, `logout`).
 

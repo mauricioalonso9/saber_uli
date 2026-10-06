@@ -165,6 +165,10 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `configure_logging` al arrancar y lanzar uvicorn con `log_config=None`.
 - [ ] T020 [P] Prueba: Problem Details y paginación en `backend/tests/unit/shared/test_problems.py` (respuesta `application/problem+json`, `type` = `urn:saber-uli:problem:<slug>`, `errors` por campo en 422, `page`≥1, `page_size` 1–100 por defecto 25, `total`) → Qwen
   - Terminado: la prueba falla.
+  - Nota de Opus (2026-10-06): API y reglas de traducción en `handoffs/qwen-03-T020-T021.md`.
+    Requiere T023. Incluye `ProblemException` para los problemas de la capa API (T036, T048,
+    T052, T058) y `about:blank` para errores HTTP genéricos y 500; las respuestas nunca repiten
+    el valor recibido ni el texto de una excepción.
 - [ ] T021 Implementar `backend/src/saber_uli/shared/api/problems.py` (excepciones de dominio → Problem, manejadores de FastAPI, incluido 422 de validación) y `backend/src/saber_uli/shared/api/pagination.py` → Qwen
   - Terminado: T020 en verde.
 - [ ] T022 [P] Prueba: bloques de dominio en `backend/tests/unit/shared/test_domain_base.py` (`DomainEvent` con `event_id` uuid y `occurred_at`; `Clock` del sistema y `FixedClock` para pruebas; errores de dominio con slug) → Qwen

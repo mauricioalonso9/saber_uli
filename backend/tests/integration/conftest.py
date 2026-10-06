@@ -124,8 +124,9 @@ def migrated_database(database_urls: dict[str, str]) -> dict[str, str]:
 
 
 @pytest.fixture
-async def app_engine(database_urls: dict[str, str]) -> AsyncIterator[AsyncEngine]:
-    engine = create_async_engine(database_urls["app"], poolclass=NullPool)
+async def app_engine(migrated_database: dict[str, str]) -> AsyncIterator[AsyncEngine]:
+    """Motor de saber_app sobre la base ya migrada (tablas y permisos de 0003)."""
+    engine = create_async_engine(migrated_database["app"], poolclass=NullPool)
     yield engine
     await engine.dispose()
 

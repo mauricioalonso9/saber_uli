@@ -25,6 +25,15 @@ IDENTITY = InstitutionalIdentity(
 )
 
 
+def state(user: User) -> UserStatus:
+    """Lee el estado sin que mypy lo estreche entre transiciones."""
+    return user.status
+
+
+def notice(user: User) -> datetime | None:
+    return user.retention_notice_sent_at
+
+
 def institutional() -> User:
     return User.new_institutional(
         IDENTITY, email="ana@unilibre.edu.co", display_name="Ana Pérez", now=NOW
@@ -43,7 +52,7 @@ def test_creacion_institucional_con_rol_estudiante() -> None:
 
     assert user.id is None  # lo asigna la base de datos (uuidv7) al guardar
     assert user.kind is UserKind.INSTITUTIONAL
-    assert user.status is UserStatus.ACTIVE
+    assert state(user) is UserStatus.ACTIVE
     assert user.roles == {Role.STUDENT}
     assert user.entra_identity == IDENTITY
     assert (user.email, user.display_name) == ("ana@unilibre.edu.co", "Ana Pérez")
@@ -74,11 +83,11 @@ def test_desactivar_y_reactivar() -> None:
     user = institutional()
 
     user.disable()
-    assert user.status is UserStatus.DISABLED
+    assert state(user) is UserStatus.DISABLED
     assert user.auth_epoch == 1  # revoca sesiones
 
     user.reactivate()
-    assert user.status is UserStatus.ACTIVE
+    assert state(user) is UserStatus.ACTIVE
     assert user.auth_epoch == 1  # reactivar no revoca nada
 
 
@@ -91,7 +100,7 @@ def test_solicitar_supresion_desde_activo_o_desactivado(start: str) -> None:
 
     user.request_deletion()
 
-    assert user.status is UserStatus.DELETION_PENDING
+    assert state(user) is UserStatus.DELETION_PENDING
     assert user.auth_epoch == epoch + 1
 
 
@@ -101,7 +110,7 @@ def test_la_lapida_no_tiene_datos_personales_ni_roles() -> None:
 
     user.to_tombstone()
 
-    assert user.status is UserStatus.DELETED
+    assert state(user) is UserStatus.DELETED
     assert (user.email, user.display_name) == (None, None)
     assert user.entra_identity is None
     assert user.roles == set()
@@ -127,16 +136,17 @@ def test_deleted_es_final() -> None:
 @pytest.mark.parametrize(
     ("prepare", "transition"),
     [
-        (lambda u: u.disable(), "disable"),
-        (lambda u: None, "reactivate"),
-        (lambda u: u.request_deletion(), "request_deletion"),
-        (lambda u: u.request_deletion(), "disable"),
-        (lambda u: u.request_deletion(), "reactivate"),
+        ("disable", "disable"),
+        (None, "reactivate"),
+        ("request_deletion", "request_deletion"),
+        ("request_deletion", "disable"),
+        ("request_deletion", "reactivate"),
     ],
 )
-def test_transiciones_invalidas(prepare: object, transition: str) -> None:
+def test_transiciones_invalidas(prepare: str | None, transition: str) -> None:
     user = institutional()
-    prepare(user)  # type: ignore[operator]
+    if prepare:
+        getattr(user, prepare)()
 
     with pytest.raises(InvalidUserTransitionError) as info:
         getattr(user, transition)()
@@ -163,7 +173,7 @@ def test_registrar_ingreso_actualiza_datos_del_directorio_y_limpia_el_aviso() ->
     user.record_login(later, email="ana.perez@unilibre.edu.co", display_name="Ana M. Pérez")
 
     assert user.last_login_at == later
-    assert user.retention_notice_sent_at is None
+    assert notice(user) is None
     assert (user.email, user.display_name) == ("ana.perez@unilibre.edu.co", "Ana M. Pérez")
 
 

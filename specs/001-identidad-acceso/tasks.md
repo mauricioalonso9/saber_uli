@@ -394,10 +394,21 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `has_privileged_role` (docente, director, administrador) queda listo para el claim `priv` de
     T045–T046. R-22 se alineó con el contrato, que tiene además `programs:manage` y
     `deletions:read`. Se agregaron `pyyaml` y `types-pyyaml` como dependencias de desarrollo.
-- [ ] T041 [P] Prueba: agregado `User` en `backend/tests/unit/identity/test_user.py` (creación institucional con `student`; transiciones `active↔disabled`, `→deletion_pending→deleted` y `deleted` final; cada transición que revoca sesiones incrementa `auth_epoch`; registrar ingreso actualiza `last_login_at` y limpia `retention_notice_sent_at`; `to_tombstone()` deja nombre, correo y `oid` en `None`) → Qwen
+- [x] T041 [P] Prueba: agregado `User` en `backend/tests/unit/identity/test_user.py` (creación institucional con `student`; transiciones `active↔disabled`, `→deletion_pending→deleted` y `deleted` final; cada transición que revoca sesiones incrementa `auth_epoch`; registrar ingreso actualiza `last_login_at` y limpia `retention_notice_sent_at`; `to_tombstone()` deja nombre, correo y `oid` en `None`) → Qwen
   - Terminado: la prueba falla.
-- [ ] T042 Implementar `backend/src/saber_uli/identity/domain/user.py` → Qwen
+  - Estado: ver T042.
+- [x] T042 Implementar `backend/src/saber_uli/identity/domain/user.py` → Qwen
   - Terminado: T041 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T041 falló por
+    `ImportError` (commit `04c68e4`). `User` (dataclass, `id = None` hasta que la base asigna
+    `uuidv7()`), `UserKind`, `UserStatus`, `InstitutionalIdentity`. Transiciones de §4.1
+    (`disable`, `reactivate`, `request_deletion`, `to_tombstone`; `deleted` final) con
+    `InvalidUserTransitionError` (409 `conflict`); `invalidate_sessions()` incrementa
+    `auth_epoch` y lo usan desactivar, solicitar supresión y retirar roles; `record_login`
+    actualiza correo y nombre del directorio, `last_login_at` y limpia
+    `retention_notice_sent_at`; `grant_role`/`revoke_role` con `guest-role-exclusive` y
+    `student-role-required` (slugs del contrato). La regla del último administrador queda para
+    la aplicación (necesita `FOR UPDATE`). 24 pruebas en verde.
 - [ ] T043 [P] Prueba: repositorios en `backend/tests/integration/identity/test_user_repository.py` (guardar y leer `User` con roles; buscar por `(tid, oid)`; búsqueda de invitado vigente por correo sin distinguir mayúsculas; bloqueo de administradores activos con `FOR UPDATE`) → Qwen
   - Terminado: la prueba falla.
 - [ ] T044 Implementar `backend/src/saber_uli/identity/infrastructure/orm.py` (mapeos SQLAlchemy de data-model.md) y `backend/src/saber_uli/identity/infrastructure/repositories/users.py` → Qwen

@@ -12,7 +12,8 @@ Sin Docker, todo `tests/integration/` se omite, salvo con `REQUIRE_DOCKER=1`.
 
 - `token_codec` y `issue_token`: tokens de acceso de prueba con una sesión real (T046).
 
-Fixture que agrega otra tarea: cliente ASGI (T058).
+- `settings_for` y `api_client`: configuración de prueba y cliente HTTP sobre la app ASGI
+  completa (T058).
 """
 
 import asyncio
@@ -20,8 +21,10 @@ import secrets
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
+import httpx
 import pytest
 from redis.asyncio import Redis
 from sqlalchemy import NullPool, text
@@ -36,6 +39,10 @@ from saber_uli.identity.domain.user import InstitutionalIdentity, User
 from saber_uli.identity.infrastructure.repositories.sessions import SqlAlchemySessionRepository
 from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
 from saber_uli.identity.infrastructure.tokens import AccessTokenClaims, AccessTokenCodec
+
+if TYPE_CHECKING:
+    from saber_uli.config import Settings
+
 from tests._docker import docker_available, docker_required, require_docker, skip_without_docker
 
 REPO = Path(__file__).resolve().parents[3]
@@ -312,3 +319,40 @@ async def committed_login(
         ):
             await conn.execute(text(statement), {"ids": created})
     await cleanup.dispose()
+
+
+def settings_for(urls: dict[str, str], redis_url: str) -> "Settings":
+    """Configuración completa de la app apuntando a los contenedores de prueba."""
+    from pydantic import SecretStr
+
+    from saber_uli.config import Settings
+
+    return Settings(
+        entra_tenant_id=TEST_TENANT,
+        entra_client_id=UUID("33333333-3333-4333-8333-333333333333"),
+        entra_client_secret=SecretStr("secreto-de-prueba"),
+        public_base_url="http://localhost",
+        institutional_email_domains=["unilibre.edu.co"],
+        jwt_signing_key=SecretStr(TEST_JWT_KEY.decode()),
+        jwt_key_id=TEST_JWT_KID,
+        session_cookie_secret=SecretStr("c" * 48),
+        database_url=SecretStr(urls["app"]),
+        migration_database_url=SecretStr(urls["migrator"]),
+        redis_url=SecretStr(redis_url),
+        smtp_host="mailpit",
+        smtp_from="Saber Uli <no-responder@unilibre.edu.co>",
+    )
+
+
+@pytest.fixture
+async def api_client(
+    migrated_database: dict[str, str], redis_url: str, redis_client: Redis
+) -> AsyncIterator[httpx.AsyncClient]:
+    import io
+
+    from saber_uli.main import create_app
+
+    app = create_app(settings_for(migrated_database, redis_url), log_stream=io.StringIO())
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client

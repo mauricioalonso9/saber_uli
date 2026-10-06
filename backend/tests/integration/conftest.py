@@ -10,7 +10,9 @@
 Sin Docker, todo `tests/integration/` se omite, salvo con `REQUIRE_DOCKER=1`.
 - `user_factory`: crea usuarios por rol en la sesión de la prueba (T044).
 
-Fixtures que agregan otras tareas: emisor de tokens (T046) y cliente ASGI (T058).
+- `token_codec` y `issue_token`: tokens de acceso de prueba con una sesión real (T046).
+
+Fixture que agrega otra tarea: cliente ASGI (T058).
 """
 
 import asyncio
@@ -29,8 +31,11 @@ from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
 
 from saber_uli.identity.domain.roles import Role
+from saber_uli.identity.domain.session import AuthMethod, Session
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
+from saber_uli.identity.infrastructure.repositories.sessions import SqlAlchemySessionRepository
 from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
+from saber_uli.identity.infrastructure.tokens import AccessTokenClaims, AccessTokenCodec
 from tests._docker import docker_available, docker_required, require_docker, skip_without_docker
 
 REPO = Path(__file__).resolve().parents[3]
@@ -201,3 +206,46 @@ def user_factory(db_session: AsyncSession) -> UserFactory:
         return await repo.add(user)
 
     return create
+
+
+TEST_JWT_KID = "test"
+TEST_JWT_KEY = b"clave-de-firma-de-prueba-de-256-bits-o-mas!!"
+TokenIssuer = Callable[..., Awaitable[str]]
+
+
+@pytest.fixture
+def token_codec() -> AccessTokenCodec:
+    return AccessTokenCodec({TEST_JWT_KID: TEST_JWT_KEY}, active_kid=TEST_JWT_KID)
+
+
+@pytest.fixture
+def issue_token(db_session: AsyncSession, token_codec: AccessTokenCodec) -> TokenIssuer:
+    """Abre una sesión real para el usuario y devuelve un token de acceso firmado.
+
+    `await issue_token(user, priv=True, epoch=0, issued_at=...)`. Por defecto usa la época
+    vigente del usuario, `priv=False` y la hora actual.
+    """
+    sessions = SqlAlchemySessionRepository(db_session)
+
+    async def issue(
+        user: User,
+        *,
+        priv: bool = False,
+        epoch: int | None = None,
+        issued_at: datetime | None = None,
+    ) -> str:
+        assert user.id is not None
+        when = issued_at or datetime.now(UTC)
+        session = await sessions.add(Session.start(user.id, AuthMethod.ENTRA_ID, when))
+        assert session.id is not None
+        claims = AccessTokenClaims(
+            sub=user.id,
+            sid=session.id,
+            roles=tuple(sorted(role.value for role in user.roles)),
+            epoch=user.auth_epoch if epoch is None else epoch,
+            priv=priv,
+            iat=when,
+        )
+        return token_codec.encode(claims)
+
+    return issue

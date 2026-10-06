@@ -427,12 +427,27 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     esquema migrado (`compare_metadata`), verificada con una mutación (nullable en `campus` →
     falla). `migrations/env.py` importa el ORM de identity. `app_engine` ahora depende de
     `migrated_database`. Fábrica `user_factory` en `tests/integration/conftest.py`. Suite: 250.
-- [ ] T045 [P] Prueba: política de sesión y tokens en `backend/tests/unit/identity/test_session_policy.py` (JWT HS256 de 600 s con `kid` y claims `sub`, `sid`, `roles`, `epoch`, `priv`, `iat`, `exp`; token de renovación de 256 bits guardado solo como SHA-256; rotación en cada uso; reutilizar un token rotado revoca la sesión; inactividad 7 días y absoluto 30 días; `priv=true` solo con rol privilegiado, `auth_time` < 12 h y actividad privilegiada < 30 min; una sesión recién creada o reautenticada inicializa `last_privileged_activity_at = auth_time`, así que un administrador recién autenticado obtiene `priv=true`; con 31 min sin actividad privilegiada obtiene `priv=false`; research R-14 y R-15) → Opus
+- [x] T045 [P] Prueba: política de sesión y tokens en `backend/tests/unit/identity/test_session_policy.py` (JWT HS256 de 600 s con `kid` y claims `sub`, `sid`, `roles`, `epoch`, `priv`, `iat`, `exp`; token de renovación de 256 bits guardado solo como SHA-256; rotación en cada uso; reutilizar un token rotado revoca la sesión; inactividad 7 días y absoluto 30 días; `priv=true` solo con rol privilegiado, `auth_time` < 12 h y actividad privilegiada < 30 min; una sesión recién creada o reautenticada inicializa `last_privileged_activity_at = auth_time`, así que un administrador recién autenticado obtiene `priv=true`; con 31 min sin actividad privilegiada obtiene `priv=false`; research R-14 y R-15) → Opus
   - Terminado: la prueba falla.
-- [ ] T046 Implementar `backend/src/saber_uli/identity/domain/session.py`, `backend/src/saber_uli/identity/infrastructure/tokens.py` y `backend/src/saber_uli/identity/infrastructure/repositories/sessions.py` → Opus
+  - Estado: ver T046.
+- [x] T046 Implementar `backend/src/saber_uli/identity/domain/session.py`, `backend/src/saber_uli/identity/infrastructure/tokens.py` y `backend/src/saber_uli/identity/infrastructure/repositories/sessions.py` → Opus
   - Terminado: T045 en verde.
   - Nota de Opus (2026-10-06): agregar el emisor de tokens de prueba a
     `backend/tests/integration/conftest.py`.
+  - Estado: implementadas por Opus (2026-10-06); T045 falló por `ImportError` (commit
+    `e935fd3`) y la prueba del repositorio también (commit `c94818d`). Dominio: `Session`
+    (`start` inicializa la actividad privilegiada con `auth_time`; `is_privileged` exige rol
+    privilegiado, autenticación < 12 h y actividad privilegiada < 30 min; `reauthenticate`,
+    `revoke`), `RefreshToken.issue` (inactividad de 7 días acotada al límite absoluto de 30) y
+    `rotate_refresh_token` (rotación en cada uso; reutilizar un token rotado revoca la sesión con
+    `token_reuse` → `session-revoked`; vencida → `session-expired`). Nueva categoría compartida
+    `UnauthenticatedError` (401) en `shared.domain.errors` y en `problems.py`, con sus pruebas.
+    Infraestructura: `AccessTokenCodec` (HS256 únicamente, `kid` con varias claves para rotar,
+    claims exactos, vencimiento con el reloj inyectado, claves de 256 bits como mínimo) y tokens
+    de renovación de 256 bits guardados solo como SHA-256. `SqlAlchemySessionRepository` con
+    `get_refresh_token_for_update` (`FOR UPDATE`: dos renovaciones simultáneas no rotan el mismo
+    token) y `revoke_all_for_user`. Fixtures `token_codec` e `issue_token` en
+    `tests/integration/conftest.py`. Suite: 280 en verde.
 - [ ] T047 [P] Prueba: dependencia de autenticación en `backend/tests/integration/identity/test_auth_dependency.py` (sin token → 401 `unauthenticated`; `epoch` distinto → 401 con causa `account-disabled`, `guest-access-expired`, `guest-access-revoked` o `session-revoked`; ruta `x-requires-privileged-session` sin `priv` → 401 `reauthentication-required`; `auth_epoch` leído de Redis con respaldo en base de datos si Redis falla; la actividad privilegiada actualiza `last_privileged_activity_at`; research R-16) → Opus
   - Terminado: la prueba falla.
 - [ ] T048 Implementar `backend/src/saber_uli/shared/api/auth.py` (dependencias `current_user` y `require_privileged`), `backend/src/saber_uli/identity/application/access_guard.py` y `backend/src/saber_uli/identity/infrastructure/epoch_cache.py` → Opus

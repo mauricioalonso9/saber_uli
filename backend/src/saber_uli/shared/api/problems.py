@@ -22,6 +22,7 @@ from saber_uli.shared.domain.errors import (
     NotFoundError,
     PermissionDeniedError,
     RuleViolationError,
+    UnauthenticatedError,
 )
 
 PROBLEM_TYPE_PREFIX = "urn:saber-uli:problem:"
@@ -29,6 +30,7 @@ PROBLEM_MEDIA_TYPE = "application/problem+json"
 ABOUT_BLANK = "about:blank"
 
 _CATEGORY_STATUS: Mapping[type[DomainError], int] = {
+    UnauthenticatedError: 401,
     NotFoundError: 404,
     PermissionDeniedError: 403,
     ConflictError: 409,

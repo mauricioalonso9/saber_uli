@@ -20,7 +20,12 @@ from saber_uli.shared.domain.errors import (
     NotFoundError,
     PermissionDeniedError,
     RuleViolationError,
+    UnauthenticatedError,
 )
+
+
+class _SesionVencida(UnauthenticatedError):
+    slug = "session-expired"
 
 
 class _GrupoInexistente(NotFoundError):
@@ -44,6 +49,7 @@ class _LoteGrande(RuleViolationError):
 
 
 ERRORS = {
+    "unauthenticated": _SesionVencida("Tu sesión venció."),
     "not-found": _GrupoInexistente("El grupo no existe."),
     "forbidden": _SinPermiso("La persona no es docente."),
     "conflict": _UltimoAdmin("No puedes quitar el último administrador."),
@@ -106,6 +112,7 @@ def assert_problem(response: Any, status: int, type_: str) -> dict[str, Any]:
 @pytest.mark.parametrize(
     ("kind", "status", "slug", "title"),
     [
+        ("unauthenticated", 401, "session-expired", "No autenticado"),
         ("not-found", 404, "group-not-found", "No encontrado"),
         ("forbidden", 403, "not-a-teacher", "Acción no permitida"),
         ("conflict", 409, "last-admin", "Conflicto con el estado actual"),

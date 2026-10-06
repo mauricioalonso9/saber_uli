@@ -14,6 +14,7 @@ from saber_uli.shared.domain.errors import (
     NotFoundError,
     PermissionDeniedError,
     RuleViolationError,
+    UnauthenticatedError,
 )
 from saber_uli.shared.domain.events import DomainEvent
 
@@ -143,6 +144,7 @@ def test_fixture_fixed_clock(fixed_clock: FixedClock) -> None:
 @pytest.mark.parametrize(
     ("category", "slug"),
     [
+        (UnauthenticatedError, "unauthenticated"),
         (NotFoundError, "not-found"),
         (PermissionDeniedError, "forbidden"),
         (ConflictError, "conflict"),

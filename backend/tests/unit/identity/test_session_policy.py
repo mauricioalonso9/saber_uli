@@ -99,7 +99,7 @@ def test_token_vencido() -> None:
     [
         jwt.encode({"sub": "x"}, OTHER_KEY, algorithm="HS256", headers={"kid": "2026-10"}),
         jwt.encode({"sub": "x"}, KEY, algorithm="HS256", headers={"kid": "otra"}),
-        jwt.encode({"sub": "x"}, KEY, algorithm="HS512", headers={"kid": "2026-10"}),
+        jwt.encode({"sub": "x"}, KEY * 2, algorithm="HS512", headers={"kid": "2026-10"}),
         jwt.encode({"sub": "x"}, None, algorithm="none", headers={"kid": "2026-10"}),
         "no-es-un-jwt",
     ],

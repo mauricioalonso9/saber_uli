@@ -660,10 +660,19 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     cuerpo RFC 9457 es `service-unavailable`. Se exporta `refreshAccessToken()` para el arranque
     de T080. Nota: `shared/api/http.ts` importa `features/auth/session-store.ts` porque así lo
     fija la tarea; si se agrega una regla de capas en eslint, mover el store a `shared/`.
-- [ ] T064 [P] Prueba: acceso sin conexión en `frontend/src/features/auth/offline-access.test.ts` (guarda la instantánea de `/api/v1/me` y `lastValidatedAt` en Dexie; sin red permite usar la app si `ahora − lastValidatedAt ≤ 7 días`; después bloquea con mensaje; al reconectar llama primero a `/api/auth/refresh` y luego a `/api/v1/me` antes de permitir sincronizar; FR-038, FR-039) → Qwen
+- [x] T064 [P] Prueba: acceso sin conexión en `frontend/src/features/auth/offline-access.test.ts` (guarda la instantánea de `/api/v1/me` y `lastValidatedAt` en Dexie; sin red permite usar la app si `ahora − lastValidatedAt ≤ 7 días`; después bloquea con mensaje; al reconectar llama primero a `/api/auth/refresh` y luego a `/api/v1/me` antes de permitir sincronizar; FR-038, FR-039) → Qwen
   - Terminado: la prueba falla.
-- [ ] T065 Implementar `frontend/src/shared/db/dexie.ts` y `frontend/src/features/auth/offline-access.ts` (incluye el hook `useCanSync` que la spec 003 usará) → Qwen
+  - Estado: ver T065.
+- [x] T065 Implementar `frontend/src/shared/db/dexie.ts` y `frontend/src/features/auth/offline-access.ts` (incluye el hook `useCanSync` que la spec 003 usará) → Qwen
   - Terminado: T064 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T064 falló al no
+    existir los módulos (commit `011993c`). `shared/db/dexie.ts` (base `saber-uli`, tabla `meta`;
+    nunca guarda tokens). `features/auth/offline-access.ts`: `saveValidation` (instantánea de
+    `/me` y `lastValidatedAt`), `evaluateOfflineAccess` (`allowed` hasta 7 días inclusive,
+    `expired` con mensaje en español, `none` sin instantánea), `revalidate` (renovación y luego
+    `/me` con el token nuevo; la instantánea solo se actualiza si ambas funcionan) y `useCanSync`
+    (falso hasta revalidar; se apaga sin conexión y al reconectar vuelve a revalidar). Dependencia
+    de desarrollo `fake-indexeddb`. 11 pruebas en verde; frontend: 69.
 - [ ] T066 [P] Prueba: guardias de navegación en `frontend/src/app/guards.test.tsx` (sin sesión → `/ingresar`; `consent_required` → `/bienvenida/datos`; `profile_required` → `/bienvenida/perfil`; rutas de administración y docente según `permissions`; retomar el paso pendiente del primer ingreso, FR-022) → Qwen
   - Terminado: la prueba falla.
 - [ ] T067 Implementar `frontend/src/app/guards.ts` y su conexión en `frontend/src/app/router.tsx` → Qwen

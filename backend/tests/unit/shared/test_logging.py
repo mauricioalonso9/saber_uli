@@ -1,5 +1,6 @@
 """T018: los logs no contienen datos personales (principio V, FR-036, research R-23)."""
 
+import io
 import json
 import logging
 from typing import Any
@@ -16,7 +17,7 @@ from saber_uli.shared.infrastructure.logging import (
 
 
 def scrub(**event: Any) -> dict[str, Any]:
-    return scrub_personal_data(None, "info", event)
+    return dict(scrub_personal_data(None, "info", event))
 
 
 @pytest.mark.parametrize(
@@ -57,6 +58,18 @@ def test_enmascara_valores_con_forma_de_correo_en_cualquier_clave() -> None:
     assert result["destinatario"] == REDACTED_EMAIL
 
 
+def test_enmascara_parametros_sensibles_en_urls() -> None:
+    # El log de acceso de uvicorn incluye la URL del callback OIDC con el código y el estado.
+    line = "GET /api/auth/microsoft/callback?code=abc.123&state=xyz&return_to=%2Finicio HTTP/1.1"
+
+    result = scrub(event=line)
+
+    assert result["event"] == (
+        f"GET /api/auth/microsoft/callback?code={REDACTED}&state={REDACTED}"
+        "&return_to=%2Finicio HTTP/1.1"
+    )
+
+
 def test_revisa_estructuras_anidadas() -> None:
     result = scrub(
         event="x",
@@ -80,12 +93,12 @@ def test_conserva_los_datos_permitidos() -> None:
 
 
 @pytest.fixture
-def json_logs(capsys: pytest.CaptureFixture[str]) -> Any:
-    configure_logging(level="INFO")
+def json_logs() -> Any:
+    stream = io.StringIO()
+    configure_logging(level="INFO", stream=stream)
 
     def read() -> list[dict[str, Any]]:
-        out = capsys.readouterr().out
-        return [json.loads(line) for line in out.splitlines() if line.strip()]
+        return [json.loads(line) for line in stream.getvalue().splitlines() if line.strip()]
 
     yield read
     structlog.reset_defaults()

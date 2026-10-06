@@ -136,10 +136,22 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Terminado: la prueba falla porque no existe `config.py`.
 - [ ] T017 Implementar `backend/src/saber_uli/config.py` con pydantic-settings para que pase T016 → Qwen
   - Terminado: T016 en verde.
-- [ ] T018 [P] Prueba: procesador de logs sin datos personales en `backend/tests/unit/shared/test_logging.py` (elimina o enmascara las claves `email`, `name`, `correo`, `nombre`, `token`, `authorization`, `cookie`, `code`, `display_name`; enmascara cualquier valor con forma de correo; salida JSON; research R-23) → Opus
+- [x] T018 [P] Prueba: procesador de logs sin datos personales en `backend/tests/unit/shared/test_logging.py` (elimina o enmascara las claves `email`, `name`, `correo`, `nombre`, `token`, `authorization`, `cookie`, `code`, `display_name`; enmascara cualquier valor con forma de correo; salida JSON; research R-23) → Opus
   - Terminado: la prueba falla.
-- [ ] T019 Implementar `backend/src/saber_uli/shared/infrastructure/logging.py` (structlog JSON + procesador de T018) → Opus
+  - Estado: implementada por Opus (2026-10-06); falló por `ImportError` antes de T019 (commit
+    `9084ba0`). Al implementar T019 se agregaron dos cambios: un caso para parámetros sensibles en
+    URL (`?code=…&state=…` del callback OIDC aparece en el log de acceso de uvicorn) y la lectura
+    de la salida por un `StringIO` inyectado en lugar de `capsys`.
+- [x] T019 Implementar `backend/src/saber_uli/shared/infrastructure/logging.py` (structlog JSON + procesador de T018) → Opus
   - Terminado: T018 en verde.
+  - Estado: implementada por Opus (2026-10-06). `configure_logging(level, stream)` enruta structlog
+    y la librería estándar (incluidos `uvicorn`, `uvicorn.error` y `uvicorn.access`, que se
+    redirigen al manejador raíz) por un único `ProcessorFormatter` JSON; `scrub_personal_data` es
+    el último procesador antes de renderizar, así que también limpia las excepciones ya
+    formateadas. Enmascara las claves de R-23 más variantes compuestas (`user_email`,
+    `refresh_token`, `set-cookie`), nombres de persona (`given_name`, `preferred_username`…),
+    `state`, `nonce` y `code_verifier`; no toca `status_code` ni `program_name`. T058 debe llamar a
+    `configure_logging` al arrancar y lanzar uvicorn con `log_config=None`.
 - [ ] T020 [P] Prueba: Problem Details y paginación en `backend/tests/unit/shared/test_problems.py` (respuesta `application/problem+json`, `type` = `urn:saber-uli:problem:<slug>`, `errors` por campo en 422, `page`≥1, `page_size` 1–100 por defecto 25, `total`) → Qwen
   - Terminado: la prueba falla.
 - [ ] T021 Implementar `backend/src/saber_uli/shared/api/problems.py` (excepciones de dominio → Problem, manejadores de FastAPI, incluido 422 de validación) y `backend/src/saber_uli/shared/api/pagination.py` → Qwen

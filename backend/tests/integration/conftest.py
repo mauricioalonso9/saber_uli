@@ -249,3 +249,66 @@ def issue_token(db_session: AsyncSession, token_codec: AccessTokenCodec) -> Toke
         return token_codec.encode(claims)
 
     return issue
+
+
+CommittedLogin = Callable[..., Awaitable[tuple[User, str]]]
+
+
+@pytest.fixture
+async def committed_login(
+    app_engine: AsyncEngine, migrated_database: dict[str, str], token_codec: AccessTokenCodec
+) -> AsyncIterator[CommittedLogin]:
+    """Crea y confirma un usuario con una sesión real; devuelve el usuario y su token de acceso.
+
+    Para pruebas cuyo código abre sus propias transacciones (autenticador, casos de uso). Al
+    terminar borra, con saber_migrator, los usuarios creados y lo que cuelga de ellos.
+    """
+    created: list[UUID] = []
+
+    async def create(*roles: Role, guest: bool = False, priv: bool = False) -> tuple[User, str]:
+        now = datetime.now(UTC)
+        async with AsyncSession(app_engine, expire_on_commit=False) as db:
+            if guest:
+                user = User.new_guest(email=f"g-{uuid4()}@correo.co", display_name=None, now=now)
+            else:
+                user = User.new_institutional(
+                    InstitutionalIdentity(tenant_id=TEST_TENANT, object_id=uuid4()),
+                    email=f"p-{uuid4()}@unilibre.edu.co",
+                    display_name="Persona",
+                    now=now,
+                )
+                for role in roles:
+                    user.grant_role(role)
+            await SqlAlchemyUserRepository(db).add(user)
+            assert user.id is not None
+            session = await SqlAlchemySessionRepository(db).add(
+                Session.start(user.id, AuthMethod.ENTRA_ID, now)
+            )
+            await db.commit()
+        created.append(user.id)
+        assert session.id is not None
+        token = token_codec.encode(
+            AccessTokenClaims(
+                sub=user.id,
+                sid=session.id,
+                roles=tuple(sorted(r.value for r in user.roles)),
+                epoch=user.auth_epoch,
+                priv=priv,
+                iat=now,
+            )
+        )
+        return user, token
+
+    yield create
+    cleanup = create_async_engine(migrated_database["migrator"], poolclass=NullPool)
+    async with cleanup.begin() as conn:
+        for statement in (
+            "DELETE FROM identity.consents WHERE user_id = ANY(:ids)",
+            "DELETE FROM identity.audit_events WHERE actor_id = ANY(:ids)"
+            " OR subject_user_id = ANY(:ids)",
+            "DELETE FROM identity.invitations WHERE guest_user_id = ANY(:ids)"
+            " OR invited_by = ANY(:ids)",
+            "DELETE FROM identity.users WHERE id = ANY(:ids)",
+        ):
+            await conn.execute(text(statement), {"ids": created})
+    await cleanup.dispose()

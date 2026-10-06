@@ -17,6 +17,7 @@ from saber_uli.identity.application.access_guard import AccessGuard
 from saber_uli.identity.application.public import AuthenticatedUser
 from saber_uli.identity.application.queries.consent_status import ConsentStatusQuery
 from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
+from saber_uli.identity.infrastructure.session_revocations import RedisSessionRevocations
 from saber_uli.identity.infrastructure.tokens import AccessTokenCodec
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
 from saber_uli.shared.api.auth import current_user
@@ -67,7 +68,11 @@ def build_app(app_engine: AsyncEngine, redis_url: str, token_codec: AccessTokenC
     app = FastAPI()
     install_problem_handlers(app)
     app.state.authenticator = AccessGuard(
-        decoder=token_codec, epochs=RedisEpochStore(redis_url), uow_factory=uow, clock=SystemClock()
+        decoder=token_codec,
+        epochs=RedisEpochStore(redis_url),
+        revocations=RedisSessionRevocations(redis_url),
+        uow_factory=uow,
+        clock=SystemClock(),
     )
     app.state.consent_checker = ConsentStatusQuery(uow_factory=uow, clock=SystemClock())
 

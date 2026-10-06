@@ -24,9 +24,10 @@ from saber_uli.identity.domain.user import InstitutionalIdentity, User
 from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
 from saber_uli.identity.infrastructure.repositories.sessions import SqlAlchemySessionRepository
 from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
+from saber_uli.identity.infrastructure.session_revocations import RedisSessionRevocations
 from saber_uli.identity.infrastructure.tokens import AccessTokenClaims, AccessTokenCodec
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
-from saber_uli.shared.api.auth import current_user, require_privileged
+from saber_uli.shared.api.auth import current_user, require_permission, require_privileged
 from saber_uli.shared.api.problems import install_problem_handlers
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.domain.clock import SystemClock
@@ -45,11 +46,22 @@ def build_app(guard: AccessGuard) -> FastAPI:
 
     @app.get("/api/v1/me")
     async def me(user: Annotated[AuthenticatedUser, Depends(current_user)]) -> dict[str, Any]:
-        return {"id": str(user.id), "roles": sorted(user.roles), "privileged": user.privileged}
+        return {
+            "id": str(user.id),
+            "roles": sorted(user.roles),
+            "permissions": sorted(user.permissions),
+            "privileged": user.privileged,
+        }
 
     @app.get("/api/v1/admin/users")
     async def admin(
         user: Annotated[AuthenticatedUser, Depends(require_privileged)],
+    ) -> dict[str, str]:
+        return {"id": str(user.id)}
+
+    @app.get("/api/v1/admin/settings")
+    async def settings(
+        user: Annotated[AuthenticatedUser, Depends(require_permission("settings:manage"))],
     ) -> dict[str, str]:
         return {"id": str(user.id)}
 
@@ -62,6 +74,7 @@ async def guard(app_engine: AsyncEngine, redis_url: str, redis_client: Redis) ->
     return AccessGuard(
         decoder=CODEC,
         epochs=RedisEpochStore(redis_url),
+        revocations=RedisSessionRevocations(redis_url),
         uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(factory, EventBus()),
         clock=SystemClock(),
     )
@@ -175,6 +188,7 @@ async def test_token_valido(guard: AccessGuard, committed: Committed) -> None:
     assert response.json() == {
         "id": str(user.id),
         "roles": ["student", "teacher"],
+        "permissions": ["groups:read_own_students", "invitations:manage_own"],
         "privileged": False,
     }
 
@@ -325,6 +339,7 @@ async def test_si_redis_falla_se_usa_la_base_de_datos(
     guard = AccessGuard(
         decoder=CODEC,
         epochs=RedisEpochStore("redis://127.0.0.1:1/0"),
+        revocations=RedisSessionRevocations("redis://127.0.0.1:1/0"),
         uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(factory, EventBus()),
         clock=SystemClock(),
     )
@@ -338,3 +353,34 @@ async def test_si_redis_falla_se_usa_la_base_de_datos(
     assert ok.status_code == 200
     assert problem_type(stale) == "session-revoked"
     assert stale_user.id is not None
+
+
+# --- Permisos por ruta (ASVS V4.1.3; FR-030) ---------------------------------------------------
+
+
+async def test_require_permission_niega_por_defecto(
+    guard: AccessGuard, committed: Committed
+) -> None:
+    _, student = await committed()
+    _, admin = await committed(Role.ADMIN)
+    async with client(build_app(guard)) as http:
+        denied = await http.get("/api/v1/admin/settings", headers=bearer(student))
+        allowed = await http.get("/api/v1/admin/settings", headers=bearer(admin))
+
+    assert denied.status_code == 403
+    assert denied.json()["type"] == "urn:saber-uli:problem:forbidden"
+    assert allowed.status_code == 200
+
+
+async def test_una_sesion_revocada_invalida_su_token_de_acceso(
+    guard: AccessGuard, committed: Committed, redis_url: str
+) -> None:
+    user, token = await committed()
+    claims = CODEC.decode(token, now=datetime.now(UTC))
+    await RedisSessionRevocations(redis_url).revoke(claims.sid)
+
+    async with client(build_app(guard)) as http:
+        response = await http.get("/api/v1/me", headers=bearer(token))
+
+    assert problem_type(response) == "session-revoked"
+    assert user.id == claims.sub

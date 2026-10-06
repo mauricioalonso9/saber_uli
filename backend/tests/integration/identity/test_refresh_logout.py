@@ -7,24 +7,29 @@ limpian con `saber_migrator`.
 from collections.abc import AsyncIterator, Awaitable, Callable
 from datetime import UTC, datetime, timedelta
 from http.cookies import SimpleCookie
-from typing import Any
+from typing import Annotated, Any
 from uuid import UUID, uuid4
 
 import httpx
 import pytest
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from redis.asyncio import Redis
 from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
 from saber_uli.identity.api.auth_router import REFRESH_COOKIE, router
+from saber_uli.identity.application.access_guard import AccessGuard
+from saber_uli.identity.application.public import AuthenticatedUser
 from saber_uli.identity.application.sessions import SessionService
 from saber_uli.identity.domain.roles import Role
 from saber_uli.identity.domain.session import AuthMethod
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
+from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
 from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
+from saber_uli.identity.infrastructure.session_revocations import RedisSessionRevocations
 from saber_uli.identity.infrastructure.tokens import AccessTokenCodec, RefreshTokenFactory
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
+from saber_uli.shared.api.auth import current_user
 from saber_uli.shared.api.problems import install_problem_handlers
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.domain.clock import FixedClock
@@ -44,23 +49,53 @@ def clock() -> FixedClock:
 
 
 @pytest.fixture
-def service(app_engine: AsyncEngine, clock: FixedClock) -> SessionService:
+def revocations(redis_url: str) -> RedisSessionRevocations:
+    return RedisSessionRevocations(redis_url)
+
+
+@pytest.fixture
+def service(
+    app_engine: AsyncEngine, clock: FixedClock, revocations: RedisSessionRevocations
+) -> SessionService:
     factory = create_session_factory(app_engine)
     return SessionService(
         uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(factory, EventBus()),
         clock=clock,
         access_tokens=CODEC,
         refresh_tokens=RefreshTokenFactory(),
+        revocations=revocations,
     )
 
 
 @pytest.fixture
-def app(service: SessionService, redis_url: str, redis_client: Redis) -> FastAPI:
+def app(
+    service: SessionService,
+    redis_url: str,
+    redis_client: Redis,
+    app_engine: AsyncEngine,
+    clock: FixedClock,
+    revocations: RedisSessionRevocations,
+) -> FastAPI:
     application = FastAPI()
     install_problem_handlers(application)
+    factory = create_session_factory(app_engine)
     application.state.session_service = service
     application.state.rate_limiter = RateLimiter(redis_url, hash_key=b"h" * 32)
+    application.state.authenticator = AccessGuard(
+        decoder=CODEC,
+        epochs=RedisEpochStore(redis_url),
+        revocations=revocations,
+        uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(factory, EventBus()),
+        clock=clock,
+    )
     application.include_router(router)
+
+    @application.get("/api/v1/protegido")
+    async def protected(
+        user: Annotated[AuthenticatedUser, Depends(current_user)],
+    ) -> dict[str, str]:
+        return {"id": str(user.id)}
+
     return application
 
 
@@ -288,3 +323,38 @@ async def test_logout_sin_cookie_o_sin_cabecera_responde_401(app: FastAPI, login
     assert set_cookie(no_cookie)["max-age"] == "0"
     # Sin la cabecera no se revocó nada: la sesión sigue viva.
     assert (await refresh(app, cookie)).status_code == 200
+
+
+# --- El token de acceso deja de servir al revocar la sesión (ASVS V3.3.1) ----------------------
+
+
+async def access_token(app: FastAPI, cookie: str) -> tuple[str, str]:
+    response = await refresh(app, cookie)
+    assert response.status_code == 200
+    return response.json()["access_token"], set_cookie(response).value
+
+
+async def protected(app: FastAPI, token: str) -> httpx.Response:
+    async with client(app) as http:
+        return await http.get("/api/v1/protegido", headers={"Authorization": f"Bearer {token}"})
+
+
+async def test_tras_logout_el_token_de_acceso_ya_no_sirve(app: FastAPI, login: Login) -> None:
+    _, cookie = await login()
+    token, cookie = await access_token(app, cookie)
+    assert (await protected(app, token)).status_code == 200
+
+    async with client(app) as http:
+        await http.post("/api/auth/logout", headers={**XRW, "Cookie": f"{REFRESH_COOKIE}={cookie}"})
+
+    assert problem(await protected(app, token)) == "session-revoked"
+
+
+async def test_tras_reutilizar_un_token_el_de_acceso_ya_no_sirve(
+    app: FastAPI, login: Login
+) -> None:
+    _, first = await login()
+    token, _ = await access_token(app, first)
+
+    assert problem(await refresh(app, first)) == "session-revoked"  # reutilización
+    assert problem(await protected(app, token)) == "session-revoked"

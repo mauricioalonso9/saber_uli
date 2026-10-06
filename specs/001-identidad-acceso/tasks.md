@@ -145,12 +145,21 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
 
 ### Kernel compartido (backend)
 
-- [ ] T016 [P] Prueba: configuración por entorno en `backend/tests/unit/shared/test_config.py` (carga de variables de T013, error claro si falta un secreto obligatorio, `INSTITUTIONAL_EMAIL_DOMAINS` como lista, secretos excluidos de `repr`) → Qwen
+- [x] T016 [P] Prueba: configuración por entorno en `backend/tests/unit/shared/test_config.py` (carga de variables de T013, error claro si falta un secreto obligatorio, `INSTITUTIONAL_EMAIL_DOMAINS` como lista, secretos excluidos de `repr`) → Qwen
   - Terminado: la prueba falla porque no existe `config.py`.
   - Nota de Opus (2026-10-06): variables, validaciones y API de `config.py` definidas en
     `handoffs/qwen-02-T016-T017-T022-T023.md`; `ConfigError` nunca incluye el valor recibido.
-- [ ] T017 Implementar `backend/src/saber_uli/config.py` con pydantic-settings para que pase T016 → Qwen
+  - Estado: ver T017.
+- [x] T017 Implementar `backend/src/saber_uli/config.py` con pydantic-settings para que pase T016 → Qwen
   - Terminado: T016 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T016 falló por
+    `ImportError` (commit `f89a948`). `Settings` con las 22 variables de la tabla del lote 02;
+    autoridad de Entra ID obligatoriamente la del inquilino (rechaza `common`, `organizations`,
+    `consumers` y otros inquilinos; http solo para `localhost`, `127.0.0.1` y `oidc`); HTTPS
+    obligatorio en `PUBLIC_BASE_URL` fuera de localhost; dominios separados por comas
+    (`NoDecode`), normalizados y sin duplicados; secretos de 256 bits mínimo; URL de datos como
+    `SecretStr`. `get_settings()` lanza `ConfigError` con los nombres de las variables, sin
+    valores y sin encadenar el `ValidationError` original (`from None`). 43 pruebas en verde.
 - [x] T018 [P] Prueba: procesador de logs sin datos personales en `backend/tests/unit/shared/test_logging.py` (elimina o enmascara las claves `email`, `name`, `correo`, `nombre`, `token`, `authorization`, `cookie`, `code`, `display_name`; enmascara cualquier valor con forma de correo; salida JSON; research R-23) → Opus
   - Terminado: la prueba falla.
   - Estado: implementada por Opus (2026-10-06); falló por `ImportError` antes de T019 (commit

@@ -1,0 +1,24 @@
+{
+  "app": {
+    "name": "Saber Uli",
+    "skipToContent": "Saltar al contenido",
+    "mainNavigation": "Principal"
+  },
+  "connection": {
+    "label": "Estado de conexión",
+    "online": "En línea",
+    "offline": "Sin conexión"
+  },
+  "nav": {
+    "home": "Inicio"
+  },
+  "home": {
+    "title": "Inicio",
+    "placeholder": "Aquí aparecerán tus lecciones y tu progreso."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "body": "La página que buscas no existe o cambió de lugar.",
+    "back": "Volver al inicio"
+  }
+}

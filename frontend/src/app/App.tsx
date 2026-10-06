@@ -1,13 +1,14 @@
-/**
- * Marcador de posición del shell de la aplicación.
- *
- * T060 escribe la prueba (debe fallar contra este componente) y T061 implementa el shell real
- * (router, proveedores, i18n es-CO, indicador de conexión y navegación accesible).
- */
-export function App() {
+import { RouterProvider } from "@tanstack/react-router";
+import { useState } from "react";
+
+import { Providers } from "@/app/providers";
+import { type AppRouter, createAppRouter } from "@/app/router";
+
+export function App({ router }: { router?: AppRouter }) {
+  const [appRouter] = useState(() => router ?? createAppRouter());
   return (
-    <main>
-      <h1>Saber Uli</h1>
-    </main>
+    <Providers>
+      <RouterProvider router={appRouter} />
+    </Providers>
   );
 }

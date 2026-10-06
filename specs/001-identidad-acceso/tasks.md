@@ -624,10 +624,21 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
 
 ### Base del frontend
 
-- [ ] T060 [P] Prueba: shell de la app en `frontend/src/app/App.test.tsx` (renderiza en es-CO, idioma `lang="es-CO"`, indicador de estado de conexión visible, navegación accesible por teclado) → Qwen
+- [x] T060 [P] Prueba: shell de la app en `frontend/src/app/App.test.tsx` (renderiza en es-CO, idioma `lang="es-CO"`, indicador de estado de conexión visible, navegación accesible por teclado) → Qwen
   - Terminado: la prueba falla.
-- [ ] T061 Implementar `frontend/src/app/{main.tsx,router.tsx,providers.tsx,AppShell.tsx}`, `frontend/src/shared/i18n/{index.ts,es-CO.json}` y la base de Tailwind/shadcn en `frontend/src/shared/ui/` → Qwen
+  - Estado: ver T061.
+- [x] T061 Implementar `frontend/src/app/{main.tsx,router.tsx,providers.tsx,AppShell.tsx}`, `frontend/src/shared/i18n/{index.ts,es-CO.json}` y la base de Tailwind/shadcn en `frontend/src/shared/ui/` → Qwen
   - Terminado: T060 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T060 falló al no
+    existir el router (commit `59dfda8`). `App` (acepta un router para pruebas), `Providers`
+    (i18next y TanStack Query), `createAppRouter` (TanStack Router en código: `/` redirige a
+    `/inicio`, `/inicio` marcador hasta la spec 003, página "no encontrada" en español; historial
+    en memoria para pruebas), `AppShell` (enlace "Saltar al contenido" como primer foco que lleva
+    el foco a `<main id="contenido">`, navegación "Principal", indicador de conexión con
+    `role="status"` y `aria-live` que reacciona a `online`/`offline`), `initI18n` con
+    `es-CO.json` y `lang="es-CO"`. `main.tsx` pasó a `src/app/` (`index.html` actualizado). Se
+    agregó `@testing-library/jest-dom` con `tests/setup.ts`. Frontend: 58 pruebas, `lint`,
+    `typecheck`, `format` y `build` en verde. La base de shadcn/ui ya estaba (T004).
 - [x] T062 [P] Prueba: sesión en memoria y cliente HTTP en `frontend/src/features/auth/session.test.ts` con MSW (el token de acceso vive solo en memoria y nunca en `localStorage`/`sessionStorage`/IndexedDB; cabecera `Authorization`; ante 401 intenta una sola renovación con `X-Requested-With: saber-uli` y reintenta; cada `type` de problema se traduce a un mensaje en español) → Opus
   - Terminado: la prueba falla.
   - Estado: implementada por Opus (2026-10-06); falló al no existir los módulos (commit

@@ -18,6 +18,7 @@
 
     /* Estricto (T004) */
     "strict": true,
+    "resolveJsonModule": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
@@ -28,5 +29,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "tests/unit"]
+  "include": ["src", "tests/unit", "tests/setup.ts"]
 }

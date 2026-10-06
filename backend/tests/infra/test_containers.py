@@ -110,7 +110,7 @@ def infra_stack(env_file: Path) -> Iterator[list[str]]:
     base = compose(env_file)
     up = run([*base, "up", "-d", "--build", "--wait", *INFRA_SERVICES])
     try:
-        assert up.returncode == 0, f"docker compose up falló:\n{up.stderr[-4000:]}"
+        assert up.returncode == 0, f"docker compose up falló:\n{(up.stdout + up.stderr)[-4000:]}"
         yield base
     finally:
         run([*base, "down", "-v", "--remove-orphans"])
@@ -178,13 +178,20 @@ def test_ningun_proceso_principal_con_uid_0(infra_stack: list[str]) -> None:
     result = run([*infra_stack, "top"], timeout=60)
     assert result.returncode == 0, result.stderr
 
+    # Compose v5: una tabla con columnas SERVICE, #, UID, PID, PPID… El proceso principal de
+    # cada contenedor es el que no tiene como padre otro proceso del mismo contenedor.
+    lines = [line.split() for line in result.stdout.splitlines() if line.strip()]
+    header, rows = lines[0], lines[1:]
+    col = {name: header.index(name) for name in ("SERVICE", "#", "UID", "PID", "PPID")}
+    by_container: dict[tuple[str, str], list[list[str]]] = {}
+    for row in rows:
+        by_container.setdefault((row[col["SERVICE"]], row[col["#"]]), []).append(row)
+
     main_users: dict[str, str] = {}
-    blocks = [b for b in result.stdout.strip().split("\n\n") if b.strip()]
-    for block in blocks:
-        lines = block.strip().splitlines()
-        header = lines[1].split()
-        first = lines[2].split()
-        main_users[lines[0].strip()] = first[header.index("UID")]
+    for (service, index), procs in by_container.items():
+        pids = {p[col["PID"]] for p in procs}
+        main = next(p for p in procs if p[col["PPID"]] not in pids)
+        main_users[f"{service}-{index}"] = main[col["UID"]]
 
     assert main_users, result.stdout
     root = {name: uid for name, uid in main_users.items() if uid in {"0", "root"}}
@@ -222,7 +229,7 @@ def test_roles_y_extensiones_de_postgres(infra_stack: list[str]) -> None:
 @pytest.mark.full_stack
 def test_servicios_healthy_y_migrate_exitoso(infra_stack: list[str]) -> None:
     up = run([*infra_stack, "up", "-d", "--build", "--wait"])
-    assert up.returncode == 0, up.stderr[-4000:]
+    assert up.returncode == 0, (up.stdout + up.stderr)[-4000:]
 
     result = run([*infra_stack, "ps", "-a", "--format", "json"], timeout=60)
     rows = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]

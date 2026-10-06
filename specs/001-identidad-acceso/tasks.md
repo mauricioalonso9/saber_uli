@@ -101,8 +101,16 @@ de forma independiente a partir de la fase 2.
     prettier, y `typecheck`, `lint`, `test` y `build` pasan con el código generado.
 - [ ] T006 [P] Crear `.pre-commit-config.yaml` con ruff, ruff-format, mypy (backend), eslint y prettier (frontend), detección de secretos (`detect-secrets`) y verificación de Conventional Commits (`commitizen`) → Qwen
   - Terminado: `pre-commit run --all-files` pasa; un mensaje de commit sin formato convencional es rechazado.
-- [ ] T007 Prueba de infraestructura en `backend/tests/infra/test_containers.py` (sin dependencias nuevas: CLI de Docker por `subprocess`; se omite con `pytest.mark.skipif` si Docker no está disponible): `docker compose config` válido para `compose.yaml` + override y + prod; la imagen del backend corre con UID 10001; tras `docker compose up -d --wait` todos los servicios están `healthy` y `migrate` sale con código 0; `curl -I` al proxy muestra `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY` y, para `sw.js`, `Service-Worker-Allowed: /`; `docker compose top` no muestra ningún proceso principal con UID 0; en `db` existen los roles `saber_migrator`, `saber_app` y `saber_bi` y las extensiones `citext` y `pg_stat_statements`; `actionlint` valida `.github/workflows/ci.yml` y el flujo contiene los trabajos `infra`, `backend-quality`, `backend-tests`, `contract`, `frontend-quality`, `e2e`, `lighthouse`, `build` y `security`. Si Docker no está disponible la prueba se omite, salvo con `REQUIRE_DOCKER=1`, en cuyo caso falla (constitución IV y X, research R-32 y R-33) → Qwen
+- [x] T007 Prueba de infraestructura en `backend/tests/infra/test_containers.py` (sin dependencias nuevas: CLI de Docker por `subprocess`; se omite con `pytest.mark.skipif` si Docker no está disponible): `docker compose config` válido para `compose.yaml` + override y + prod; la imagen del backend corre con UID 10001; tras `docker compose up -d --wait` todos los servicios están `healthy` y `migrate` sale con código 0; `curl -I` al proxy muestra `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY` y, para `sw.js`, `Service-Worker-Allowed: /`; `docker compose top` no muestra ningún proceso principal con UID 0; en `db` existen los roles `saber_migrator`, `saber_app` y `saber_bi` y las extensiones `citext` y `pg_stat_statements`; `actionlint` valida `.github/workflows/ci.yml` y el flujo contiene los trabajos `infra`, `backend-quality`, `backend-tests`, `contract`, `frontend-quality`, `e2e`, `lighthouse`, `build` y `security`. Si Docker no está disponible la prueba se omite, salvo con `REQUIRE_DOCKER=1`, en cuyo caso falla (constitución IV y X, research R-32 y R-33) → Qwen
   - Terminado: la prueba existe y falla porque aún no hay Dockerfiles, Compose, Nginx, scripts de inicio de Postgres ni flujo de CI.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos; falló completa
+    antes de T008–T013 (commit `925e60c`). Detección de Docker compartida en
+    `backend/tests/_docker.py`. Marcadores `infra` (fuera de la ejecución por defecto; se corre
+    con `pytest -m infra tests/infra`) y `full_stack`. Con T008, T009, T012 y T013:
+    `pytest -m "infra and not full_stack"` da 9 en verde (Compose válido ×3, UID 10001, cabeceras,
+    `sw.js`, ningún proceso principal con UID 0, roles y extensiones, `.env.example` cubierto).
+    Pendientes (`full_stack`): servicios `api`/`worker`/`beat`/`migrate` (T026, T034, T058) y CI
+    (T014). El análisis de `docker compose top` sigue el formato de tabla de Compose v5.
 - [x] T008 [P] Crear `backend/Dockerfile` multi-etapa (builder con uv; runtime `python:3.13-slim`, usuario no root UID 10001, sin herramientas de compilación) con comandos para `api` (uvicorn, 4 workers), `worker` (celery worker), `beat` (celery beat con archivo de latido en `/tmp/beat-heartbeat`) y `migrate` (`saber-uli migrate`) → Qwen
   - Terminado: `docker build` funciona; `docker run --rm <img> id -u` devuelve 10001; la parte de imagen de T007 pasa.
   - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos. Builder con
@@ -133,7 +141,7 @@ de forma independiente a partir de la fase 2.
   - Estado: implementada por Opus en `infra/postgres/init/{01-roles.sql,02-extensions.sql}`; falta verificarla en contenedor con T007 y T029.
   - Nota para T012 y T013: el servicio `db` necesita `SABER_MIGRATOR_PASSWORD`, `SABER_APP_PASSWORD` y `SABER_BI_PASSWORD` (mínimo 16 caracteres; sin ellas el contenedor no arranca) y el comando `postgres -c shared_preload_libraries=pg_stat_statements`. T024 debe pasar las mismas variables al contenedor de Testcontainers.
   - Terminado: la parte de roles y extensiones de T007 pasa al iniciar `db` desde cero; el superusuario no se usa en ningún otro servicio.
-- [ ] T012 Crear `compose.yaml` (servicios `proxy`, `api`, `worker`, `beat`, `migrate`, `db` con volumen en `/var/lib/postgresql`, `redis`), `compose.override.yaml` (recarga en caliente, `mailpit`, puertos locales) y `compose.prod.yaml` (TLS, `tls.conf`, sin mailpit); perfil `e2e` con `oidc` (`ghcr.io/navikt/mock-oauth2-server`, configuración en `infra/docker/mock-oauth2.json` con un emisor del inquilino válido y otro externo) y `mailpit`; `user:` explícito sin privilegios en `mailpit` y `oidc`; health checks y `depends_on` según la tabla de servicios de plan.md → Qwen
+- [x] T012 Crear `compose.yaml` (servicios `proxy`, `api`, `worker`, `beat`, `migrate`, `db` con volumen en `/var/lib/postgresql`, `redis`), `compose.override.yaml` (recarga en caliente, `mailpit`, puertos locales) y `compose.prod.yaml` (TLS, `tls.conf`, sin mailpit); perfil `e2e` con `oidc` (`ghcr.io/navikt/mock-oauth2-server`, configuración en `infra/docker/mock-oauth2.json` con un emisor del inquilino válido y otro externo) y `mailpit`; `user:` explícito sin privilegios en `mailpit` y `oidc`; health checks y `depends_on` según la tabla de servicios de plan.md → Qwen
   - Terminado: T007 pasa completa (Compose válido, servicios `healthy`, `migrate` con código 0 y ningún proceso principal con UID 0).
   - Nota de Opus (2026-10-06): secuencia. T012 necesita antes T008, T009 y T013. Su verificación
     se hace en dos tiempos: al entregarla, `docker compose config` es válido en las tres
@@ -141,6 +149,24 @@ de forma independiente a partir de la fase 2.
     T007 de cabeceras, roles, extensiones y UID en verde sobre esos servicios. Las comprobaciones de
     `api`, `worker`, `beat` y `migrate` dependen de T026, T034 y T058, y T007 completa se exige al
     cerrar T058.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos. Primer tiempo de
+    la verificación cumplido (ver T007). Imagen única del backend (`x-backend`) con
+    `read_only`, `tmpfs /tmp`, `no-new-privileges` y `cap_drop: ALL`; `migrate` recibe solo
+    `MIGRATION_DATABASE_URL` (mínimo privilegio) y `api`/`worker`/`beat` el entorno de la app con
+    `DATABASE_URL` de `saber_app`, ambas armadas desde las contraseñas del `.env`. `db` con
+    health check por TCP (no queda sano hasta terminar los scripts de inicio). Redis sin
+    persistencia. `mailpit` (UID 65534) y `oidc` (UID 65532, `mock-oauth2-server:3.0.3`) en el
+    perfil `e2e`; el override activa Mailpit con `profiles: !reset []`, publica puertos solo en
+    127.0.0.1 y da recarga en caliente con `backend/src` montado y `PYTHONPATH`. Prod monta
+    `tls.conf` y los certificados y publica 80/443. El health check de `oidc` usa GET: el
+    servidor no responde a HEAD. `infra/docker/mock-oauth2.json` con los emisores
+    `1111…` (inquilino) y `2222…` (externo).
+  - Decisión pendiente: el emisor de `mock-oauth2-server` sale del host de la petición; el
+    navegador de Playwright (en el host, `localhost:8090`) y la API (en la red de Compose,
+    `oidc:8080`) verían emisores distintos. Resolver en T069/T073 (por ejemplo, Playwright dentro
+    de la red de Compose o un mismo nombre de host para ambos).
+  - Nota: Redis no tiene contraseña; solo es accesible en la red interna de Compose (no se
+    publica en ningún archivo). Revisar en T070.
 - [x] T013 [P] Crear `.env.example` documentado: `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_AUTHORITY`, `PUBLIC_BASE_URL`, `INSTITUTIONAL_EMAIL_DOMAINS`, `JWT_SIGNING_KEY`, `JWT_KEY_ID`, `SESSION_COOKIE_SECRET`, `DATABASE_URL` (por rol), `REDIS_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `OTEL_ENABLED`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` (reservadas para la spec 009), contraseñas de roles de base de datos → Qwen
   - Terminado: cada variable tiene comentario en español; ningún valor real; `.env` está en `.gitignore`.
   - Nota de Opus (2026-10-06): los nombres definitivos de las variables están en

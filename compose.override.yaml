@@ -1,0 +1,45 @@
+# Saber Uli: desarrollo local (T012). Compose lo aplica automáticamente con `docker compose up`.
+#
+# - Puertos solo en 127.0.0.1: PWA en http://localhost (vite.config.ts redirige /api a :80),
+#   PostgreSQL en 5432 y la bandeja de Mailpit en http://localhost:8025.
+# - Recarga en caliente de la API: se monta backend/src y PYTHONPATH lo antepone al paquete
+#   instalado en la imagen.
+# - Mailpit siempre activo (no solo en el perfil e2e).
+
+x-dev-src: &dev-src
+  volumes:
+    - ./backend/src:/app/src:ro
+  environment:
+    PYTHONPATH: /app/src
+
+services:
+  proxy:
+    ports:
+      - "127.0.0.1:80:8080"
+
+  api:
+    <<: *dev-src
+    command: ["api", "--reload", "--reload-dir", "/app/src"]
+    environment:
+      PYTHONPATH: /app/src
+      API_WORKERS: "1"
+
+  worker:
+    <<: *dev-src
+
+  beat:
+    <<: *dev-src
+
+  db:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  mailpit:
+    profiles: !reset []
+    ports:
+      - "127.0.0.1:8025:8025"
+
+  oidc:
+    # Perfil e2e: Playwright y la API deben ver el mismo emisor (decisión pendiente en T012).
+    ports:
+      - "127.0.0.1:8090:8080"

@@ -31,5 +31,6 @@ export default defineConfig({
     include: ["src/**/*.test.{ts,tsx}", "tests/unit/**/*.test.{ts,tsx}"],
     exclude: ["node_modules", "dist", "dev-dist", "tests/e2e"],
     restoreMocks: true,
+    setupFiles: ["./tests/setup.ts"],
   },
 });

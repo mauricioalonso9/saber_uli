@@ -44,19 +44,23 @@ de forma independiente a partir de la fase 2.
 
 **Purpose**: Esqueleto del monorepo, herramientas y contenedores (plan → Project Structure).
 
-- [ ] T001 Crear el esqueleto del monorepo según plan.md: carpetas `backend/src/saber_uli/{shared,identity,notifications}/{domain,application,infrastructure,api}/` con `__init__.py`, `backend/tests/{unit,integration,contract,infra}/`, `backend/migrations/`, `frontend/`, `infra/{nginx,docker,postgres/init}/`, más `.gitignore`, `.gitattributes` (`* text=auto eol=lf`) y `.editorconfig` en la raíz → Qwen
+- [x] T001 Crear el esqueleto del monorepo según plan.md: carpetas `backend/src/saber_uli/{shared,identity,notifications}/{domain,application,infrastructure,api}/` con `__init__.py`, `backend/tests/{unit,integration,contract,infra}/`, `backend/migrations/`, `frontend/`, `infra/{nginx,docker,postgres/init}/`, más `.gitignore`, `.gitattributes` (`* text=auto eol=lf`) y `.editorconfig` en la raíz → Qwen
   - Terminado: el árbol coincide con plan.md; `git status` no muestra archivos generados ni `.env`.
   - Estado: lista para revisión. Árbol creado según plan.md; se agregaron `.gitignore`,
     `.gitattributes`, `.editorconfig` y `.dockerignore` raíz (los contextos de build de Docker
     usan la raíz del repositorio).
-- [ ] T002 Crear `backend/pyproject.toml` y `backend/uv.lock` con Python 3.13; dependencias de ejecución: fastapi, uvicorn[standard], pydantic>=2, pydantic-settings, sqlalchemy[asyncio]>=2, asyncpg, alembic, authlib, httpx, itsdangerous, pyjwt, celery[redis], redis, structlog, limits, holidays, jinja2, opentelemetry-sdk (opcional); desarrollo: pytest, pytest-asyncio, pytest-cov, testcontainers[postgres,redis], respx, schemathesis, ruff, mypy, import-linter; configurar ruff, `mypy --strict`, pytest (`asyncio_mode=auto`) y cobertura con `fail_under = 80` sobre `saber_uli/*/domain` y `saber_uli/*/application`; script `saber-uli = "saber_uli.cli:app"` → Qwen
+  - Aprobada por Opus (2026-10-06): árbol completo frente a plan.md; `.env` ignorado; ningún
+    archivo generado (`dist/`, `node_modules/`, `__pycache__/`) versionado.
+- [x] T002 Crear `backend/pyproject.toml` y `backend/uv.lock` con Python 3.13; dependencias de ejecución: fastapi, uvicorn[standard], pydantic>=2, pydantic-settings, sqlalchemy[asyncio]>=2, asyncpg, alembic, authlib, httpx, itsdangerous, pyjwt, celery[redis], redis, structlog, limits, holidays, jinja2, opentelemetry-sdk (opcional); desarrollo: pytest, pytest-asyncio, pytest-cov, testcontainers[postgres,redis], respx, schemathesis, ruff, mypy, import-linter; configurar ruff, `mypy --strict`, pytest (`asyncio_mode=auto`) y cobertura con `fail_under = 80` sobre `saber_uli/*/domain` y `saber_uli/*/application`; script `saber-uli = "saber_uli.cli:app"` → Qwen
   - Terminado: `uv sync` funciona; `uv run pytest` corre (0 pruebas); `uv run ruff check .` y `uv run mypy --strict src` pasan.
   - Estado: lista para revisión. `pyproject.toml` (Python 3.13, ruff, mypy strict, pytest
     `asyncio_mode=auto`, cobertura `fail_under=80` acotada a `domain`/`application`) y `uv.lock`
     generados; `opentelemetry-sdk` queda como extra `otel`. Nota: se agregó una prueba de humo de
     empaquetado (`tests/unit/test_smoke.py`) para que `uv run pytest` salga en verde en lugar del
     código 5 de "sin pruebas"; no sustituye ninguna prueba funcional.
-- [ ] T003 [P] Definir los contratos de capas y contextos en `backend/.importlinter`: capas `api > application > domain` e `infrastructure > application > domain` en cada contexto; `domain` no importa fastapi, sqlalchemy, pydantic, celery ni redis; `identity` y `notifications` solo se importan entre sí a través de `<contexto>.application.public` → Opus
+  - Aprobada por Opus (2026-10-06): `uv sync`, `pytest`, `ruff check`, `ruff format --check` y
+    `mypy --strict src` en verde. La prueba de humo se acepta.
+- [x] T003 [P] Definir los contratos de capas y contextos en `backend/.importlinter`: capas `api > application > domain` e `infrastructure > application > domain` en cada contexto; `domain` no importa fastapi, sqlalchemy, pydantic, celery ni redis; `identity` y `notifications` solo se importan entre sí a través de `<contexto>.application.public` → Opus
   - Estado: implementada por Opus en `backend/.importlinter`; se verifica con `lint-imports` cuando existan T001 y T002.
   - Nota: el orden de capas es `api > infrastructure > application > domain` (la API puede usar adaptadores solo para el cableado de FastAPI; la infraestructura nunca importa la API).
   - Terminado: `uv run lint-imports` pasa con el esqueleto y falla con un import prohibido de prueba (verificado y revertido).
@@ -67,7 +71,13 @@ de forma independiente a partir de la fase 2.
     `notifications/application/public.py` (los implementan T117 y T038). Verificado: 4 contratos
     KEPT con el esqueleto y BROKEN con un `import fastapi` de prueba en `shared/domain` (revertido).
     Queda a criterio de Opus al revisar T003.
-- [ ] T004 [P] Inicializar el frontend en `frontend/` con Vite + React + TypeScript (`strict: true`), dependencias: @tanstack/react-router, @tanstack/react-query, zustand, tailwindcss, shadcn/ui (componentes base), motion, react-hook-form, zod, @hookform/resolvers, dexie, i18next, react-i18next, vite-plugin-pwa; desarrollo: vitest, @testing-library/react, @testing-library/user-event, msw, @playwright/test, @axe-core/playwright, @lhci/cli, orval, eslint (typescript-eslint, jsx-a11y), prettier; scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `api:generate` en `frontend/package.json` → Qwen
+  - Aprobada por Opus (2026-10-06): se acepta `unmatched_ignore_imports_alerting = warn`; cuando
+    T038 y T117 hagan que las fachadas tengan importaciones reales, la tarea que lo logre debe
+    quitar esa línea para que una excepción obsoleta vuelva a fallar. Nota de entorno: en Windows,
+    con la salida redirigida a un archivo nulo, `lint-imports` sale 1 por un error de
+    codificación cp1252 al imprimir acentos; usar `PYTHONIOENCODING=utf-8` (en CI, Linux, no
+    ocurre).
+- [x] T004 [P] Inicializar el frontend en `frontend/` con Vite + React + TypeScript (`strict: true`), dependencias: @tanstack/react-router, @tanstack/react-query, zustand, tailwindcss, shadcn/ui (componentes base), motion, react-hook-form, zod, @hookform/resolvers, dexie, i18next, react-i18next, vite-plugin-pwa; desarrollo: vitest, @testing-library/react, @testing-library/user-event, msw, @playwright/test, @axe-core/playwright, @lhci/cli, orval, eslint (typescript-eslint, jsx-a11y), prettier; scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `api:generate` en `frontend/package.json` → Qwen
   - Terminado: `npm ci`, `npm run lint`, `npm run typecheck`, `npm test` y `npm run build` pasan.
   - Estado: lista para revisión. Vite 8 + React 19 + TS estricto; Tailwind v4; base shadcn/ui
     (button, card, input, label + `cn`) en `src/shared/ui/`; eslint 9 (typescript-eslint,
@@ -75,8 +85,16 @@ de forma independiente a partir de la fase 2.
     `tests/unit/toolchain.test.tsx`. Notas: `eslint-plugin-jsx-a11y` exige eslint ^9 (se fijó esa
     versión); `App.tsx` es un marcador que T060/T061 sustituyen (su prueba fallará como exige
     TDD); vite-plugin-pwa queda instalado pero se configura en T068.
-- [ ] T005 [P] Configurar `frontend/orval.config.ts` para generar el cliente y los hooks de TanStack Query desde `specs/001-identidad-acceso/contracts/openapi.yaml` hacia `frontend/src/api/` usando el mutador `frontend/src/shared/api/http.ts` (stub que T047 completa) → Qwen
+  - Aprobada por Opus (2026-10-06): `npm ci`, `lint`, `typecheck`, `test` y `build` en verde.
+- [x] T005 [P] Configurar `frontend/orval.config.ts` para generar el cliente y los hooks de TanStack Query desde `specs/001-identidad-acceso/contracts/openapi.yaml` hacia `frontend/src/api/` usando el mutador `frontend/src/shared/api/http.ts` (stub que T047 completa) → Qwen
   - Terminado: `npm run api:generate` genera código que compila; `frontend/src/api/` tiene cabecera "generado, no editar".
+  - Estado: implementada por Qwen (sin línea de estado ni commit; los cerró Opus). orval 8 en modo
+    `tags` con cliente `react-query`, esquemas en `src/api/model/` y mutador
+    `src/shared/api/http.ts` (stub con `fetch` y error RFC 9457). El mutador lo completa T063, no
+    T047 (erratum de la descripción).
+  - Aprobada por Opus (2026-10-06): la generación es determinista (dos ejecuciones dan el mismo
+    hash del árbol), las URL llevan el prefijo `/api`, `src/api/` está excluido de eslint y
+    prettier, y `typecheck`, `lint`, `test` y `build` pasan con el código generado.
 - [ ] T006 [P] Crear `.pre-commit-config.yaml` con ruff, ruff-format, mypy (backend), eslint y prettier (frontend), detección de secretos (`detect-secrets`) y verificación de Conventional Commits (`commitizen`) → Qwen
   - Terminado: `pre-commit run --all-files` pasa; un mensaje de commit sin formato convencional es rechazado.
 - [ ] T007 Prueba de infraestructura en `backend/tests/infra/test_containers.py` (sin dependencias nuevas: CLI de Docker por `subprocess`; se omite con `pytest.mark.skipif` si Docker no está disponible): `docker compose config` válido para `compose.yaml` + override y + prod; la imagen del backend corre con UID 10001; tras `docker compose up -d --wait` todos los servicios están `healthy` y `migrate` sale con código 0; `curl -I` al proxy muestra `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY` y, para `sw.js`, `Service-Worker-Allowed: /`; `docker compose top` no muestra ningún proceso principal con UID 0; en `db` existen los roles `saber_migrator`, `saber_app` y `saber_bi` y las extensiones `citext` y `pg_stat_statements`; `actionlint` valida `.github/workflows/ci.yml` y el flujo contiene los trabajos `infra`, `backend-quality`, `backend-tests`, `contract`, `frontend-quality`, `e2e`, `lighthouse`, `build` y `security`. Si Docker no está disponible la prueba se omite, salvo con `REQUIRE_DOCKER=1`, en cuyo caso falla (constitución IV y X, research R-32 y R-33) → Qwen

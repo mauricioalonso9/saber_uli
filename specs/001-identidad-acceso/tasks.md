@@ -259,12 +259,22 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     (`NotFoundError`, `PermissionDeniedError`, `ConflictError`, `RuleViolationError`; slug
     kebab-case validado; `DomainError` no instanciable). Fixture `fixed_clock` en
     `backend/tests/conftest.py`. `lint-imports`: 5 KEPT.
-- [ ] T024 [P] Crear fixtures de pruebas en `backend/tests/conftest.py` y `backend/tests/integration/conftest.py`: contenedores `postgres:18` (con los scripts de `infra/postgres/init/`) y `redis:8`, aplicación de migraciones, sesión por prueba con rollback, `FixedClock`, cliente `httpx.AsyncClient` sobre la app ASGI, fábrica de usuarios por rol y emisor de tokens de prueba → Qwen
+- [x] T024 [P] Crear fixtures de pruebas en `backend/tests/conftest.py` y `backend/tests/integration/conftest.py`: contenedores `postgres:18` (con los scripts de `infra/postgres/init/`) y `redis:8`, aplicación de migraciones, sesión por prueba con rollback, `FixedClock`, cliente `httpx.AsyncClient` sobre la app ASGI, fábrica de usuarios por rol y emisor de tokens de prueba → Qwen
   - Terminado: una prueba de humo de integración arranca los contenedores y hace `SELECT 1` con el rol `saber_app`.
   - Nota de Opus (2026-10-06): alcance. T024 entrega contenedores, motores por rol, sesión con
     rollback, cliente de Redis y la fixture que aplica migraciones (usable desde T026). Las demás
     fixtures las agrega la tarea que crea lo que necesitan: `fixed_clock` en T023, fábrica de
     usuarios en T044, emisor de tokens de prueba en T046 y cliente ASGI en T058.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos; la prueba de humo
+    falló por falta de fixtures (commit `253179a`). `tests/integration/conftest.py`: `postgres:18`
+    con los scripts de `infra/postgres/init/` y contraseñas aleatorias, `redis:8-alpine`,
+    `database_urls` por rol (espera a poder entrar como `saber_app`), `app_engine` y
+    `migrator_engine` por prueba con `NullPool`, `db_session` con savepoint y rollback final,
+    `redis_client` con `flushdb` y `migrated_database` (importa `run_migrations` de T026 solo al
+    usarse). Todo `tests/integration/` recibe el marcador `integration` y se omite sin Docker
+    salvo con `REQUIRE_DOCKER=1`. Prueba de humo (6) en verde: `saber_app` entra, no crea tablas;
+    `saber_migrator` crea esquemas; extensiones presentes; Redis responde. Suite completa: 150
+    en verde. Se silencia un aviso de obsolescencia interno de testcontainers 4.13.
 - [ ] T025 [P] Prueba: unidad de trabajo en `backend/tests/integration/shared/test_unit_of_work.py` (commit persiste; excepción hace rollback; eventos del bus en proceso se despachan solo tras el commit) → Qwen
   - Terminado: la prueba falla.
   - Nota de Opus (2026-10-06): diseño del bus en dos fases (`in_transaction` y `after_commit`,

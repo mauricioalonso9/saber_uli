@@ -115,6 +115,10 @@ markers = [
     "full_stack: necesita api, worker, beat y migrate (se exige al cerrar T058)",
     "integration: prueba con contenedores de PostgreSQL y Redis (T024)",
 ]
+filterwarnings = [
+    # Aviso interno de testcontainers 4.13 sobre su propio decorador; no es código nuestro.
+    "ignore:The @wait_container_is_ready decorator is deprecated:DeprecationWarning",
+]
 
 # Cobertura (constitución IV): mínimo 80 % en las capas domain y application de cada contexto.
 [tool.coverage.run]

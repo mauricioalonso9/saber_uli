@@ -81,6 +81,8 @@ de forma independiente a partir de la fase 2.
 - [ ] T014 [P] Crear `.github/workflows/ci.yml` con los trabajos `infra` (`pytest backend/tests/infra`), `backend-quality` (ruff, mypy, lint-imports), `backend-tests` (pytest con cobertura y `fail_under`), `contract` (Schemathesis), `frontend-quality` (lint, typecheck, vitest, verificación de que `npm run api:generate` no deja cambios), `e2e` (compose perfil `e2e` + Playwright), `lighthouse`, `build` (imágenes) y `security` (Trivy sobre imágenes y sistema de archivos, falla con severidad CRITICAL/HIGH); y `.github/dependabot.yml` para pip, npm, docker y actions → Qwen
   - Terminado: la parte de CI de T007 pasa; el trabajo `infra` ejecuta `pytest backend/tests/infra` con `REQUIRE_DOCKER=1`; los trabajos fallan si fallan sus pasos.
 - [ ] T015 [P] Redactar el borrador de política `backend/seeds/politica_tratamiento_datos_v1.md` (responsable, finalidades, datos recogidos según FR-004 y FR-019/020, derechos de consulta, rectificación, revocación y supresión, plazos de conservación de FR-034a/b, canales de atención), marcado "BORRADOR — pendiente de aprobación de la oficina jurídica" → Opus
+  - Estado: borrador redactado por Opus en `backend/seeds/politica_tratamiento_datos_v1.md`; los datos del responsable y los canales quedan como `[PENDIENTE]` hasta que la oficina jurídica los apruebe (riesgo externo de plan.md).
+  - Terminado: cumple FR-016 (finalidad, datos, derechos y canales) y supera 200 caracteres (restricción del contrato).
 
 ---
 

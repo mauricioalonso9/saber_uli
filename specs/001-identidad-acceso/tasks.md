@@ -351,10 +351,26 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Terminado: la prueba falla.
 - [ ] T034 Implementar `backend/src/saber_uli/worker.py` (app Celery, Beat, tarea `dispatch_outbox`; las demás tareas como registros que cada historia completa) → Qwen
   - Terminado: T033 en verde; el servicio `worker` responde a `celery inspect ping`.
-- [ ] T035 [P] Prueba: limitación de peticiones en `backend/tests/integration/shared/test_rate_limit.py` (ventanas de research R-31: 5/h por hash de correo y 20/h por IP en solicitud de enlace; 10/min por IP en consumo de enlace; 30/min por IP en ingreso Microsoft y renovación; 300/min por usuario en el resto; respuesta 429 `rate-limited` con `Retry-After`; la clave por correo usa hash, nunca el correo) → Opus
+- [x] T035 [P] Prueba: limitación de peticiones en `backend/tests/integration/shared/test_rate_limit.py` (ventanas de research R-31: 5/h por hash de correo y 20/h por IP en solicitud de enlace; 10/min por IP en consumo de enlace; 30/min por IP en ingreso Microsoft y renovación; 300/min por usuario en el resto; respuesta 429 `rate-limited` con `Retry-After`; la clave por correo usa hash, nunca el correo) → Opus
   - Terminado: la prueba falla.
-- [ ] T036 Implementar `backend/src/saber_uli/shared/infrastructure/rate_limit.py` y la dependencia FastAPI en `backend/src/saber_uli/shared/api/rate_limit.py` con `limits` + Redis → Opus
+  - Estado: ver T036.
+- [x] T036 Implementar `backend/src/saber_uli/shared/infrastructure/rate_limit.py` y la dependencia FastAPI en `backend/src/saber_uli/shared/api/rate_limit.py` con `limits` + Redis → Opus
   - Terminado: T035 en verde.
+  - Estado: implementadas por Opus (2026-10-06); T035 falló por `ImportError` (commit
+    `ca9c274`). `RateLimiter` con `limits` 5.8 (`RedisStorage` asíncrono con el cliente
+    `redis` ya instalado, `implementation="redispy"`, prefijo `saber-uli:rl`) y ventana
+    deslizante con contador. Reglas de R-31 como constantes (`GUEST_LINK_PER_EMAIL`,
+    `GUEST_LINK_PER_IP`, `GUEST_SESSION_PER_IP`, `AUTH_PER_IP` compartida por el ingreso con
+    Microsoft y la renovación, `API_PER_USER`). Clave por correo: HMAC-SHA256 del correo
+    normalizado (el correo no llega a Redis). Dependencias `per_ip`, `per_user` y
+    `RateLimitGuard.check_email`; 429 `rate-limited` con `Retry-After` (entre 1 s y la ventana).
+    T035 (7 pruebas con Redis real) en verde; suite: 217.
+  - Decisión de Opus (revisar en T070): si Redis no responde, la limitación se omite (se permite
+    la petición y se registra `rate_limit_unavailable` sin IP ni correo), coherente con R-16, que
+    tolera la caída de Redis.
+  - Nota para T058: crear `RateLimiter(settings.redis_url, hash_key=...)` en
+    `app.state.rate_limiter`, con una clave HMAC derivada (por ejemplo
+    `HMAC(SESSION_COOKIE_SECRET, "saber-uli/rate-limit-email")`), nunca el secreto tal cual.
 
 ### Correo (contexto notifications)
 

@@ -8,10 +8,11 @@ service="${1:-api}"
 
 case "$service" in
   api)
-    # Logs: cada worker importa main.py, que llama a configure_logging (T019) y redirige los
+    # `--factory`: la configuración se lee al crear la app, no al importar el módulo.
+    # Logs: cada worker crea la app, que llama a configure_logging (T019) y redirige los
     # loggers de uvicorn al manejador JSON. Solo el proceso supervisor conserva el formato de
     # uvicorn en sus mensajes de arranque.
-    exec uvicorn saber_uli.main:app --host 0.0.0.0 --port 8000 --workers "${API_WORKERS:-4}" \
+    exec uvicorn --factory saber_uli.main:create_app --host 0.0.0.0 --port 8000 --workers "${API_WORKERS:-4}" \
       --proxy-headers --forwarded-allow-ips "*" "$@"
     ;;
   worker)

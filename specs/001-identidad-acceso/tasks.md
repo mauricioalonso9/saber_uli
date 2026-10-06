@@ -534,13 +534,32 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     cuatro valores con `ON CONFLICT DO NOTHING` (no pisa cambios de un administrador).
     `SqlAlchemySettingsRepository.load` toma el valor por defecto si falta una clave y `save`
     solo escribe las claves cambiadas, con `updated_by`. Suite: 343 en verde.
-- [ ] T057 [P] Prueba: arranque de la API en `backend/tests/integration/test_health.py` (`GET /api/health` → `{"status":"ok"}`; `GET /api/ready` → 503 si la base de datos o Redis no responden; logs JSON en cada petición sin datos personales) → Qwen
+- [x] T057 [P] Prueba: arranque de la API en `backend/tests/integration/test_health.py` (`GET /api/health` → `{"status":"ok"}`; `GET /api/ready` → 503 si la base de datos o Redis no responden; logs JSON en cada petición sin datos personales) → Qwen
   - Terminado: la prueba falla.
-- [ ] T058 Implementar `backend/src/saber_uli/main.py` (app FastAPI, routers, manejadores de problemas, logging, `SessionMiddleware` acotada a `/api/auth/microsoft`) y `backend/src/saber_uli/shared/api/health.py` → Qwen
+  - Estado: ver T058.
+- [x] T058 Implementar `backend/src/saber_uli/main.py` (app FastAPI, routers, manejadores de problemas, logging, `SessionMiddleware` acotada a `/api/auth/microsoft`) y `backend/src/saber_uli/shared/api/health.py` → Qwen
   - Terminado: T057 en verde; `docker compose up` deja `api` en `healthy`.
   - Nota de Opus (2026-10-06): agregar el cliente `httpx.AsyncClient` sobre la app ASGI a
     `backend/tests/integration/conftest.py`. Al cerrar T058, T007 debe pasar completa (servicios
     `api`, `worker`, `beat` y `migrate` incluidos; ver la nota de T012).
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T057 falló por
+    `ImportError` (commit `5d18587`). `main.create_app(settings, clock, log_stream)` es la raíz de
+    composición: logs JSON, motor y sesiones de `saber_app`, bus de eventos (invalida la caché de
+    épocas tras el commit de `identity.UserAccessChanged`, evento nuevo en
+    `identity/domain/events.py`), `AccessTokenCodec`, `RateLimiter` con clave HMAC derivada del
+    secreto de sesión, `AccessGuard`, `ConsentStatusQuery`, `SessionService`, manejadores de
+    Problem Details y routers de salud y de sesión. `SessionMiddleware` solo bajo
+    `/api/auth/microsoft` (`PathScopedMiddleware`, cookie `su_oidc` de 10 min con clave derivada).
+    `RequestLoggingMiddleware`: un log `http_request` por petición (método, ruta sin consulta,
+    estado, duración, `request_id` también en `X-Request-ID`). `GET /api/health` y
+    `GET /api/ready` (base de datos y Redis con 2 s cada uno; 503 `service-unavailable`). Sin
+    `/docs` ni `/openapi.json`: el contrato publicado es el de `specs/`. La imagen arranca con
+    `uvicorn --factory saber_uli.main:create_app`. Fixtures `settings_for` y `api_client`.
+    T057 (8 pruebas) en verde; suite: 351. Verificado en Compose: `migrate` aplica 0001–0004,
+    `api` queda `healthy` con UID 10001 y responde por el proxy `/api/health`, `/api/ready` y
+    404 como Problem Details.
+  - Pendiente para cerrar T007 completa: los servicios `worker` y `beat` necesitan la app Celery
+    (T034) y el trabajo de CI necesita T014.
 - [ ] T059 Crear el arnés de contrato `backend/tests/contract/test_openapi_contract.py` con Schemathesis sobre la app ASGI, autenticado con tokens de prueba por rol, y la lista `backend/tests/contract/implemented_operations.py` (cada historia agrega sus `operationId`) → Qwen
   - Terminado: corre en verde con las operaciones de la fase 2 (`getHealth`, `getReadiness`, `refreshSession`, `logout`).
 

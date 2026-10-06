@@ -275,16 +275,36 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     salvo con `REQUIRE_DOCKER=1`. Prueba de humo (6) en verde: `saber_app` entra, no crea tablas;
     `saber_migrator` crea esquemas; extensiones presentes; Redis responde. Suite completa: 150
     en verde. Se silencia un aviso de obsolescencia interno de testcontainers 4.13.
-- [ ] T025 [P] Prueba: unidad de trabajo en `backend/tests/integration/shared/test_unit_of_work.py` (commit persiste; excepción hace rollback; eventos del bus en proceso se despachan solo tras el commit) → Qwen
+- [x] T025 [P] Prueba: unidad de trabajo en `backend/tests/integration/shared/test_unit_of_work.py` (commit persiste; excepción hace rollback; eventos del bus en proceso se despachan solo tras el commit) → Qwen
   - Terminado: la prueba falla.
   - Nota de Opus (2026-10-06): diseño del bus en dos fases (`in_transaction` y `after_commit`,
     precisión en R-08), puerto `UnitOfWork`, `env.py` sin `get_settings()`, CLI con argparse y
     pruebas en `handoffs/qwen-04-T025-T026.md`.
-- [ ] T026 Implementar `backend/src/saber_uli/shared/infrastructure/db.py` (engine asyncpg, sesiones), `backend/src/saber_uli/shared/application/unit_of_work.py`, `backend/src/saber_uli/shared/application/event_bus.py` y `backend/migrations/env.py` (Alembic asíncrono, varios esquemas, `alembic_version` en `shared`) → Qwen
+  - Estado: ver T026.
+- [x] T026 Implementar `backend/src/saber_uli/shared/infrastructure/db.py` (engine asyncpg, sesiones), `backend/src/saber_uli/shared/application/unit_of_work.py`, `backend/src/saber_uli/shared/application/event_bus.py` y `backend/migrations/env.py` (Alembic asíncrono, varios esquemas, `alembic_version` en `shared`) → Qwen
   - Terminado: T025 en verde; `saber-uli migrate` aplica cero migraciones sin error.
   - Nota de Opus (2026-10-06): T026 crea también `backend/src/saber_uli/cli.py` con el comando
     `migrate` (`alembic upgrade head` con el rol `saber_migrator`); lo usan el servicio `migrate` de
     Compose (T008, T012) y la fixture de migraciones de T024.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T025 falló por
+    `ImportError` (commit `9c8a3fb`) y la prueba de la CLI también (commit `19c743b`).
+    `EventBus` con fases `in_transaction` y `after_commit` (suscripción por clase base, orden de
+    suscripción, fallos de `after_commit` registrados solo con `event_type`, `event_id`,
+    manejador y clase de excepción). `UnitOfWork` (puerto: commit explícito, rollback al salir,
+    `record` prohibido durante `in_transaction`) y `SqlAlchemyUnitOfWork` con `.session`.
+    `db.py` con `create_engine`, `create_session_factory` y `Base` con convención de nombres.
+    Alembic: `migrations/env.py` asíncrono (URL desde `attributes["url"]` o
+    `MIGRATION_DATABASE_URL`, nunca `get_settings()`; crea `shared` y deja ahí
+    `alembic_version`; autogenerado limitado a `shared` e `identity`), `script.py.mako` y
+    `alembic.ini` solo para crear revisiones. `run_migrations` y `migrations_dir`
+    (`SABER_MIGRATIONS_DIR` o `backend/migrations`). `saber-uli migrate` con argparse: código 2
+    sin la variable, 1 ante error (contraseña ocultada), logs JSON. Pruebas: 16 de T025 y 4 de
+    la CLI en verde (idempotente; `saber_app` no puede migrar). Verificado en Compose: el
+    servicio `migrate` aplica cero migraciones, `shared` es de `saber_migrator` y existe
+    `shared.alembic_version`. Suite: 170 en verde; `lint-imports` 5 KEPT.
+  - Nota para T028: `env.py` ya crea el esquema `shared`; la migración 0001 debe usar
+    `CREATE SCHEMA IF NOT EXISTS shared` o no crearlo. Las revisiones se crean con
+    `--rev-id 0001`, `0002`…
 
 ### Esquema de datos
 

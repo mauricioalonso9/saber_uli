@@ -1,0 +1,120 @@
+[project]
+name = "saber-uli-backend"
+version = "0.1.0"
+description = "Saber Uli: backend (monolito modular FastAPI + PostgreSQL 18) — spec 001 identidad y acceso"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    "authlib>=1.3",
+    "httpx>=0.27",
+    "itsdangerous>=2.2",
+    "pyjwt[crypto]>=2.9",
+    "celery[redis]>=5.4",
+    "redis>=5.2",
+    "structlog>=24.4",
+    "limits>=3.14",
+    "holidays>=0.60",
+    "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+# Observabilidad opcional (research R-32: OTEL_ENABLED=false por defecto).
+otel = ["opentelemetry-sdk>=1.27"]
+
+[project.scripts]
+saber-uli = "saber_uli.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "testcontainers[postgres,redis]>=4.8",
+    "respx>=0.22",
+    "schemathesis>=3.42",
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "import-linter>=2.1",
+]
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/saber_uli"]
+
+# ---------------------------------------------------------------------------
+# Calidad (research R-02): ruff, mypy estricto, pytest asíncrono y cobertura.
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errores
+    "W",    # pycodestyle avisos
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "C4",   # flake8-comprehensions
+    "PIE",  # flake8-pie
+    "RET",  # flake8-return
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "ASYNC",# flake8-async
+    "S",    # flake8-bandit (seguridad, constitución IX)
+    "RUF",  # reglas de ruff
+]
+ignore = [
+    "RET504",  # asignación antes de return: útil para depurar
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S311", "ARG001", "ARG002"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+mypy_path = "src"
+warn_unreachable = true
+pretty = true
+
+# Celery no distribuye py.typed; se anota su uso en worker.py con ignores acotados.
+[[tool.mypy.overrides]]
+module = ["celery.*"]
+ignore_missing_imports = true
+follow_untyped_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-ra"
+
+# Cobertura (constitución IV): mínimo 80 % en las capas domain y application de cada contexto.
+[tool.coverage.run]
+source = ["saber_uli"]
+branch = true
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+fail_under = 80
+include = [
+    "saber_uli/*/domain/*",
+    "saber_uli/*/application/*",
+    "*/saber_uli/*/domain/*",
+    "*/saber_uli/*/application/*",
+]

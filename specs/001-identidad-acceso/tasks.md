@@ -51,6 +51,11 @@ de forma independiente a partir de la fase 2.
     usan la raíz del repositorio).
 - [ ] T002 Crear `backend/pyproject.toml` y `backend/uv.lock` con Python 3.13; dependencias de ejecución: fastapi, uvicorn[standard], pydantic>=2, pydantic-settings, sqlalchemy[asyncio]>=2, asyncpg, alembic, authlib, httpx, itsdangerous, pyjwt, celery[redis], redis, structlog, limits, holidays, jinja2, opentelemetry-sdk (opcional); desarrollo: pytest, pytest-asyncio, pytest-cov, testcontainers[postgres,redis], respx, schemathesis, ruff, mypy, import-linter; configurar ruff, `mypy --strict`, pytest (`asyncio_mode=auto`) y cobertura con `fail_under = 80` sobre `saber_uli/*/domain` y `saber_uli/*/application`; script `saber-uli = "saber_uli.cli:app"` → Qwen
   - Terminado: `uv sync` funciona; `uv run pytest` corre (0 pruebas); `uv run ruff check .` y `uv run mypy --strict src` pasan.
+  - Estado: lista para revisión. `pyproject.toml` (Python 3.13, ruff, mypy strict, pytest
+    `asyncio_mode=auto`, cobertura `fail_under=80` acotada a `domain`/`application`) y `uv.lock`
+    generados; `opentelemetry-sdk` queda como extra `otel`. Nota: se agregó una prueba de humo de
+    empaquetado (`tests/unit/test_smoke.py`) para que `uv run pytest` salga en verde en lugar del
+    código 5 de "sin pruebas"; no sustituye ninguna prueba funcional.
 - [ ] T003 [P] Definir los contratos de capas y contextos en `backend/.importlinter`: capas `api > application > domain` e `infrastructure > application > domain` en cada contexto; `domain` no importa fastapi, sqlalchemy, pydantic, celery ni redis; `identity` y `notifications` solo se importan entre sí a través de `<contexto>.application.public` → Opus
   - Estado: implementada por Opus en `backend/.importlinter`; se verifica con `lint-imports` cuando existan T001 y T002.
   - Nota: el orden de capas es `api > infrastructure > application > domain` (la API puede usar adaptadores solo para el cableado de FastAPI; la infraestructura nunca importa la API).

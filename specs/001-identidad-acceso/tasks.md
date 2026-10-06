@@ -179,8 +179,18 @@ de forma independiente a partir de la fase 2.
     repiten) y solo se definen para ejecutar fuera de Docker. Valores de ejemplo sin secretos
     reales; `.env` ignorado y `.env.example` versionado. La prueba de T007 que compara
     `.env.example` con el entorno de prueba está en verde.
-- [ ] T014 [P] Crear `.github/workflows/ci.yml` con los trabajos `infra` (`pytest backend/tests/infra`), `backend-quality` (ruff, mypy, lint-imports), `backend-tests` (pytest con cobertura y `fail_under`), `contract` (Schemathesis), `frontend-quality` (lint, typecheck, vitest, verificación de que `npm run api:generate` no deja cambios), `e2e` (compose perfil `e2e` + Playwright), `lighthouse`, `build` (imágenes) y `security` (Trivy sobre imágenes y sistema de archivos, falla con severidad CRITICAL/HIGH); y `.github/dependabot.yml` para pip, npm, docker y actions → Qwen
+- [x] T014 [P] Crear `.github/workflows/ci.yml` con los trabajos `infra` (`pytest backend/tests/infra`), `backend-quality` (ruff, mypy, lint-imports), `backend-tests` (pytest con cobertura y `fail_under`), `contract` (Schemathesis), `frontend-quality` (lint, typecheck, vitest, verificación de que `npm run api:generate` no deja cambios), `e2e` (compose perfil `e2e` + Playwright), `lighthouse`, `build` (imágenes) y `security` (Trivy sobre imágenes y sistema de archivos, falla con severidad CRITICAL/HIGH); y `.github/dependabot.yml` para pip, npm, docker y actions → Qwen
   - Terminado: la parte de CI de T007 pasa; el trabajo `infra` ejecuta `pytest backend/tests/infra` con `REQUIRE_DOCKER=1`; los trabajos fallan si fallan sus pasos.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos. `.github/workflows/ci.yml`
+    con los nueve trabajos (`infra`, `backend-quality`, `backend-tests` con cobertura y
+    `fail_under`, `contract`, `frontend-quality` con verificación de que `api:generate` no deja
+    cambios, `e2e`, `lighthouse`, `build` y `security` con Trivy sobre el repositorio y las dos
+    imágenes, CRITICAL/HIGH, `exit-code 1`), `REQUIRE_DOCKER=1` en todo el flujo y permisos de
+    solo lectura. `contract`, `e2e` y `lighthouse` tienen un primer paso `enabled` que revisa si
+    existe su configuración (T059, T069, fase 11) y omiten sus pasos hasta entonces (`hashFiles`
+    no se permite en el `if` de un trabajo; lo detectó actionlint). `.github/dependabot.yml` para
+    uv, npm, docker y GitHub Actions. Corregido en la prueba de T007 el indicador de actionlint
+    (`-no-color`). T007 completa: 11 de 11 en verde.
 - [ ] T015 [P] Redactar el borrador de política `backend/seeds/politica_tratamiento_datos_v1.md` (responsable, finalidades, datos recogidos según FR-004 y FR-019/020, derechos de consulta, rectificación, revocación y supresión, plazos de conservación de FR-034a/b, canales de atención), marcado "BORRADOR — pendiente de aprobación de la oficina jurídica" → Opus
   - Estado: borrador redactado por Opus en `backend/seeds/politica_tratamiento_datos_v1.md`; los datos del responsable y los canales quedan como `[PENDIENTE]` hasta que la oficina jurídica los apruebe (riesgo externo de plan.md).
   - Terminado: cumple FR-016 (finalidad, datos, derechos y canales) y supera 200 caracteres (restricción del contrato).
@@ -582,8 +592,7 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     T057 (8 pruebas) en verde; suite: 351. Verificado en Compose: `migrate` aplica 0001–0004,
     `api` queda `healthy` con UID 10001 y responde por el proxy `/api/health`, `/api/ready` y
     404 como Problem Details.
-  - Pendiente para cerrar T007 completa: los servicios `worker` y `beat` necesitan la app Celery
-    (T034) y el trabajo de CI necesita T014.
+  - Resuelto: con T034 y T014, T007 pasa completa (11 de 11).
 - [ ] T059 Crear el arnés de contrato `backend/tests/contract/test_openapi_contract.py` con Schemathesis sobre la app ASGI, autenticado con tokens de prueba por rol, y la lista `backend/tests/contract/implemented_operations.py` (cada historia agrega sus `operationId`) → Qwen
   - Terminado: corre en verde con las operaciones de la fase 2 (`getHealth`, `getReadiness`, `refreshSession`, `logout`).
 

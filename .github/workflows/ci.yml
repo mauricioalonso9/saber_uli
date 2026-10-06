@@ -1,0 +1,233 @@
+# Integración continua de Saber Uli (T014; research R-37; constitución IV, IX y X).
+#
+# Trabajos que dependen de tareas futuras se activan solos cuando aparece su configuración:
+#   contract   → backend/tests/contract/test_openapi_contract.py (T059)
+#   e2e        → frontend/playwright.config.ts (T069)
+#   lighthouse → frontend/lighthouserc.json (fase 11)
+# Mientras tanto sus pasos se omiten (un primer paso `enabled` revisa si existe la configuración;
+# `hashFiles` no está disponible en el `if` de un trabajo). Todos los trabajos fallan si falla
+# cualquiera de sus pasos.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  REQUIRE_DOCKER: "1"
+
+jobs:
+  infra:
+    name: infra
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - name: Dependencias
+        working-directory: backend
+        run: uv sync --frozen
+      - name: Pruebas de infraestructura (Compose, imágenes, cabeceras, roles, CI)
+        working-directory: backend
+        run: uv run pytest -m infra tests/infra
+
+  backend-quality:
+    name: backend-quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen
+      - name: ruff
+        run: uv run ruff check .
+      - name: ruff format
+        run: uv run ruff format --check .
+      - name: mypy --strict
+        run: uv run mypy --strict src
+      - name: Contratos de arquitectura
+        run: uv run lint-imports
+
+  backend-tests:
+    name: backend-tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen
+      - name: Pruebas con PostgreSQL 18 y Redis 8 reales y cobertura (fail_under en pyproject)
+        run: uv run pytest --cov=saber_uli --cov-report=term-missing
+
+  contract:
+    name: contract
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+      - id: enabled
+        name: ¿Existe backend/tests/contract/test_openapi_contract.py?
+        run: echo "value=${{ hashFiles('backend/tests/contract/test_openapi_contract.py') != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: astral-sh/setup-uv@v6
+        if: steps.enabled.outputs.value == 'true'
+        with:
+          python-version: "3.13"
+      - run: uv sync --frozen
+        if: steps.enabled.outputs.value == 'true'
+      - name: Schemathesis contra el contrato OpenAPI
+        if: steps.enabled.outputs.value == 'true'
+        run: uv run pytest tests/contract
+
+  frontend-quality:
+    name: frontend-quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - name: El cliente generado coincide con el contrato
+        run: |
+          npm run api:generate
+          git diff --exit-code -- src/api
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: enabled
+        name: ¿Existe frontend/playwright.config.ts?
+        run: echo "value=${{ hashFiles('frontend/playwright.config.ts') != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v5
+        if: steps.enabled.outputs.value == 'true'
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Entorno de prueba
+        if: steps.enabled.outputs.value == 'true'
+        run: cp .env.example .env
+      - name: Stack con el perfil e2e
+        if: steps.enabled.outputs.value == 'true'
+        run: docker compose --profile e2e up -d --build --wait
+      - name: Playwright
+        if: steps.enabled.outputs.value == 'true'
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium webkit
+          npm run test:e2e
+      - name: Logs del stack
+        if: failure() && steps.enabled.outputs.value == 'true'
+        run: docker compose --profile e2e logs --no-color
+      - name: Bajar el stack
+        if: always() && steps.enabled.outputs.value == 'true'
+        run: docker compose --profile e2e down -v
+
+  lighthouse:
+    name: lighthouse
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+      - id: enabled
+        name: ¿Existe frontend/lighthouserc.json?
+        run: echo "value=${{ hashFiles('frontend/lighthouserc.json') != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v5
+        if: steps.enabled.outputs.value == 'true'
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        if: steps.enabled.outputs.value == 'true'
+      - run: npm run build
+        if: steps.enabled.outputs.value == 'true'
+      - run: npx lhci autorun
+        if: steps.enabled.outputs.value == 'true'
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - name: Imagen del backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          tags: saber-uli/backend:ci
+          load: true
+      - name: Imagen del proxy
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: frontend/Dockerfile
+          tags: saber-uli/proxy:ci
+          load: true
+
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Trivy sobre el repositorio (dependencias, secretos y configuración)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Construir imágenes
+        run: |
+          docker build -f backend/Dockerfile -t saber-uli/backend:scan .
+          docker build -f frontend/Dockerfile -t saber-uli/proxy:scan .
+      - name: Trivy sobre la imagen del backend
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: saber-uli/backend:scan
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+      - name: Trivy sobre la imagen del proxy
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: saber-uli/proxy:scan
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"

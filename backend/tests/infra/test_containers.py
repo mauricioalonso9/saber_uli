@@ -256,7 +256,7 @@ def test_flujo_de_ci() -> None:
             "-w",
             "/repo",
             "rhysd/actionlint:latest",
-            "-color=never",
+            "-no-color",
         ],
         timeout=300,
     )

@@ -1,0 +1,12 @@
+# Normalización de fines de línea: LF en el repositorio y en el árbol de trabajo (contenedores Linux).
+* text=auto eol=lf
+
+# Binarios (íconos PWA, fuentes, imágenes)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.webmanifest text eol=lf

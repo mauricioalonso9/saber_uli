@@ -1,0 +1,43 @@
+# Secretos y configuración local (nunca versionar; principio IX de la constitución)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Python / uv
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/dev-dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
+.lighthouseci/
+*.log
+npm-debug.log*
+
+# Docker
+infra/docker/certs/
+
+# Universales
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.idea/
+.vscode/

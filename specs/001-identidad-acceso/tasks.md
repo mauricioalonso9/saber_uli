@@ -46,6 +46,9 @@ de forma independiente a partir de la fase 2.
 
 - [ ] T001 Crear el esqueleto del monorepo según plan.md: carpetas `backend/src/saber_uli/{shared,identity,notifications}/{domain,application,infrastructure,api}/` con `__init__.py`, `backend/tests/{unit,integration,contract,infra}/`, `backend/migrations/`, `frontend/`, `infra/{nginx,docker,postgres/init}/`, más `.gitignore`, `.gitattributes` (`* text=auto eol=lf`) y `.editorconfig` en la raíz → Qwen
   - Terminado: el árbol coincide con plan.md; `git status` no muestra archivos generados ni `.env`.
+  - Estado: lista para revisión. Árbol creado según plan.md; se agregaron `.gitignore`,
+    `.gitattributes`, `.editorconfig` y `.dockerignore` raíz (los contextos de build de Docker
+    usan la raíz del repositorio).
 - [ ] T002 Crear `backend/pyproject.toml` y `backend/uv.lock` con Python 3.13; dependencias de ejecución: fastapi, uvicorn[standard], pydantic>=2, pydantic-settings, sqlalchemy[asyncio]>=2, asyncpg, alembic, authlib, httpx, itsdangerous, pyjwt, celery[redis], redis, structlog, limits, holidays, jinja2, opentelemetry-sdk (opcional); desarrollo: pytest, pytest-asyncio, pytest-cov, testcontainers[postgres,redis], respx, schemathesis, ruff, mypy, import-linter; configurar ruff, `mypy --strict`, pytest (`asyncio_mode=auto`) y cobertura con `fail_under = 80` sobre `saber_uli/*/domain` y `saber_uli/*/application`; script `saber-uli = "saber_uli.cli:app"` → Qwen
   - Terminado: `uv sync` funciona; `uv run pytest` corre (0 pruebas); `uv run ruff check .` y `uv run mypy --strict src` pasan.
 - [ ] T003 [P] Definir los contratos de capas y contextos en `backend/.importlinter`: capas `api > application > domain` e `infrastructure > application > domain` en cada contexto; `domain` no importa fastapi, sqlalchemy, pydantic, celery ni redis; `identity` y `notifications` solo se importan entre sí a través de `<contexto>.application.public` → Opus

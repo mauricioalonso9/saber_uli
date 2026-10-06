@@ -291,7 +291,8 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 - **Decisión**: RBAC con permisos declarados en código (`identity/domain/permissions.py`): cada
   rol se asocia a un conjunto de permisos (`invitations:manage_own`, `invitations:manage_all`,
   `users:manage`, `groups:manage`, `groups:read_own_students`, `programs:read_aggregated`,
-  `settings:manage`, `audit:read`, `policy:publish`). Los permisos de un usuario son la unión de
+  `programs:manage`, `settings:manage`, `audit:read`, `policy:publish`, `deletions:read`; la
+  lista completa es el enum `Permission` del contrato). Los permisos de un usuario son la unión de
   sus roles (FR-023). Las reglas de alcance (invitaciones propias, grupos propios, programas
   asignados) se verifican en la capa de aplicación. Un recurso fuera del alcance responde `404`
   (no revela que existe); una función no permitida responde `403`.

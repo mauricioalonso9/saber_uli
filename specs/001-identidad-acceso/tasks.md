@@ -202,10 +202,19 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
 
 ### Identidad: usuarios, permisos, sesiones y guardias
 
-- [ ] T039 [P] Prueba: matriz de permisos en `backend/tests/unit/identity/test_permissions.py` (permisos de cada rol según research R-22 y el enum `Permission` del contrato; unión de permisos para varios roles (FR-023); `guest` sin permisos de gestión; `teacher` con `invitations:manage_own` y `groups:read_own_students`; `program_director` con `programs:read_aggregated` y sin permisos que expongan datos personales (FR-026); `admin` con todos) → Opus
+- [x] T039 [P] Prueba: matriz de permisos en `backend/tests/unit/identity/test_permissions.py` (permisos de cada rol según research R-22 y el enum `Permission` del contrato; unión de permisos para varios roles (FR-023); `guest` sin permisos de gestión; `teacher` con `invitations:manage_own` y `groups:read_own_students`; `program_director` con `programs:read_aggregated` y sin permisos que expongan datos personales (FR-026); `admin` con todos) → Opus
   - Terminado: la prueba falla.
-- [ ] T040 Implementar `backend/src/saber_uli/identity/domain/roles.py` y `backend/src/saber_uli/identity/domain/permissions.py` → Opus
+- [x] T040 Implementar `backend/src/saber_uli/identity/domain/roles.py` y `backend/src/saber_uli/identity/domain/permissions.py` → Opus
   - Terminado: T039 en verde.
+  - Estado: implementadas por Opus (2026-10-06); T039 falló por `ModuleNotFoundError` antes de
+    T040 (commit `456b3ba`). `Role` y `Permission` son `StrEnum` y una prueba los compara con los
+    enums del contrato para detectar desajustes. Matriz: `student` y `guest` sin permisos;
+    `teacher` con `invitations:manage_own` y `groups:read_own_students`; `program_director` solo
+    con `programs:read_aggregated` (FR-026); `admin` con los 11. `permissions_for` une los
+    permisos de varios roles (FR-023) y lanza `ValueError` ante un rol desconocido.
+    `has_privileged_role` (docente, director, administrador) queda listo para el claim `priv` de
+    T045–T046. R-22 se alineó con el contrato, que tiene además `programs:manage` y
+    `deletions:read`. Se agregaron `pyyaml` y `types-pyyaml` como dependencias de desarrollo.
 - [ ] T041 [P] Prueba: agregado `User` en `backend/tests/unit/identity/test_user.py` (creación institucional con `student`; transiciones `active↔disabled`, `→deletion_pending→deleted` y `deleted` final; cada transición que revoca sesiones incrementa `auth_epoch`; registrar ingreso actualiza `last_login_at` y limpia `retention_notice_sent_at`; `to_tombstone()` deja nombre, correo y `oid` en `None`) → Qwen
   - Terminado: la prueba falla.
 - [ ] T042 Implementar `backend/src/saber_uli/identity/domain/user.py` → Qwen

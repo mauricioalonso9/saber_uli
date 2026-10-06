@@ -145,7 +145,8 @@ class OutboxRegistry:
 
 
 def backoff(attempts: int) -> timedelta:
-    return min(BASE_BACKOFF * 2 ** max(attempts - 1, 0), MAX_BACKOFF)
+    factor: int = 1 << max(attempts - 1, 0)
+    return min(BASE_BACKOFF * factor, MAX_BACKOFF)
 
 
 class OutboxDispatcher:

@@ -354,7 +354,7 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     campos del evento salvo `event_id` y `occurred_at`, y claves de nombre, correo, token,
     contraseña, secreto o `code` lanzan `PersonalDataInOutboxError` (la acción se revierte).
     `OutboxDispatcher.dispatch_once` reclama lotes con `FOR UPDATE SKIP LOCKED`, entrega a los
-    manejadores de `OutboxRegistry`, marca `processed_at` o reintenta con espera 5 s · 2^(n−1)
+    manejadores de `OutboxRegistry`, marca `processed_at` o reintenta con espera 5 s · 2^(n-1)
     (máx. 1 h) guardando solo la clase de la excepción; un evento sin manejador se marca
     procesado. `purge_processed` borra lo procesado hace más de 7 días. Todas las fechas con el
     reloj inyectado. `OutboxEventRow` registrado en `migrations/env.py`. 10 pruebas en verde.

@@ -7,7 +7,7 @@
   token o secreto lanzan `PersonalDataInOutboxError` y revierten la acción.
 - Despachador: `OutboxDispatcher.dispatch_once()` reclama un lote con `FOR UPDATE SKIP LOCKED`
   (varios despachadores no se pisan), entrega cada evento a sus manejadores y lo marca procesado;
-  si un manejador falla, reintenta con espera exponencial (5 s · 2^(n−1), máx. 1 h) y guarda en
+  si un manejador falla, reintenta con espera exponencial (5 s · 2^(n-1), máx. 1 h) y guarda en
   `last_error` solo la clase de la excepción. Entrega al menos una vez: los manejadores deben
   deduplicar por `event_id`.
 - Purga: `purge_processed()` borra lo procesado hace más de 7 días.

@@ -20,9 +20,18 @@ def migrations_dir() -> Path:
     return Path(__file__).resolve().parents[4] / "migrations"
 
 
-def run_migrations(url: str, revision: str = "head") -> None:
-    """Aplica las migraciones hasta `revision` con la URL del rol saber_migrator."""
+def _config(url: str) -> Config:
     config = Config()
     config.set_main_option("script_location", str(migrations_dir()))
     config.attributes["url"] = url
-    command.upgrade(config, revision)
+    return config
+
+
+def run_migrations(url: str, revision: str = "head") -> None:
+    """Aplica las migraciones hasta `revision` con la URL del rol saber_migrator."""
+    command.upgrade(_config(url), revision)
+
+
+def downgrade_migrations(url: str, revision: str) -> None:
+    """Revierte hasta `revision` (por ejemplo `base`). Solo para pruebas y operación manual."""
+    command.downgrade(_config(url), revision)

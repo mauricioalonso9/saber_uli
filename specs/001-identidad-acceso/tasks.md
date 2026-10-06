@@ -308,10 +308,24 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
 
 ### Esquema de datos
 
-- [ ] T027 [P] Prueba: restricciones del esquema en `backend/tests/integration/identity/test_schema_constraints.py`, citando data-model.md: `users.kind IN ('institutional','guest')`; `users.status IN ('active','disabled','deletion_pending','deleted')`; `UNIQUE (entra_tenant_id, entra_object_id)`; una lápida (`status='deleted'`) exige `email`, `display_name` y `entra_object_id` en `NULL`; índice único parcial de correo de invitado vigente; `profiles.semester BETWEEN 1 AND 12`; `daily_goal IN ('casual','regular','intense')`; `role IN ('student','guest','teacher','program_director','admin')`; `invitations.status IN ('sent','accepted','expired','revoked')` y una sola invitación `sent|accepted` por correo; `access_links.purpose IN ('invitation','sign_in')` y `token_hash` único; `consents.decision IN ('accepted','rejected','revoked')`; `deletion_requests.origin` y `status` según data-model §2.12 con una sola solicitud abierta por usuario; claves por defecto `uuidv7()` → Qwen
+- [x] T027 [P] Prueba: restricciones del esquema en `backend/tests/integration/identity/test_schema_constraints.py`, citando data-model.md: `users.kind IN ('institutional','guest')`; `users.status IN ('active','disabled','deletion_pending','deleted')`; `UNIQUE (entra_tenant_id, entra_object_id)`; una lápida (`status='deleted'`) exige `email`, `display_name` y `entra_object_id` en `NULL`; índice único parcial de correo de invitado vigente; `profiles.semester BETWEEN 1 AND 12`; `daily_goal IN ('casual','regular','intense')`; `role IN ('student','guest','teacher','program_director','admin')`; `invitations.status IN ('sent','accepted','expired','revoked')` y una sola invitación `sent|accepted` por correo; `access_links.purpose IN ('invitation','sign_in')` y `token_hash` único; `consents.decision IN ('accepted','rejected','revoked')`; `deletion_requests.origin` y `status` según data-model §2.12 con una sola solicitud abierta por usuario; claves por defecto `uuidv7()` → Qwen
   - Terminado: la prueba falla porque las tablas no existen.
-- [ ] T028 Implementar las migraciones `backend/migrations/versions/0001_shared_outbox.py` (esquema `shared`, `outbox_events` con índice parcial `(available_at) WHERE processed_at IS NULL`) y `backend/migrations/versions/0002_identity_schema.py` (todas las tablas de data-model.md §2 con sus `CHECK`, FK, índices y extensión `citext`) → Qwen
+  - Estado: ver T028.
+- [x] T028 Implementar las migraciones `backend/migrations/versions/0001_shared_outbox.py` (esquema `shared`, `outbox_events` con índice parcial `(available_at) WHERE processed_at IS NULL`) y `backend/migrations/versions/0002_identity_schema.py` (todas las tablas de data-model.md §2 con sus `CHECK`, FK, índices y extensión `citext`) → Qwen
   - Terminado: T027 en verde; `alembic downgrade base` y `upgrade head` funcionan.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T027 falló al no
+    existir las tablas (commit `8f558ab`) y la prueba de ida y vuelta también (commit
+    `1170197`). Migraciones en SQL explícito (una sentencia por `op.execute`, como exige
+    asyncpg) con nombres de restricciones según la convención de `Base`: 0001 crea
+    `shared.outbox_events` (payload solo objeto JSON, `attempts ≥ 0`, índice parcial de
+    pendientes) y 0002 las 18 tablas de `identity` con todos los `CHECK`, FK, únicos e índices de
+    data-model §2. Agregados por Opus, coherentes con data-model: los invitados no tienen
+    identidad de Entra ID; `token_hash` debe medir 32 bytes (SHA-256, R-19);
+    `auth_epoch ≥ 0`; `action` de auditoría con formato `contexto.accion`; `details` y `rows`
+    con tipo JSON validado; `audit_events` sin FK (la supresión no la toca); `batch_id` con
+    `ON DELETE SET NULL` (los lotes se purgan a los 30 días). T027 (27 pruebas, con
+    `saber_migrator` porque los permisos de `saber_app` llegan en 0003) en verde;
+    `downgrade base` y `upgrade head` en verde. Suite: 198 en verde.
 - [ ] T029 [P] Prueba: permisos de base de datos en `backend/tests/integration/identity/test_db_grants.py`: con el rol `saber_app`, `UPDATE` y `DELETE` sobre `identity.audit_events` y `identity.consents` fallan, `UPDATE` sobre `identity.policy_versions` falla, `INSERT`/`SELECT` funcionan; `saber_app` no puede ejecutar DDL; `saber_bi` no lee el esquema `identity` (FR-035, research R-07) → Opus
   - Terminado: la prueba falla.
 - [ ] T030 Implementar `backend/migrations/versions/0003_identity_grants.py` (grants por rol, `ALTER DEFAULT PRIVILEGES`, revocaciones de `UPDATE`/`DELETE` en tablas de solo inserción) → Opus

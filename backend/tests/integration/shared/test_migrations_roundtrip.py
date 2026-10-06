@@ -1,4 +1,9 @@
-"""T028: las migraciones se revierten hasta `base` y se vuelven a aplicar sin error."""
+"""T028: las migraciones se revierten hasta `base` y se vuelven a aplicar sin error.
+
+Alembic crea su propio bucle de eventos (env.py), así que se ejecuta en otro hilo.
+"""
+
+import asyncio
 
 from sqlalchemy import NullPool, text
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -25,10 +30,10 @@ async def test_downgrade_base_y_upgrade_head(migrated_database: dict[str, str]) 
     assert before > 0
 
     try:
-        downgrade_migrations(url, "base")
+        await asyncio.to_thread(downgrade_migrations, url, "base")
         assert await count_tables(url) == 0
     finally:
         # Deja la base como la esperan las demás pruebas de la sesión.
-        run_migrations(url)
+        await asyncio.to_thread(run_migrations, url)
 
     assert await count_tables(url) == before

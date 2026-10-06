@@ -123,6 +123,9 @@ de forma independiente a partir de la fase 2.
     cerrar T058.
 - [ ] T013 [P] Crear `.env.example` documentado: `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_AUTHORITY`, `PUBLIC_BASE_URL`, `INSTITUTIONAL_EMAIL_DOMAINS`, `JWT_SIGNING_KEY`, `JWT_KEY_ID`, `SESSION_COOKIE_SECRET`, `DATABASE_URL` (por rol), `REDIS_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `OTEL_ENABLED`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` (reservadas para la spec 009), contraseñas de roles de base de datos → Qwen
   - Terminado: cada variable tiene comentario en español; ningún valor real; `.env` está en `.gitignore`.
+  - Nota de Opus (2026-10-06): los nombres definitivos de las variables están en
+    `handoffs/qwen-02-T016-T017-T022-T023.md` (tabla de T016); incluye `MIGRATION_DATABASE_URL`,
+    `SMTP_STARTTLS` y `LOG_LEVEL`.
 - [ ] T014 [P] Crear `.github/workflows/ci.yml` con los trabajos `infra` (`pytest backend/tests/infra`), `backend-quality` (ruff, mypy, lint-imports), `backend-tests` (pytest con cobertura y `fail_under`), `contract` (Schemathesis), `frontend-quality` (lint, typecheck, vitest, verificación de que `npm run api:generate` no deja cambios), `e2e` (compose perfil `e2e` + Playwright), `lighthouse`, `build` (imágenes) y `security` (Trivy sobre imágenes y sistema de archivos, falla con severidad CRITICAL/HIGH); y `.github/dependabot.yml` para pip, npm, docker y actions → Qwen
   - Terminado: la parte de CI de T007 pasa; el trabajo `infra` ejecuta `pytest backend/tests/infra` con `REQUIRE_DOCKER=1`; los trabajos fallan si fallan sus pasos.
 - [ ] T015 [P] Redactar el borrador de política `backend/seeds/politica_tratamiento_datos_v1.md` (responsable, finalidades, datos recogidos según FR-004 y FR-019/020, derechos de consulta, rectificación, revocación y supresión, plazos de conservación de FR-034a/b, canales de atención), marcado "BORRADOR — pendiente de aprobación de la oficina jurídica" → Opus
@@ -140,6 +143,8 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
 
 - [ ] T016 [P] Prueba: configuración por entorno en `backend/tests/unit/shared/test_config.py` (carga de variables de T013, error claro si falta un secreto obligatorio, `INSTITUTIONAL_EMAIL_DOMAINS` como lista, secretos excluidos de `repr`) → Qwen
   - Terminado: la prueba falla porque no existe `config.py`.
+  - Nota de Opus (2026-10-06): variables, validaciones y API de `config.py` definidas en
+    `handoffs/qwen-02-T016-T017-T022-T023.md`; `ConfigError` nunca incluye el valor recibido.
 - [ ] T017 Implementar `backend/src/saber_uli/config.py` con pydantic-settings para que pase T016 → Qwen
   - Terminado: T016 en verde.
 - [x] T018 [P] Prueba: procesador de logs sin datos personales en `backend/tests/unit/shared/test_logging.py` (elimina o enmascara las claves `email`, `name`, `correo`, `nombre`, `token`, `authorization`, `cookie`, `code`, `display_name`; enmascara cualquier valor con forma de correo; salida JSON; research R-23) → Opus
@@ -164,6 +169,9 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Terminado: T020 en verde.
 - [ ] T022 [P] Prueba: bloques de dominio en `backend/tests/unit/shared/test_domain_base.py` (`DomainEvent` con `event_id` uuid y `occurred_at`; `Clock` del sistema y `FixedClock` para pruebas; errores de dominio con slug) → Qwen
   - Terminado: la prueba falla.
+  - Nota de Opus (2026-10-06): API definida en `handoffs/qwen-02-T016-T017-T022-T023.md`;
+    errores con categorías `NotFoundError`, `PermissionDeniedError`, `ConflictError` y
+    `RuleViolationError` que T021 traduce a 404, 403, 409 y 422.
 - [ ] T023 Implementar `backend/src/saber_uli/shared/domain/{events.py,clock.py,errors.py}` → Qwen
   - Terminado: T022 en verde; `lint-imports` confirma que `shared.domain` no importa infraestructura.
   - Nota de Opus (2026-10-06): agregar la fixture `fixed_clock` a `backend/tests/conftest.py`.

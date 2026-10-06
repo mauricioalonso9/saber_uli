@@ -11,12 +11,12 @@ from tests.integration.conftest import UserFactory
 async def test_la_migracion_siembra_los_valores_por_defecto(db_session: AsyncSession) -> None:
     rows = await db_session.execute(text("SELECT key, value FROM identity.settings"))
 
-    assert dict(rows.tuples().all()) >= {
+    assert {row.key: row.value for row in rows}.items() >= {
         "teacher_max_access_days": 180,
         "default_guest_access_days": 90,
         "invitation_link_ttl_days": 7,
         "sign_in_link_ttl_minutes": 15,
-    }
+    }.items()
 
 
 async def test_cargar_y_guardar_solo_lo_que_cambia(

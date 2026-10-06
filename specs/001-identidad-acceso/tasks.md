@@ -522,10 +522,18 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     forma de correo (`PersonalDataInAuditError`). `SqlAlchemyAuditRepository` solo inserta.
     Cerrado el pendiente de T050: la renovación audita `session.reuse_detected` una sola vez al
     revocar por reutilización. T053 (11 pruebas) en verde; suite: 331.
-- [ ] T055 [P] Prueba: parámetros en `backend/tests/unit/identity/test_settings.py` (valores por defecto `teacher_max_access_days`=180, `default_guest_access_days`=90, `invitation_link_ttl_days`=7, `sign_in_link_ttl_minutes`=15; rangos del contrato: 1–730, 1–730, 1–30, 5–60) → Qwen
+- [x] T055 [P] Prueba: parámetros en `backend/tests/unit/identity/test_settings.py` (valores por defecto `teacher_max_access_days`=180, `default_guest_access_days`=90, `invitation_link_ttl_days`=7, `sign_in_link_ttl_minutes`=15; rangos del contrato: 1–730, 1–730, 1–30, 5–60) → Qwen
   - Terminado: la prueba falla.
-- [ ] T056 Implementar `backend/src/saber_uli/identity/domain/settings.py` y `backend/src/saber_uli/identity/infrastructure/repositories/settings.py` (con semilla de valores por defecto en la migración `backend/migrations/versions/0004_identity_settings_seed.py`) → Qwen
+  - Estado: ver T056.
+- [x] T056 Implementar `backend/src/saber_uli/identity/domain/settings.py` y `backend/src/saber_uli/identity/infrastructure/repositories/settings.py` (con semilla de valores por defecto en la migración `backend/migrations/versions/0004_identity_settings_seed.py`) → Qwen
   - Terminado: T055 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T055 falló por
+    `ImportError` (commit `78a05a2`). `IdentitySettings` (dataclass inmutable con los valores
+    por defecto; valida los rangos del contrato y lanza `SettingOutOfRangeError`, 422;
+    `with_changes`, `changed_keys` y duraciones como `timedelta`). Migración 0004 siembra los
+    cuatro valores con `ON CONFLICT DO NOTHING` (no pisa cambios de un administrador).
+    `SqlAlchemySettingsRepository.load` toma el valor por defecto si falta una clave y `save`
+    solo escribe las claves cambiadas, con `updated_by`. Suite: 343 en verde.
 - [ ] T057 [P] Prueba: arranque de la API en `backend/tests/integration/test_health.py` (`GET /api/health` → `{"status":"ok"}`; `GET /api/ready` → 503 si la base de datos o Redis no responden; logs JSON en cada petición sin datos personales) → Qwen
   - Terminado: la prueba falla.
 - [ ] T058 Implementar `backend/src/saber_uli/main.py` (app FastAPI, routers, manejadores de problemas, logging, `SessionMiddleware` acotada a `/api/auth/microsoft`) y `backend/src/saber_uli/shared/api/health.py` → Qwen

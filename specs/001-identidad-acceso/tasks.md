@@ -140,16 +140,20 @@ de forma independiente a partir de la fase 2.
     `infra/nginx/default.conf`. Verificado: `nginx -t` correcto; `/` con CSP sin `unsafe-inline`
     en `script-src`, `nosniff`, `no-referrer` y `DENY`; `/sw.js` (404 hasta T068) con
     `Service-Worker-Allowed: /` y `no-cache`; fallback SPA a `index.html`.
-- [ ] T010 [P] Escribir la configuración de Nginx en `infra/nginx/default.conf` y `infra/nginx/security-headers.conf`: proxy de `/api/` a `api:8000`; `sw.js` y `manifest.webmanifest` con `Cache-Control: no-cache` y `Service-Worker-Allowed: /`; fallback SPA a `index.html`; cabeceras `Content-Security-Policy` (sin `unsafe-inline` en `script-src`, `connect-src 'self'`), `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Permissions-Policy` restrictiva, `X-Frame-Options: DENY`; HSTS solo en `infra/nginx/tls.conf` para producción (research R-33) → Opus
+- [x] T010 [P] Escribir la configuración de Nginx en `infra/nginx/default.conf` y `infra/nginx/security-headers.conf`: proxy de `/api/` a `api:8000`; `sw.js` y `manifest.webmanifest` con `Cache-Control: no-cache` y `Service-Worker-Allowed: /`; fallback SPA a `index.html`; cabeceras `Content-Security-Policy` (sin `unsafe-inline` en `script-src`, `connect-src 'self'`), `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Permissions-Policy` restrictiva, `X-Frame-Options: DENY`; HSTS solo en `infra/nginx/tls.conf` para producción (research R-33) → Opus
   - Estado: implementada por Opus en `infra/nginx/{default.conf,locations.conf,security-headers.conf,tls.conf}`; falta verificarla en contenedor con T007.
   - Nota para T009: copiar `default.conf` a `/etc/nginx/conf.d/default.conf` y los demás archivos de `infra/nginx/` a `/etc/nginx/saber/` (no a `conf.d/`, porque Nginx incluye todo `conf.d/*.conf` en el contexto http).
   - Nota para T012: en `compose.prod.yaml`, montar `infra/nginx/tls.conf` sobre `/etc/nginx/conf.d/default.conf` y los certificados en `/etc/nginx/certs/{fullchain.pem,privkey.pem}`; puertos 80→8080 y 443→8443. `api` debe arrancar Uvicorn con `--proxy-headers --forwarded-allow-ips` limitado a la red de Compose, para que los límites por IP (T035) usen la IP real.
   - Nota para T068: registrar el service worker con `injectRegister: 'script'` (la CSP no admite scripts en línea).
   - Terminado: `nginx -t` pasa en el contenedor; la parte de cabeceras de T007 pasa; `/api/health` llega a la API.
-- [ ] T011 [P] Crear `infra/postgres/init/01-roles.sql` y `02-extensions.sql`: roles `saber_migrator` (DDL), `saber_app` (DML), `saber_bi` (solo lectura de `analytics`, sin objetos aún) con contraseñas desde variables de entorno; extensiones `citext` y `pg_stat_statements` (research R-07) → Opus
+  - Verificada (2026-10-06): T007 en verde sobre la imagen del proxy (CSP sin `unsafe-inline` en
+    `script-src`, `nosniff`, `no-referrer`, `DENY`, `Service-Worker-Allowed` en `sw.js`).
+- [x] T011 [P] Crear `infra/postgres/init/01-roles.sql` y `02-extensions.sql`: roles `saber_migrator` (DDL), `saber_app` (DML), `saber_bi` (solo lectura de `analytics`, sin objetos aún) con contraseñas desde variables de entorno; extensiones `citext` y `pg_stat_statements` (research R-07) → Opus
   - Estado: implementada por Opus en `infra/postgres/init/{01-roles.sql,02-extensions.sql}`; falta verificarla en contenedor con T007 y T029.
   - Nota para T012 y T013: el servicio `db` necesita `SABER_MIGRATOR_PASSWORD`, `SABER_APP_PASSWORD` y `SABER_BI_PASSWORD` (mínimo 16 caracteres; sin ellas el contenedor no arranca) y el comando `postgres -c shared_preload_libraries=pg_stat_statements`. T024 debe pasar las mismas variables al contenedor de Testcontainers.
   - Terminado: la parte de roles y extensiones de T007 pasa al iniciar `db` desde cero; el superusuario no se usa en ningún otro servicio.
+  - Verificada (2026-10-06): T007 (roles y extensiones en el contenedor `db`) y T029 (permisos
+    por rol) en verde.
 - [x] T012 Crear `compose.yaml` (servicios `proxy`, `api`, `worker`, `beat`, `migrate`, `db` con volumen en `/var/lib/postgresql`, `redis`), `compose.override.yaml` (recarga en caliente, `mailpit`, puertos locales) y `compose.prod.yaml` (TLS, `tls.conf`, sin mailpit); perfil `e2e` con `oidc` (`ghcr.io/navikt/mock-oauth2-server`, configuración en `infra/docker/mock-oauth2.json` con un emisor del inquilino válido y otro externo) y `mailpit`; `user:` explícito sin privilegios en `mailpit` y `oidc`; health checks y `depends_on` según la tabla de servicios de plan.md → Qwen
   - Terminado: T007 pasa completa (Compose válido, servicios `healthy`, `migrate` con código 0 y ningún proceso principal con UID 0).
   - Nota de Opus (2026-10-06): secuencia. T012 necesita antes T008, T009 y T013. Su verificación
@@ -198,9 +202,11 @@ de forma independiente a partir de la fase 2.
     no se permite en el `if` de un trabajo; lo detectó actionlint). `.github/dependabot.yml` para
     uv, npm, docker y GitHub Actions. Corregido en la prueba de T007 el indicador de actionlint
     (`-no-color`). T007 completa: 11 de 11 en verde.
-- [ ] T015 [P] Redactar el borrador de política `backend/seeds/politica_tratamiento_datos_v1.md` (responsable, finalidades, datos recogidos según FR-004 y FR-019/020, derechos de consulta, rectificación, revocación y supresión, plazos de conservación de FR-034a/b, canales de atención), marcado "BORRADOR — pendiente de aprobación de la oficina jurídica" → Opus
+- [x] T015 [P] Redactar el borrador de política `backend/seeds/politica_tratamiento_datos_v1.md` (responsable, finalidades, datos recogidos según FR-004 y FR-019/020, derechos de consulta, rectificación, revocación y supresión, plazos de conservación de FR-034a/b, canales de atención), marcado "BORRADOR — pendiente de aprobación de la oficina jurídica" → Opus
   - Estado: borrador redactado por Opus en `backend/seeds/politica_tratamiento_datos_v1.md`; los datos del responsable y los canales quedan como `[PENDIENTE]` hasta que la oficina jurídica los apruebe (riesgo externo de plan.md).
   - Terminado: cumple FR-016 (finalidad, datos, derechos y canales) y supera 200 caracteres (restricción del contrato).
+  - Cerrada (2026-10-06): el borrador cumple su criterio; la aprobación de la oficina jurídica
+    sigue como riesgo externo de plan.md y se exige antes de publicar la versión 1.0 (US2).
 
 ---
 

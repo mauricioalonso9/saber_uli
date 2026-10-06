@@ -176,14 +176,24 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `refresh_token`, `set-cookie`), nombres de persona (`given_name`, `preferred_username`…),
     `state`, `nonce` y `code_verifier`; no toca `status_code` ni `program_name`. T058 debe llamar a
     `configure_logging` al arrancar y lanzar uvicorn con `log_config=None`.
-- [ ] T020 [P] Prueba: Problem Details y paginación en `backend/tests/unit/shared/test_problems.py` (respuesta `application/problem+json`, `type` = `urn:saber-uli:problem:<slug>`, `errors` por campo en 422, `page`≥1, `page_size` 1–100 por defecto 25, `total`) → Qwen
+- [x] T020 [P] Prueba: Problem Details y paginación en `backend/tests/unit/shared/test_problems.py` (respuesta `application/problem+json`, `type` = `urn:saber-uli:problem:<slug>`, `errors` por campo en 422, `page`≥1, `page_size` 1–100 por defecto 25, `total`) → Qwen
   - Terminado: la prueba falla.
   - Nota de Opus (2026-10-06): API y reglas de traducción en `handoffs/qwen-03-T020-T021.md`.
     Requiere T023. Incluye `ProblemException` para los problemas de la capa API (T036, T048,
     T052, T058) y `about:blank` para errores HTTP genéricos y 500; las respuestas nunca repiten
     el valor recibido ni el texto de una excepción.
-- [ ] T021 Implementar `backend/src/saber_uli/shared/api/problems.py` (excepciones de dominio → Problem, manejadores de FastAPI, incluido 422 de validación) y `backend/src/saber_uli/shared/api/pagination.py` → Qwen
+  - Estado: ver T021.
+- [x] T021 Implementar `backend/src/saber_uli/shared/api/problems.py` (excepciones de dominio → Problem, manejadores de FastAPI, incluido 422 de validación) y `backend/src/saber_uli/shared/api/pagination.py` → Qwen
   - Terminado: T020 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T020 falló por
+    `ImportError` (commit `27b64f6`). `install_problem_handlers` traduce las categorías de
+    dominio (404/403/409/422, con `STATUS_BY_SLUG` para excepciones puntuales), `ProblemException`
+    (conserva cabeceras como `Retry-After`), validación (422 con `errors` en español construidos
+    solo con `loc`, `type` y `ctx`), 404 de ruta como `not-found`, otros errores HTTP como
+    `about:blank` y 500 sin detalle (se registra con structlog). `instance` sin la consulta.
+    `Page[T]`, `PageParams` y `page_params` según el contrato. 19 pruebas en verde. Aviso:
+    Starlette marca como obsoleto su `TestClient` sobre `httpx` (recomienda `httpx2`); no afecta
+    hoy y se revisará al actualizar dependencias.
 - [x] T022 [P] Prueba: bloques de dominio en `backend/tests/unit/shared/test_domain_base.py` (`DomainEvent` con `event_id` uuid y `occurred_at`; `Clock` del sistema y `FixedClock` para pruebas; errores de dominio con slug) → Qwen
   - Terminado: la prueba falla.
   - Nota de Opus (2026-10-06): API definida en `handoffs/qwen-02-T016-T017-T022-T023.md`;

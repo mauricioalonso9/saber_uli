@@ -343,10 +343,21 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
 
 ### Outbox, worker y límites
 
-- [ ] T031 [P] Prueba: outbox en `backend/tests/integration/shared/test_outbox.py` (evento escrito en la misma transacción; rollback no deja evento; despacho con `FOR UPDATE SKIP LOCKED` sin doble entrega con dos despachadores concurrentes; manejador idempotente por `event_id`; reintento con espera y `last_error` sin datos personales; purga a los 7 días de procesado; payload rechazado si contiene claves `email`, `name` o `token`) → Qwen
+- [x] T031 [P] Prueba: outbox en `backend/tests/integration/shared/test_outbox.py` (evento escrito en la misma transacción; rollback no deja evento; despacho con `FOR UPDATE SKIP LOCKED` sin doble entrega con dos despachadores concurrentes; manejador idempotente por `event_id`; reintento con espera y `last_error` sin datos personales; purga a los 7 días de procesado; payload rechazado si contiene claves `email`, `name` o `token`) → Qwen
   - Terminado: la prueba falla.
-- [ ] T032 Implementar `backend/src/saber_uli/shared/infrastructure/outbox.py` (escritor, despachador, registro de manejadores, purga) para que pase T031 → Qwen
+  - Estado: ver T032.
+- [x] T032 Implementar `backend/src/saber_uli/shared/infrastructure/outbox.py` (escritor, despachador, registro de manejadores, purga) para que pase T031 → Qwen
   - Terminado: T031 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T031 falló por
+    `ImportError` (commit `5d2a808`). `register_outbox(bus, *eventos, context=...)` escribe en la
+    fase `in_transaction` con `id = event_id` y `available_at = occurred_at`; el payload son los
+    campos del evento salvo `event_id` y `occurred_at`, y claves de nombre, correo, token,
+    contraseña, secreto o `code` lanzan `PersonalDataInOutboxError` (la acción se revierte).
+    `OutboxDispatcher.dispatch_once` reclama lotes con `FOR UPDATE SKIP LOCKED`, entrega a los
+    manejadores de `OutboxRegistry`, marca `processed_at` o reintenta con espera 5 s · 2^(n−1)
+    (máx. 1 h) guardando solo la clase de la excepción; un evento sin manejador se marca
+    procesado. `purge_processed` borra lo procesado hace más de 7 días. Todas las fechas con el
+    reloj inyectado. `OutboxEventRow` registrado en `migrations/env.py`. 10 pruebas en verde.
 - [ ] T033 [P] Prueba: programación de Celery en `backend/tests/unit/test_worker_schedule.py` (zona `America/Bogota`; `dispatch_outbox` cada 5 s; `expire_invitations` cada hora; `process_retention` diaria 02:00; `process_deletion_requests` cada 15 min; `purge_expired_auth_artifacts` diaria; research R-09) → Qwen
   - Terminado: la prueba falla.
 - [ ] T034 Implementar `backend/src/saber_uli/worker.py` (app Celery, Beat, tarea `dispatch_outbox`; las demás tareas como registros que cada historia completa) → Qwen

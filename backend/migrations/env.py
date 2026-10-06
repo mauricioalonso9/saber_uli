@@ -17,7 +17,8 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
 # Cada contexto importa aquí sus modelos ORM para que el autogenerado los vea.
-import saber_uli.identity.infrastructure.orm  # noqa: F401
+import saber_uli.identity.infrastructure.orm
+import saber_uli.shared.infrastructure.outbox  # noqa: F401
 from saber_uli.shared.infrastructure.db import Base
 
 config = context.config

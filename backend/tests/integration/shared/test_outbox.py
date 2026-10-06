@@ -169,6 +169,7 @@ async def test_dos_despachadores_concurrentes_no_entregan_dos_veces(
 ) -> None:
     events = [event(n) for n in range(30)]
     await write(app_engine, bus, *events)
+    clock.set(T0 + timedelta(minutes=1))  # todos disponibles
     delivered: list[UUID] = []
     registry = OutboxRegistry()
 

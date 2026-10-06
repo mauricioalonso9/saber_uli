@@ -125,11 +125,18 @@ de forma independiente a partir de la fase 2.
     T007 de cabeceras, roles, extensiones y UID en verde sobre esos servicios. Las comprobaciones de
     `api`, `worker`, `beat` y `migrate` dependen de T026, T034 y T058, y T007 completa se exige al
     cerrar T058.
-- [ ] T013 [P] Crear `.env.example` documentado: `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_AUTHORITY`, `PUBLIC_BASE_URL`, `INSTITUTIONAL_EMAIL_DOMAINS`, `JWT_SIGNING_KEY`, `JWT_KEY_ID`, `SESSION_COOKIE_SECRET`, `DATABASE_URL` (por rol), `REDIS_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `OTEL_ENABLED`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` (reservadas para la spec 009), contraseñas de roles de base de datos → Qwen
+- [x] T013 [P] Crear `.env.example` documentado: `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_AUTHORITY`, `PUBLIC_BASE_URL`, `INSTITUTIONAL_EMAIL_DOMAINS`, `JWT_SIGNING_KEY`, `JWT_KEY_ID`, `SESSION_COOKIE_SECRET`, `DATABASE_URL` (por rol), `REDIS_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `OTEL_ENABLED`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` (reservadas para la spec 009), contraseñas de roles de base de datos → Qwen
   - Terminado: cada variable tiene comentario en español; ningún valor real; `.env` está en `.gitignore`.
   - Nota de Opus (2026-10-06): los nombres definitivos de las variables están en
     `handoffs/qwen-02-T016-T017-T022-T023.md` (tabla de T016); incluye `MIGRATION_DATABASE_URL`,
     `SMTP_STARTTLS` y `LOG_LEVEL`.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos. Variables de la
+    tabla del lote 02 más las que solo usa Compose (`POSTGRES_DB`, `POSTGRES_PASSWORD`,
+    `SABER_*_PASSWORD`) y `E2E_EXTERNAL_TENANT_ID`. `DATABASE_URL`, `MIGRATION_DATABASE_URL`,
+    `REDIS_URL` y `ENTRA_AUTHORITY` quedan comentadas: Compose las arma (las contraseñas no se
+    repiten) y solo se definen para ejecutar fuera de Docker. Valores de ejemplo sin secretos
+    reales; `.env` ignorado y `.env.example` versionado. La prueba de T007 que compara
+    `.env.example` con el entorno de prueba está en verde.
 - [ ] T014 [P] Crear `.github/workflows/ci.yml` con los trabajos `infra` (`pytest backend/tests/infra`), `backend-quality` (ruff, mypy, lint-imports), `backend-tests` (pytest con cobertura y `fail_under`), `contract` (Schemathesis), `frontend-quality` (lint, typecheck, vitest, verificación de que `npm run api:generate` no deja cambios), `e2e` (compose perfil `e2e` + Playwright), `lighthouse`, `build` (imágenes) y `security` (Trivy sobre imágenes y sistema de archivos, falla con severidad CRITICAL/HIGH); y `.github/dependabot.yml` para pip, npm, docker y actions → Qwen
   - Terminado: la parte de CI de T007 pasa; el trabajo `infra` ejecuta `pytest backend/tests/infra` con `REQUIRE_DOCKER=1`; los trabajos fallan si fallan sus pasos.
 - [ ] T015 [P] Redactar el borrador de política `backend/seeds/politica_tratamiento_datos_v1.md` (responsable, finalidades, datos recogidos según FR-004 y FR-019/020, derechos de consulta, rectificación, revocación y supresión, plazos de conservación de FR-034a/b, canales de atención), marcado "BORRADOR — pendiente de aprobación de la oficina jurídica" → Opus

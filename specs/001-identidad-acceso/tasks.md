@@ -409,12 +409,24 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `retention_notice_sent_at`; `grant_role`/`revoke_role` con `guest-role-exclusive` y
     `student-role-required` (slugs del contrato). La regla del último administrador queda para
     la aplicación (necesita `FOR UPDATE`). 24 pruebas en verde.
-- [ ] T043 [P] Prueba: repositorios en `backend/tests/integration/identity/test_user_repository.py` (guardar y leer `User` con roles; buscar por `(tid, oid)`; búsqueda de invitado vigente por correo sin distinguir mayúsculas; bloqueo de administradores activos con `FOR UPDATE`) → Qwen
+- [x] T043 [P] Prueba: repositorios en `backend/tests/integration/identity/test_user_repository.py` (guardar y leer `User` con roles; buscar por `(tid, oid)`; búsqueda de invitado vigente por correo sin distinguir mayúsculas; bloqueo de administradores activos con `FOR UPDATE`) → Qwen
   - Terminado: la prueba falla.
-- [ ] T044 Implementar `backend/src/saber_uli/identity/infrastructure/orm.py` (mapeos SQLAlchemy de data-model.md) y `backend/src/saber_uli/identity/infrastructure/repositories/users.py` → Qwen
+  - Estado: ver T044.
+- [x] T044 Implementar `backend/src/saber_uli/identity/infrastructure/orm.py` (mapeos SQLAlchemy de data-model.md) y `backend/src/saber_uli/identity/infrastructure/repositories/users.py` → Qwen
   - Terminado: T043 en verde.
   - Nota de Opus (2026-10-06): agregar la fábrica de usuarios por rol a
     `backend/tests/integration/conftest.py`.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T043 falló por
+    `ImportError` (commit `9b71a04`). `identity/infrastructure/orm.py` con las 18 tablas de
+    data-model §2 (nombres de PK, FK, únicos e índices idénticos a 0002; los `CHECK` solo en la
+    migración). Puerto `UserRepository` en `identity/application/ports.py` y
+    `SqlAlchemyUserRepository` (`add` asigna el `uuidv7` de la base; `save` sincroniza roles;
+    búsqueda por `(tid, oid)`; invitado vigente por correo sin distinguir mayúsculas;
+    `lock_active_admins` con `FOR UPDATE OF users`). La lápida conserva `entra_tenant_id` (no es
+    dato personal) y borra `oid`, correo, nombre y roles. Prueba nueva: el ORM coincide con el
+    esquema migrado (`compare_metadata`), verificada con una mutación (nullable en `campus` →
+    falla). `migrations/env.py` importa el ORM de identity. `app_engine` ahora depende de
+    `migrated_database`. Fábrica `user_factory` en `tests/integration/conftest.py`. Suite: 250.
 - [ ] T045 [P] Prueba: política de sesión y tokens en `backend/tests/unit/identity/test_session_policy.py` (JWT HS256 de 600 s con `kid` y claims `sub`, `sid`, `roles`, `epoch`, `priv`, `iat`, `exp`; token de renovación de 256 bits guardado solo como SHA-256; rotación en cada uso; reutilizar un token rotado revoca la sesión; inactividad 7 días y absoluto 30 días; `priv=true` solo con rol privilegiado, `auth_time` < 12 h y actividad privilegiada < 30 min; una sesión recién creada o reautenticada inicializa `last_privileged_activity_at = auth_time`, así que un administrador recién autenticado obtiene `priv=true`; con 31 min sin actividad privilegiada obtiene `priv=false`; research R-14 y R-15) → Opus
   - Terminado: la prueba falla.
 - [ ] T046 Implementar `backend/src/saber_uli/identity/domain/session.py`, `backend/src/saber_uli/identity/infrastructure/tokens.py` y `backend/src/saber_uli/identity/infrastructure/repositories/sessions.py` → Opus

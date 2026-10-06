@@ -8,14 +8,17 @@
 - `migrated_database`: aplica las migraciones con `saber_migrator` (disponible desde T026).
 
 Sin Docker, todo `tests/integration/` se omite, salvo con `REQUIRE_DOCKER=1`.
-Fixtures que agregan otras tareas: fábrica de usuarios (T044), emisor de tokens (T046) y
-cliente ASGI (T058).
+- `user_factory`: crea usuarios por rol en la sesión de la prueba (T044).
+
+Fixtures que agregan otras tareas: emisor de tokens (T046) y cliente ASGI (T058).
 """
 
 import asyncio
 import secrets
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from datetime import UTC, datetime
 from pathlib import Path
+from uuid import UUID, uuid4
 
 import pytest
 from redis.asyncio import Redis
@@ -25,6 +28,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
 
+from saber_uli.identity.domain.roles import Role
+from saber_uli.identity.domain.user import InstitutionalIdentity, User
+from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
 from tests._docker import docker_available, docker_required, require_docker, skip_without_docker
 
 REPO = Path(__file__).resolve().parents[3]
@@ -161,3 +167,37 @@ async def redis_client(redis_url: str) -> AsyncIterator[Redis]:
     finally:
         await client.flushdb()
         await client.aclose()
+
+
+TEST_TENANT = UUID("11111111-1111-4111-8111-111111111111")
+UserFactory = Callable[..., Awaitable[User]]
+
+
+@pytest.fixture
+def user_factory(db_session: AsyncSession) -> UserFactory:
+    """Crea y guarda un usuario con los roles indicados (por defecto, estudiante institucional).
+
+    `await user_factory(Role.TEACHER, Role.ADMIN)`; `await user_factory(Role.GUEST)` crea un
+    invitado. Los correos y `oid` son únicos y ficticios.
+    """
+    repo = SqlAlchemyUserRepository(db_session)
+    now = datetime(2026, 10, 6, 12, 0, tzinfo=UTC)
+
+    async def create(*roles: Role, status_disabled: bool = False) -> User:
+        unique = uuid4()
+        if Role.GUEST in roles:
+            user = User.new_guest(email=f"invitado-{unique}@correo.co", display_name=None, now=now)
+        else:
+            user = User.new_institutional(
+                InstitutionalIdentity(tenant_id=TEST_TENANT, object_id=unique),
+                email=f"persona-{unique}@unilibre.edu.co",
+                display_name=f"Persona {str(unique)[:8]}",
+                now=now,
+            )
+            for role in roles:
+                user.grant_role(role)
+        if status_disabled:
+            user.disable()
+        return await repo.add(user)
+
+    return create

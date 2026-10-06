@@ -69,6 +69,12 @@ de forma independiente a partir de la fase 2.
     Queda a criterio de Opus al revisar T003.
 - [ ] T004 [P] Inicializar el frontend en `frontend/` con Vite + React + TypeScript (`strict: true`), dependencias: @tanstack/react-router, @tanstack/react-query, zustand, tailwindcss, shadcn/ui (componentes base), motion, react-hook-form, zod, @hookform/resolvers, dexie, i18next, react-i18next, vite-plugin-pwa; desarrollo: vitest, @testing-library/react, @testing-library/user-event, msw, @playwright/test, @axe-core/playwright, @lhci/cli, orval, eslint (typescript-eslint, jsx-a11y), prettier; scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `api:generate` en `frontend/package.json` → Qwen
   - Terminado: `npm ci`, `npm run lint`, `npm run typecheck`, `npm test` y `npm run build` pasan.
+  - Estado: lista para revisión. Vite 8 + React 19 + TS estricto; Tailwind v4; base shadcn/ui
+    (button, card, input, label + `cn`) en `src/shared/ui/`; eslint 9 (typescript-eslint,
+    jsx-a11y) y prettier configurados; prueba de humo de la cadena de herramientas en
+    `tests/unit/toolchain.test.tsx`. Notas: `eslint-plugin-jsx-a11y` exige eslint ^9 (se fijó esa
+    versión); `App.tsx` es un marcador que T060/T061 sustituyen (su prueba fallará como exige
+    TDD); vite-plugin-pwa queda instalado pero se configura en T068.
 - [ ] T005 [P] Configurar `frontend/orval.config.ts` para generar el cliente y los hooks de TanStack Query desde `specs/001-identidad-acceso/contracts/openapi.yaml` hacia `frontend/src/api/` usando el mutador `frontend/src/shared/api/http.ts` (stub que T047 completa) → Qwen
   - Terminado: `npm run api:generate` genera código que compila; `frontend/src/api/` tiene cabecera "generado, no editar".
 - [ ] T006 [P] Crear `.pre-commit-config.yaml` con ruff, ruff-format, mypy (backend), eslint y prettier (frontend), detección de secretos (`detect-secrets`) y verificación de Conventional Commits (`commitizen`) → Qwen

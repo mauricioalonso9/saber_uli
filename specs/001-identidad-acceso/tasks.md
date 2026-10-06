@@ -161,10 +161,8 @@ de forma independiente a partir de la fase 2.
     `tls.conf` y los certificados y publica 80/443. El health check de `oidc` usa GET: el
     servidor no responde a HEAD. `infra/docker/mock-oauth2.json` con los emisores
     `1111…` (inquilino) y `2222…` (externo).
-  - Decisión pendiente: el emisor de `mock-oauth2-server` sale del host de la petición; el
-    navegador de Playwright (en el host, `localhost:8090`) y la API (en la red de Compose,
-    `oidc:8080`) verían emisores distintos. Resolver en T069/T073 (por ejemplo, Playwright dentro
-    de la red de Compose o un mismo nombre de host para ambos).
+  - Decisión resuelta en T069: el navegador y la API usan el mismo emisor `http://oidc:8080`
+    (simulador publicado en `127.0.0.1:8080:8080` y `127.0.0.1 oidc` en el archivo hosts).
   - Nota: Redis no tiene contraseña; solo es accesible en la red interna de Compose (no se
     publica en ningún archivo). Revisar en T070.
 - [x] T013 [P] Crear `.env.example` documentado: `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_CLIENT_SECRET`, `ENTRA_AUTHORITY`, `PUBLIC_BASE_URL`, `INSTITUTIONAL_EMAIL_DOMAINS`, `JWT_SIGNING_KEY`, `JWT_KEY_ID`, `SESSION_COOKIE_SECRET`, `DATABASE_URL` (por rol), `REDIS_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `OTEL_ENABLED`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` (reservadas para la spec 009), contraseñas de roles de base de datos → Qwen
@@ -703,8 +701,23 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     reemplazarlos por el diseño institucional. Verificado: `npm run build` genera `sw.js` y
     `manifest.webmanifest`, y la imagen del proxy los sirve con `Service-Worker-Allowed: /` y
     `no-cache`. Frontend: 100 pruebas en verde.
-- [ ] T069 [P] Configurar Playwright en `frontend/playwright.config.ts` (viewport móvil Pixel 7 e iPhone 14, `locale: es-CO`) y los fixtures `frontend/tests/e2e/fixtures/{auth.ts,mailpit.ts,axe.ts,api.ts}` (ingreso con el proveedor de prueba eligiendo usuario del inquilino o externo; lectura de correos de Mailpit; chequeo axe nivel AA; llamadas API como administrador) → Qwen
+- [x] T069 [P] Configurar Playwright en `frontend/playwright.config.ts` (viewport móvil Pixel 7 e iPhone 14, `locale: es-CO`) y los fixtures `frontend/tests/e2e/fixtures/{auth.ts,mailpit.ts,axe.ts,api.ts}` (ingreso con el proveedor de prueba eligiendo usuario del inquilino o externo; lectura de correos de Mailpit; chequeo axe nivel AA; llamadas API como administrador) → Qwen
   - Terminado: una prueba de humo abre `/` contra el stack con perfil `e2e`.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos.
+    `playwright.config.ts` (proyectos `pixel-7` con Chromium e `iphone-14` con WebKit,
+    `locale: es-CO`, zona America/Bogota, trazas al fallar). Fixtures: `axe.ts`
+    (`expectNoA11yViolations`, WCAG 2.0/2.1/2.2 A y AA), `mailpit.ts` (búsqueda del último correo
+    por destinatario y extracción del enlace), `auth.ts` (formulario interactivo del simulador:
+    usuario como `oid` y claims opcionales; `external` envía el `tid` del inquilino externo) y
+    `api.ts` (token desde la cookie de la página y contexto HTTP autenticado). Prueba de humo
+    (`tests/e2e/smoke.spec.ts`): sin sesión `/` lleva a `/ingresar` en es-CO, sin infracciones
+    de axe, con el indicador de conexión; manifiesto en es-CO; `/api/health` por el proxy. Contra
+    el stack real con perfil `e2e`: 6 de 6 en verde (3 pruebas × 2 dispositivos). `auth.ts` se
+    ejercita desde US1 (T081), cuando existan las rutas de ingreso con Microsoft.
+  - Decisión de T012 resuelta: el navegador y la API usan el mismo emisor `http://oidc:8080`; el
+    override publica el simulador en `127.0.0.1:8080:8080` y el host agrega `127.0.0.1 oidc` a su
+    archivo hosts (CI lo hace en el trabajo `e2e`, que además fija el inquilino de prueba).
+    Documentarlo en el quickstart (T177).
 - [ ] T070 Revisión de seguridad de la fase 2 (T010, T011, T029–T030, T035–T036, T045–T050, T062–T063) en `specs/001-identidad-acceso/tasks.md`: ASVS 4.0.3 V2, V3, V4 y V7 aplicables; secretos solo por entorno; ningún dato personal en logs ni outbox → Opus
   - Terminado: hallazgos corregidos o registrados como tareas nuevas; casillas de la fase 2 marcadas.
 

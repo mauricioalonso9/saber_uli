@@ -40,6 +40,7 @@ services:
       - "127.0.0.1:8025:8025"
 
   oidc:
-    # Perfil e2e: Playwright y la API deben ver el mismo emisor (decisión pendiente en T012).
+    # Perfil e2e: el navegador (en el host) y la API (en Compose) usan el mismo emisor
+    # `http://oidc:8080/<tenant>`; el host necesita `127.0.0.1 oidc` en su archivo hosts (T069).
     ports:
-      - "127.0.0.1:8090:8080"
+      - "127.0.0.1:8080:8080"

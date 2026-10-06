@@ -135,12 +135,20 @@ jobs:
           node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Entorno de prueba
+      - name: Entorno de prueba (inquilino y proveedor OIDC simulados)
         if: steps.enabled.outputs.value == 'true'
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          {
+            echo "ENTRA_TENANT_ID=11111111-1111-4111-8111-111111111111"
+            echo "ENTRA_AUTHORITY=http://oidc:8080/11111111-1111-4111-8111-111111111111"
+            echo "PUBLIC_BASE_URL=http://localhost"
+          } >> .env
+          # El navegador y la API usan el mismo emisor http://oidc:8080 (T069).
+          echo "127.0.0.1 oidc" | sudo tee -a /etc/hosts
       - name: Stack con el perfil e2e
         if: steps.enabled.outputs.value == 'true'
-        run: docker compose --profile e2e up -d --build --wait
+        run: docker compose -f compose.yaml -f compose.override.yaml --profile e2e up -d --build --wait
       - name: Playwright
         if: steps.enabled.outputs.value == 'true'
         working-directory: frontend

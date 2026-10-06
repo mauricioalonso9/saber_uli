@@ -11,6 +11,10 @@ export default defineConfig({
     },
   },
   server: {
+    // Las pruebas leen el contrato OpenAPI con `?raw` para verificar el catálogo de problemas.
+    fs: {
+      allow: [".", "../specs/001-identidad-acceso/contracts"],
+    },
     // `npm run dev` en el host contra el stack de Docker: el proxy publica la API en el puerto 80.
     proxy: {
       "/api": {

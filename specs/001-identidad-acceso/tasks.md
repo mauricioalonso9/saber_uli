@@ -260,10 +260,27 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Terminado: la prueba falla.
 - [ ] T061 Implementar `frontend/src/app/{main.tsx,router.tsx,providers.tsx,AppShell.tsx}`, `frontend/src/shared/i18n/{index.ts,es-CO.json}` y la base de Tailwind/shadcn en `frontend/src/shared/ui/` → Qwen
   - Terminado: T060 en verde.
-- [ ] T062 [P] Prueba: sesión en memoria y cliente HTTP en `frontend/src/features/auth/session.test.ts` con MSW (el token de acceso vive solo en memoria y nunca en `localStorage`/`sessionStorage`/IndexedDB; cabecera `Authorization`; ante 401 intenta una sola renovación con `X-Requested-With: saber-uli` y reintenta; cada `type` de problema se traduce a un mensaje en español) → Opus
+- [x] T062 [P] Prueba: sesión en memoria y cliente HTTP en `frontend/src/features/auth/session.test.ts` con MSW (el token de acceso vive solo en memoria y nunca en `localStorage`/`sessionStorage`/IndexedDB; cabecera `Authorization`; ante 401 intenta una sola renovación con `X-Requested-With: saber-uli` y reintenta; cada `type` de problema se traduce a un mensaje en español) → Opus
   - Terminado: la prueba falla.
-- [ ] T063 Implementar `frontend/src/shared/api/http.ts` (mutador de orval), `frontend/src/features/auth/session-store.ts` (Zustand sin persistencia) y `frontend/src/shared/api/problem-messages.ts` → Opus
+  - Estado: implementada por Opus (2026-10-06); falló al no existir los módulos (commit
+    `8ad0ead`). El catálogo de mensajes se verifica contra el contrato: la prueba lee
+    `openapi.yaml?raw` y exige un mensaje propio para cada `type` (27 con guiones más
+    `unauthenticated`, `forbidden` y `conflict`); para eso `vite.config.ts` permite leer solo
+    `specs/001-identidad-acceso/contracts` (`server.fs.allow`).
+- [x] T063 Implementar `frontend/src/shared/api/http.ts` (mutador de orval), `frontend/src/features/auth/session-store.ts` (Zustand sin persistencia) y `frontend/src/shared/api/problem-messages.ts` → Opus
   - Terminado: T062 en verde.
+  - Estado: implementada por Opus (2026-10-06). `useSessionStore` (Zustand sin `persist`) guarda
+    el token y su vencimiento solo en memoria. `customInstance` agrega `Authorization` y
+    `X-Requested-With: saber-uli` a toda petición, usa `credentials: same-origin` y ante un 401
+    renueva una sola vez (renovación compartida entre peticiones concurrentes) y reintenta. No
+    renueva en rutas `/api/auth/` ni ante `reauthentication-required` (R-15: la UI debe mandar a
+    reautenticar). Si la renovación da 401, borra la sesión y lanza la causa (`account-disabled`,
+    `guest-access-expired`…); si falla por red, 429 o 5xx conserva la sesión (modo sin conexión,
+    FR-038). Los errores son `ApiProblem` (`status`, `type`, `slug`, `errors`, `message` en
+    español); sin respuesta del servidor el slug es `network-error` (estado 0) y un 5xx sin
+    cuerpo RFC 9457 es `service-unavailable`. Se exporta `refreshAccessToken()` para el arranque
+    de T080. Nota: `shared/api/http.ts` importa `features/auth/session-store.ts` porque así lo
+    fija la tarea; si se agrega una regla de capas en eslint, mover el store a `shared/`.
 - [ ] T064 [P] Prueba: acceso sin conexión en `frontend/src/features/auth/offline-access.test.ts` (guarda la instantánea de `/api/v1/me` y `lastValidatedAt` en Dexie; sin red permite usar la app si `ahora − lastValidatedAt ≤ 7 días`; después bloquea con mensaje; al reconectar llama primero a `/api/auth/refresh` y luego a `/api/v1/me` antes de permitir sincronizar; FR-038, FR-039) → Qwen
   - Terminado: la prueba falla.
 - [ ] T065 Implementar `frontend/src/shared/db/dexie.ts` y `frontend/src/features/auth/offline-access.ts` (incluye el hook `useCanSync` que la spec 003 usará) → Qwen

@@ -275,8 +275,16 @@ async def test_logout_borra_la_cookie_y_revoca_la_sesion(app: FastAPI, login: Lo
     assert problem(await refresh(app, cookie)) == "session-revoked"
 
 
-async def test_logout_sin_cookie_responde_204(app: FastAPI) -> None:
+async def test_logout_sin_cookie_o_sin_cabecera_responde_401(app: FastAPI, login: Login) -> None:
+    _, cookie = await login()
     async with client(app) as http:
-        response = await http.post("/api/auth/logout", headers=XRW)
+        no_cookie = await http.post("/api/auth/logout", headers=XRW)
+        no_header = await http.post(
+            "/api/auth/logout", headers={"Cookie": f"{REFRESH_COOKIE}={cookie}"}
+        )
 
-    assert response.status_code == 204
+    assert problem(no_cookie) == "unauthenticated"
+    assert problem(no_header) == "unauthenticated"
+    assert set_cookie(no_cookie)["max-age"] == "0"
+    # Sin la cabecera no se revocó nada: la sesión sigue viva.
+    assert (await refresh(app, cookie)).status_code == 200

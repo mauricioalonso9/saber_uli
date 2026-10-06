@@ -640,7 +640,7 @@ export const logout = async (options?: Parameters<typeof customInstance>[1]): Pr
 
 export const getLogoutMutationKey = () => ["logout"] as const;
 
-export const getLogoutMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getLogoutMutationOptions = <TError = Problem, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext>;
   request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext> => {
@@ -660,12 +660,12 @@ export const getLogoutMutationOptions = <TError = unknown, TContext = unknown>(o
 
 export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>;
 
-export type LogoutMutationError = unknown;
+export type LogoutMutationError = Problem;
 
 /**
  * @summary Cierra la sesión actual (escenario 1.4)
  */
-export const useLogout = <TError = unknown, TContext = unknown>(
+export const useLogout = <TError = Problem, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext>;
     request?: SecondParameter<typeof customInstance>;

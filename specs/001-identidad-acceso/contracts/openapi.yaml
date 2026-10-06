@@ -222,6 +222,15 @@ paths:
           description: Sesión cerrada; la cookie se elimina
           headers:
             Set-Cookie: { schema: { type: string } }
+        '401':
+          description: |
+            Falta la cookie `su_refresh` o la cabecera `X-Requested-With: saber-uli`
+            (`unauthenticated`). La cookie se elimina igualmente.
+          headers:
+            Set-Cookie: { schema: { type: string } }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
 
   # ---------------------------------------------------------------- me
   /api/v1/me:

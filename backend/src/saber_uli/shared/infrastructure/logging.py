@@ -141,5 +141,7 @@ def configure_logging(level: str = "INFO", stream: TextIO | None = None) -> None
         ],
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True,
+        # Sin caché: así `structlog.testing.capture_logs` funciona aunque otra prueba ya haya
+        # configurado los logs; el costo es despreciable.
+        cache_logger_on_first_use=False,
     )

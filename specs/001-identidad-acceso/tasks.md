@@ -535,9 +535,11 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth` y `Max-Age` hasta el vencimiento
     por inactividad; `Cache-Control: no-store`; ante un 401 la cookie se borra) y `logout` (204,
     revoca la sesión y borra la cookie). T049 (10 pruebas) en verde; suite: 305.
-  - Decisión pendiente: el contrato exige `X-Requested-With: saber-uli` en refresh y logout pero
-    no documenta un 4xx para su ausencia. Implementado: refresh → 401 `unauthenticated` (código
-    documentado) y logout → 204 sin revocar nada. Opción: documentar 401 (o 403) en ambas rutas.
+  - Decisión resuelta por Opus en T059 (2026-10-06): refresh y logout exigen la cabecera
+    `X-Requested-With: saber-uli` y la cookie (`refreshCookie`); si falta alguna responden 401
+    `unauthenticated` y borran la cookie. Schemathesis señaló que logout aceptaba peticiones sin
+    la cookie y que su 401 no estaba documentado: el contrato ahora documenta el 401 de logout
+    (cambio mínimo) y el cliente del frontend se regeneró.
   - Resuelto en T054: la revocación por reutilización se audita como `session.reuse_detected`.
 - [x] T051 [P] Prueba: estado de autorización y guardia de consentimiento en `backend/tests/unit/identity/test_consent_status.py` (vigente solo si el último registro es `accepted` y su versión es la vigente; sin registros, `rejected`, `revoked` o versión anterior → `consent_required`) y `backend/tests/integration/identity/test_consent_guard.py` (ruta sin `x-consent-exempt` → 403 `consent-required`; rutas exentas responden; FR-014) → Qwen
   - Terminado: las pruebas fallan.
@@ -606,8 +608,19 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `api` queda `healthy` con UID 10001 y responde por el proxy `/api/health`, `/api/ready` y
     404 como Problem Details.
   - Resuelto: con T034 y T014, T007 pasa completa (11 de 11).
-- [ ] T059 Crear el arnés de contrato `backend/tests/contract/test_openapi_contract.py` con Schemathesis sobre la app ASGI, autenticado con tokens de prueba por rol, y la lista `backend/tests/contract/implemented_operations.py` (cada historia agrega sus `operationId`) → Qwen
+- [x] T059 Crear el arnés de contrato `backend/tests/contract/test_openapi_contract.py` con Schemathesis sobre la app ASGI, autenticado con tokens de prueba por rol, y la lista `backend/tests/contract/implemented_operations.py` (cada historia agrega sus `operationId`) → Qwen
   - Terminado: corre en verde con las operaciones de la fase 2 (`getHealth`, `getReadiness`, `refreshSession`, `logout`).
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos. Schemathesis 4 carga
+    el contrato desde `specs/` (la app no publica su esquema), se apunta a la app ASGI completa
+    (`create_app` con Postgres y Redis reales) y se filtra con
+    `from_fixture(...).include(operation_id=...)` por `implemented_operations.py`. Las rutas con
+    `bearerAuth` usan el token de un administrador con sesión privilegiada (`committed_login`).
+    `tests/contract/conftest.py` reutiliza las fixtures de integración. En verde con `getHealth`,
+    `getReadiness`, `refreshSession` y `logout`. Hallazgos: logout aceptaba peticiones sin la
+    cookie y su 401 no estaba en el contrato (resuelto, ver T050). Además, `configure_logging`
+    ya no cachea los loggers (`cache_logger_on_first_use=False`): con caché, `capture_logs`
+    dejaba de funcionar según el orden de las pruebas. Suite: 383 en verde. El trabajo
+    `contract` de CI queda activo.
 
 ### Base del frontend
 

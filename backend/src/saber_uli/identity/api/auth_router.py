@@ -1,9 +1,9 @@
 """Rutas `/api/auth/refresh` y `/api/auth/logout` (contrato: `refreshSession`, `logout`).
 
 La cookie `su_refresh` es `HttpOnly`, `Secure`, `SameSite=Strict` y `Path=/api/auth` (R-14).
-Ambas rutas exigen `X-Requested-With: saber-uli`. Como el contrato no documenta un 4xx para su
-ausencia, la renovación responde 401 `unauthenticated` y el cierre responde 204 sin revocar
-nada (decisión pendiente registrada en tasks.md, T050).
+Ambas rutas exigen `X-Requested-With: saber-uli` y la cookie (`security: refreshCookie` en el
+contrato). Si falta alguna responden 401 `unauthenticated` y borran la cookie. El contrato aún no
+documenta ese 401 en `logout` (decisión pendiente en tasks.md, T050).
 """
 
 from typing import Annotated, Literal
@@ -84,6 +84,12 @@ async def logout(
     x_requested_with: RequestedWith = None,
     su_refresh: RefreshCookie = None,
 ) -> Response:
-    if x_requested_with == REQUESTED_WITH and su_refresh:
-        await service.logout(su_refresh)
+    if x_requested_with != REQUESTED_WITH or not su_refresh:
+        raise ProblemException(
+            401,
+            "unauthenticated",
+            detail="No hay una sesión que cerrar.",
+            headers={"Set-Cookie": DELETED_COOKIE},
+        )
+    await service.logout(su_refresh)
     return Response(status_code=204, headers={"Set-Cookie": DELETED_COOKIE})

@@ -99,8 +99,17 @@ de forma independiente a partir de la fase 2.
   - Aprobada por Opus (2026-10-06): la generación es determinista (dos ejecuciones dan el mismo
     hash del árbol), las URL llevan el prefijo `/api`, `src/api/` está excluido de eslint y
     prettier, y `typecheck`, `lint`, `test` y `build` pasan con el código generado.
-- [ ] T006 [P] Crear `.pre-commit-config.yaml` con ruff, ruff-format, mypy (backend), eslint y prettier (frontend), detección de secretos (`detect-secrets`) y verificación de Conventional Commits (`commitizen`) → Qwen
+- [x] T006 [P] Crear `.pre-commit-config.yaml` con ruff, ruff-format, mypy (backend), eslint y prettier (frontend), detección de secretos (`detect-secrets`) y verificación de Conventional Commits (`commitizen`) → Qwen
   - Terminado: `pre-commit run --all-files` pasa; un mensaje de commit sin formato convencional es rechazado.
+  - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos.
+    `.pre-commit-config.yaml`: ruff, ruff format y mypy `--strict` (backend) y eslint y prettier
+    (frontend) como ganchos locales con las versiones fijadas del proyecto (`uv`, `npm`);
+    detect-secrets 1.5.0 contra `.secrets.baseline` (seis hallazgos revisados: contraseña de
+    ejemplo de `.env.example`, sumas de comprobación de `.specify`, valores ficticios de
+    `test_config.py` y el nombre de variable de `01-roles.sql`; rutas normalizadas con `/` para
+    que la línea base sirva en Linux); commitizen 4.19.1 en `commit-msg`. Verificado:
+    `uvx pre-commit run --all-files` pasa y un mensaje sin formato convencional es rechazado
+    (uno convencional pasa). Instalación local: `uvx pre-commit install`.
 - [x] T007 Prueba de infraestructura en `backend/tests/infra/test_containers.py` (sin dependencias nuevas: CLI de Docker por `subprocess`; se omite con `pytest.mark.skipif` si Docker no está disponible): `docker compose config` válido para `compose.yaml` + override y + prod; la imagen del backend corre con UID 10001; tras `docker compose up -d --wait` todos los servicios están `healthy` y `migrate` sale con código 0; `curl -I` al proxy muestra `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY` y, para `sw.js`, `Service-Worker-Allowed: /`; `docker compose top` no muestra ningún proceso principal con UID 0; en `db` existen los roles `saber_migrator`, `saber_app` y `saber_bi` y las extensiones `citext` y `pg_stat_statements`; `actionlint` valida `.github/workflows/ci.yml` y el flujo contiene los trabajos `infra`, `backend-quality`, `backend-tests`, `contract`, `frontend-quality`, `e2e`, `lighthouse`, `build` y `security`. Si Docker no está disponible la prueba se omite, salvo con `REQUIRE_DOCKER=1`, en cuyo caso falla (constitución IV y X, research R-32 y R-33) → Qwen
   - Terminado: la prueba existe y falla porque aún no hay Dockerfiles, Compose, Nginx, scripts de inicio de Postgres ni flujo de CI.
   - Estado: implementada por Opus (2026-10-06) porque Qwen no tenía créditos; falló completa

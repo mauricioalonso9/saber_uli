@@ -1,0 +1,57 @@
+# Ganchos de pre-commit (T006; constitución IV y IX).
+#
+#   uvx pre-commit install --hook-type pre-commit --hook-type commit-msg
+#   uvx pre-commit run --all-files
+#
+# ruff, mypy, eslint y prettier son ganchos locales: usan las mismas versiones fijadas que CI
+# (uv.lock y package-lock.json). detect-secrets compara con `.secrets.baseline` (los valores de
+# prueba ya revisados) y commitizen exige mensajes Conventional Commits.
+
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff (backend)
+        language: system
+        entry: uv run --project backend ruff check --force-exclude
+        types_or: [python, pyi]
+        files: ^backend/
+      - id: ruff-format
+        name: ruff format (backend)
+        language: system
+        entry: uv run --project backend ruff format --check --force-exclude
+        types_or: [python, pyi]
+        files: ^backend/
+      - id: mypy
+        name: mypy --strict (backend)
+        language: system
+        entry: uv run --directory backend mypy --strict src
+        pass_filenames: false
+        files: ^backend/(src|pyproject\.toml)
+      - id: eslint
+        name: eslint (frontend)
+        language: system
+        entry: npm --prefix frontend run lint
+        pass_filenames: false
+        files: ^frontend/.*\.(ts|tsx|js|jsx)$
+      - id: prettier
+        name: prettier (frontend)
+        language: system
+        entry: npm --prefix frontend run format:check
+        pass_filenames: false
+        files: ^frontend/
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: (^|/)(uv\.lock|package-lock\.json)$
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.19.1
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]

@@ -53,6 +53,9 @@ type = independence
 modules =
     saber_uli.identity
     saber_uli.notifications
+# `warn` (no `error`) porque mientras ningún módulo importe las fachadas la excepción no tiene
+# coincidencias y lint-imports abortaría; la regla arquitectónica no cambia.
+unmatched_ignore_imports_alerting = warn
 ignore_imports =
     saber_uli.identity.** -> saber_uli.notifications.application.public
     saber_uli.notifications.** -> saber_uli.identity.application.public
@@ -65,6 +68,7 @@ source_modules =
 forbidden_modules =
     saber_uli.identity
     saber_uli.notifications
+unmatched_ignore_imports_alerting = warn
 ignore_imports =
     saber_uli.shared.** -> saber_uli.identity.application.public
     saber_uli.shared.** -> saber_uli.notifications.application.public

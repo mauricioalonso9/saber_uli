@@ -60,6 +60,13 @@ de forma independiente a partir de la fase 2.
   - Estado: implementada por Opus en `backend/.importlinter`; se verifica con `lint-imports` cuando existan T001 y T002.
   - Nota: el orden de capas es `api > infrastructure > application > domain` (la API puede usar adaptadores solo para el cableado de FastAPI; la infraestructura nunca importa la API).
   - Terminado: `uv run lint-imports` pasa con el esqueleto y falla con un import prohibido de prueba (verificado y revertido).
+  - Nota de Qwen (2026-10-06): con el esqueleto, `lint-imports` salía 1 porque las entradas
+    `ignore_imports` de las fachadas aún no tienen coincidencias (alerta por defecto). Se agregó
+    `unmatched_ignore_imports_alerting = warn` en los dos contratos afectados (la regla
+    arquitectónica no cambia) y marcadores `identity/application/public.py` y
+    `notifications/application/public.py` (los implementan T117 y T038). Verificado: 4 contratos
+    KEPT con el esqueleto y BROKEN con un `import fastapi` de prueba en `shared/domain` (revertido).
+    Queda a criterio de Opus al revisar T003.
 - [ ] T004 [P] Inicializar el frontend en `frontend/` con Vite + React + TypeScript (`strict: true`), dependencias: @tanstack/react-router, @tanstack/react-query, zustand, tailwindcss, shadcn/ui (componentes base), motion, react-hook-form, zod, @hookform/resolvers, dexie, i18next, react-i18next, vite-plugin-pwa; desarrollo: vitest, @testing-library/react, @testing-library/user-event, msw, @playwright/test, @axe-core/playwright, @lhci/cli, orval, eslint (typescript-eslint, jsx-a11y), prettier; scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `api:generate` en `frontend/package.json` → Qwen
   - Terminado: `npm ci`, `npm run lint`, `npm run typecheck`, `npm test` y `npm run build` pasan.
 - [ ] T005 [P] Configurar `frontend/orval.config.ts` para generar el cliente y los hooks de TanStack Query desde `specs/001-identidad-acceso/contracts/openapi.yaml` hacia `frontend/src/api/` usando el mutador `frontend/src/shared/api/http.ts` (stub que T047 completa) → Qwen

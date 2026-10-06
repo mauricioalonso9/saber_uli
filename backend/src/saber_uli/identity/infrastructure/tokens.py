@@ -10,16 +10,23 @@
 import hashlib
 import secrets
 from collections.abc import Mapping
-from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
 import jwt
 
+from saber_uli.identity.application.ports import ACCESS_TOKEN_TTL_SECONDS, AccessTokenClaims
 from saber_uli.shared.domain.errors import UnauthenticatedError
 
-ACCESS_TOKEN_TTL_SECONDS = 600
+__all__ = [
+    "ACCESS_TOKEN_TTL_SECONDS",
+    "AccessTokenClaims",
+    "AccessTokenCodec",
+    "InvalidAccessTokenError",
+    "hash_refresh_token",
+    "new_refresh_token",
+]
 _ALGORITHM = "HS256"
 _REQUIRED = frozenset({"sub", "sid", "roles", "epoch", "priv", "iat", "exp"})
 _MIN_KEY_BYTES = 32
@@ -27,20 +34,6 @@ _MIN_KEY_BYTES = 32
 
 class InvalidAccessTokenError(UnauthenticatedError):
     """Token ausente, mal formado, con firma inválida o vencido."""
-
-
-@dataclass(frozen=True)
-class AccessTokenClaims:
-    sub: UUID
-    sid: UUID
-    roles: tuple[str, ...]
-    epoch: int
-    priv: bool
-    iat: datetime
-
-    @property
-    def expires_at(self) -> datetime:
-        return self.iat + timedelta(seconds=ACCESS_TOKEN_TTL_SECONDS)
 
 
 class AccessTokenCodec:

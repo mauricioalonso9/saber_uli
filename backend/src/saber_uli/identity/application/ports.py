@@ -1,11 +1,60 @@
 """Puertos de la capa de aplicación de `identity` (los implementa `identity.infrastructure`)."""
 
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import StrEnum
 from typing import Protocol
 from uuid import UUID
 
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
+
+ACCESS_TOKEN_TTL_SECONDS = 600
+
+
+@dataclass(frozen=True)
+class AccessTokenClaims:
+    """Contenido del token de acceso (R-14)."""
+
+    sub: UUID
+    sid: UUID
+    roles: tuple[str, ...]
+    epoch: int
+    priv: bool
+    iat: datetime
+
+    @property
+    def expires_at(self) -> datetime:
+        return self.iat + timedelta(seconds=ACCESS_TOKEN_TTL_SECONDS)
+
+
+class AccessTokenDecoder(Protocol):
+    def decode(self, token: str, *, now: datetime) -> AccessTokenClaims:
+        """Lanza un `UnauthenticatedError` si el token no es válido o venció."""
+        ...
+
+
+class EpochStore(Protocol):
+    """Caché de `auth_epoch` por usuario (R-16). Nunca lanza: si falla, se comporta como vacía."""
+
+    async def get(self, user_id: UUID) -> int | None: ...
+
+    async def set(self, user_id: UUID, epoch: int) -> None: ...
+
+    async def invalidate(self, user_id: UUID) -> None: ...
+
+
+class GuestAccessStatus(StrEnum):
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    REVOKED = "revoked"
+    NONE = "none"
+
+
+class GuestAccessReader(Protocol):
+    async def status_for(self, user_id: UUID, *, now: datetime) -> GuestAccessStatus:
+        """Estado del acceso derivado de la invitación más reciente del invitado (§4.2)."""
+        ...
 
 
 class UserRepository(Protocol):

@@ -448,10 +448,31 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `get_refresh_token_for_update` (`FOR UPDATE`: dos renovaciones simultáneas no rotan el mismo
     token) y `revoke_all_for_user`. Fixtures `token_codec` e `issue_token` en
     `tests/integration/conftest.py`. Suite: 280 en verde.
-- [ ] T047 [P] Prueba: dependencia de autenticación en `backend/tests/integration/identity/test_auth_dependency.py` (sin token → 401 `unauthenticated`; `epoch` distinto → 401 con causa `account-disabled`, `guest-access-expired`, `guest-access-revoked` o `session-revoked`; ruta `x-requires-privileged-session` sin `priv` → 401 `reauthentication-required`; `auth_epoch` leído de Redis con respaldo en base de datos si Redis falla; la actividad privilegiada actualiza `last_privileged_activity_at`; research R-16) → Opus
+- [x] T047 [P] Prueba: dependencia de autenticación en `backend/tests/integration/identity/test_auth_dependency.py` (sin token → 401 `unauthenticated`; `epoch` distinto → 401 con causa `account-disabled`, `guest-access-expired`, `guest-access-revoked` o `session-revoked`; ruta `x-requires-privileged-session` sin `priv` → 401 `reauthentication-required`; `auth_epoch` leído de Redis con respaldo en base de datos si Redis falla; la actividad privilegiada actualiza `last_privileged_activity_at`; research R-16) → Opus
   - Terminado: la prueba falla.
-- [ ] T048 Implementar `backend/src/saber_uli/shared/api/auth.py` (dependencias `current_user` y `require_privileged`), `backend/src/saber_uli/identity/application/access_guard.py` y `backend/src/saber_uli/identity/infrastructure/epoch_cache.py` → Opus
+  - Estado: ver T048.
+- [x] T048 Implementar `backend/src/saber_uli/shared/api/auth.py` (dependencias `current_user` y `require_privileged`), `backend/src/saber_uli/identity/application/access_guard.py` y `backend/src/saber_uli/identity/infrastructure/epoch_cache.py` → Opus
   - Terminado: T047 en verde.
+  - Estado: implementadas por Opus (2026-10-06); T047 falló por `ImportError` (commit
+    `67c0fdc`). La fachada `identity.application.public` expone `AuthenticatedUser` y el puerto
+    `Authenticator` (el kernel solo importa la fachada, contrato `kernel-compartido`).
+    `AccessGuard` (aplicación) decodifica el token, compara la época con la caché y, si falta o
+    Redis falla, con la base de datos; si no coincide responde la causa: `account-deleted`
+    (también en supresión), `account-disabled`, `guest-access-revoked`, `guest-access-expired` o
+    `session-revoked`. `RedisEpochStore` (clave `saber-uli:auth-epoch:<id>`, vence a los 5 min,
+    errores de Redis registrados sin identificadores). `SqlAlchemyIdentityUnitOfWork` con
+    `users`, `sessions` y `guest_access`; `SqlAlchemyGuestAccessReader` deriva el acceso de la
+    invitación más reciente. `shared/api/auth.py`: `current_user` (401 `unauthenticated` con
+    `WWW-Authenticate: Bearer`) y `require_privileged` (401 `reauthentication-required`; registra
+    la actividad privilegiada). `AccessTokenClaims` pasó a los puertos de la aplicación
+    (`tokens.py` lo reexporta). T047 (15 pruebas con Postgres y Redis reales) en verde; suite: 295.
+  - Nota para T058: armar `AccessGuard` con `AccessTokenCodec`, `RedisEpochStore` y
+    `SqlAlchemyIdentityUnitOfWork`, y suscribir en fase `after_commit` un manejador de
+    `identity.UserAccessChanged` que llame a `epochs.invalidate(user_id)` (la caché vence a los
+    5 minutos si una invalidación se pierde).
+  - Decisión de Opus (revisar en T070): el vencimiento natural del acceso de invitado no cambia
+    la época por sí solo; lo hará `expire_invitations` (T126) y la renovación (T050) lo comprueba.
+    Un token de acceso de un invitado vencido puede durar como máximo sus 10 minutos.
 - [ ] T049 [P] Prueba: renovación y cierre de sesión en `backend/tests/integration/identity/test_refresh_logout.py` (`POST /api/auth/refresh` exige `X-Requested-With: saber-uli`; cookie `su_refresh` con `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`; rota la cookie; reutilización → 401 `session-revoked` y familia revocada; cuenta desactivada → 401 `account-disabled`; inactividad > 7 días → 401 `session-expired`; `POST /api/auth/logout` → 204 y cookie borrada; escenario 1.4) → Opus
   - Terminado: la prueba falla.
 - [ ] T050 Implementar `backend/src/saber_uli/identity/application/sessions.py` y `backend/src/saber_uli/identity/api/auth_router.py` (refresh y logout) → Opus

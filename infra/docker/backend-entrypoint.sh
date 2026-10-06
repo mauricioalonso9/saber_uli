@@ -1,0 +1,32 @@
+#!/bin/sh
+# Punto de entrada de la imagen del backend (T008). El primer argumento elige el servicio; `exec`
+# deja el proceso como PID 1 para que reciba las señales de Docker.
+set -eu
+
+service="${1:-api}"
+[ "$#" -gt 0 ] && shift
+
+case "$service" in
+  api)
+    # Logs: cada worker importa main.py, que llama a configure_logging (T019) y redirige los
+    # loggers de uvicorn al manejador JSON. Solo el proceso supervisor conserva el formato de
+    # uvicorn en sus mensajes de arranque.
+    exec uvicorn saber_uli.main:app --host 0.0.0.0 --port 8000 --workers "${API_WORKERS:-4}" \
+      --proxy-headers --forwarded-allow-ips "*" "$@"
+    ;;
+  worker)
+    exec celery -A saber_uli.worker worker --loglevel "${LOG_LEVEL:-INFO}" "$@"
+    ;;
+  beat)
+    # El latido /tmp/beat-heartbeat lo escribe la app Celery (T034); el health check lo revisa.
+    exec celery -A saber_uli.worker beat --loglevel "${LOG_LEVEL:-INFO}" \
+      --schedule /tmp/celerybeat-schedule "$@"
+    ;;
+  migrate)
+    exec saber-uli migrate "$@"
+    ;;
+  *)
+    # Cualquier otro comando (por ejemplo `saber-uli grant-admin ...`) se ejecuta tal cual.
+    exec "$service" "$@"
+    ;;
+esac

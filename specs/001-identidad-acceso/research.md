@@ -92,6 +92,11 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
   `SELECT … FOR UPDATE SKIP LOCKED`, los despacha a sus manejadores y los marca como procesados;
   los manejadores son idempotentes (clave `event_id`). Los eventos procesados se purgan a los
   7 días.
+  - Precisión (2026-10-06): el bus en proceso tiene dos fases. `in_transaction` corre antes del
+    `COMMIT` con la misma sesión (por ejemplo, escribir el outbox); si falla, se revierte todo.
+    `after_commit` corre después del `COMMIT` para efectos fuera de la base de datos (por
+    ejemplo, invalidar la caché de `auth_epoch`); sus fallos se registran y no deshacen nada. Lo
+    que deba ocurrir de forma confiable va al outbox, nunca a `after_commit`.
 - **Justificación**: el correo de invitación, el enlace de acceso, los avisos de supresión y la
   supresión misma deben ocurrir si y solo si la transacción que los origina se confirma.
 - **Alternativas**: publicar directamente a Celery tras el commit (se pierden eventos si el

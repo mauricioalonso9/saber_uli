@@ -47,6 +47,25 @@ forbidden_modules =
     jinja2
     saber_uli.config
 
+[importlinter:contract:aplicacion-sin-frameworks]
+name = La capa de aplicación depende de puertos, no de frameworks ni de infraestructura
+type = forbidden
+source_modules =
+    saber_uli.shared.application
+    saber_uli.identity.application
+    saber_uli.notifications.application
+forbidden_modules =
+    fastapi
+    starlette
+    sqlalchemy
+    asyncpg
+    celery
+    redis
+    httpx
+    authlib
+    jinja2
+    saber_uli.config
+
 [importlinter:contract:contextos-independientes]
 name = identity y notifications solo se comunican por su fachada pública
 type = independence

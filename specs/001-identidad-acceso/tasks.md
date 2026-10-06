@@ -77,6 +77,10 @@ de forma independiente a partir de la fase 2.
     con la salida redirigida a un archivo nulo, `lint-imports` sale 1 por un error de
     codificación cp1252 al imprimir acentos; usar `PYTHONIOENCODING=utf-8` (en CI, Linux, no
     ocurre).
+  - Cambio de Opus (2026-10-06): nuevo contrato `aplicacion-sin-frameworks` (la capa
+    `application` de cada contexto no importa FastAPI, Starlette, SQLAlchemy, asyncpg, Celery,
+    Redis, httpx, Authlib, Jinja2 ni `saber_uli.config`). Verificado: 5 KEPT, y BROKEN con un
+    `import sqlalchemy` de prueba en `shared/application` (revertido).
 - [x] T004 [P] Inicializar el frontend en `frontend/` con Vite + React + TypeScript (`strict: true`), dependencias: @tanstack/react-router, @tanstack/react-query, zustand, tailwindcss, shadcn/ui (componentes base), motion, react-hook-form, zod, @hookform/resolvers, dexie, i18next, react-i18next, vite-plugin-pwa; desarrollo: vitest, @testing-library/react, @testing-library/user-event, msw, @playwright/test, @axe-core/playwright, @lhci/cli, orval, eslint (typescript-eslint, jsx-a11y), prettier; scripts `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`, `api:generate` en `frontend/package.json` → Qwen
   - Terminado: `npm ci`, `npm run lint`, `npm run typecheck`, `npm test` y `npm run build` pasan.
   - Estado: lista para revisión. Vite 8 + React 19 + TS estricto; Tailwind v4; base shadcn/ui
@@ -187,6 +191,9 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     usuarios en T044, emisor de tokens de prueba en T046 y cliente ASGI en T058.
 - [ ] T025 [P] Prueba: unidad de trabajo en `backend/tests/integration/shared/test_unit_of_work.py` (commit persiste; excepción hace rollback; eventos del bus en proceso se despachan solo tras el commit) → Qwen
   - Terminado: la prueba falla.
+  - Nota de Opus (2026-10-06): diseño del bus en dos fases (`in_transaction` y `after_commit`,
+    precisión en R-08), puerto `UnitOfWork`, `env.py` sin `get_settings()`, CLI con argparse y
+    pruebas en `handoffs/qwen-04-T025-T026.md`.
 - [ ] T026 Implementar `backend/src/saber_uli/shared/infrastructure/db.py` (engine asyncpg, sesiones), `backend/src/saber_uli/shared/application/unit_of_work.py`, `backend/src/saber_uli/shared/application/event_bus.py` y `backend/migrations/env.py` (Alembic asíncrono, varios esquemas, `alembic_version` en `shared`) → Qwen
   - Terminado: T025 en verde; `saber-uli migrate` aplica cero migraciones sin error.
   - Nota de Opus (2026-10-06): T026 crea también `backend/src/saber_uli/cli.py` con el comando

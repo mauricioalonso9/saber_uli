@@ -6,11 +6,31 @@ import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { Me } from "@/api/model";
 import { App } from "@/app/App";
 import { createAppRouter } from "@/app/router";
 
+const ME: Me = {
+  id: "0192f3c4-0000-7000-8000-000000000001",
+  kind: "institutional",
+  status: "active",
+  display_name: "Ana",
+  email: "ana@unilibre.edu.co",
+  roles: ["student"],
+  permissions: [],
+  onboarding: { consent_required: false, profile_required: false },
+  access: {
+    valid: true,
+    validated_at: "2026-10-06T12:00:00Z",
+    offline_grace_until: "2026-10-13T12:00:00Z",
+  },
+};
+
 function renderAt(path: string) {
-  const router = createAppRouter({ initialPath: path });
+  const router = createAppRouter({
+    initialPath: path,
+    getSession: () => Promise.resolve({ kind: "authenticated", me: ME }),
+  });
   render(<App router={router} />);
   return router;
 }

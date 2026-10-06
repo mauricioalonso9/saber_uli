@@ -20,5 +20,20 @@
     "title": "Página no encontrada",
     "body": "La página que buscas no existe o cambió de lugar.",
     "back": "Volver al inicio"
+  },
+  "login": {
+    "title": "Ingresar"
+  },
+  "guestAccess": {
+    "title": "Acceso de invitado"
+  },
+  "consent": {
+    "title": "Tratamiento de tus datos"
+  },
+  "profile": {
+    "title": "Completa tu perfil"
+  },
+  "offline": {
+    "title": "Sin conexión"
   }
 }

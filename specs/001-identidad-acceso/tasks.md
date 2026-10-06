@@ -673,10 +673,22 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     `/me` con el token nuevo; la instantánea solo se actualiza si ambas funcionan) y `useCanSync`
     (falso hasta revalidar; se apaga sin conexión y al reconectar vuelve a revalidar). Dependencia
     de desarrollo `fake-indexeddb`. 11 pruebas en verde; frontend: 69.
-- [ ] T066 [P] Prueba: guardias de navegación en `frontend/src/app/guards.test.tsx` (sin sesión → `/ingresar`; `consent_required` → `/bienvenida/datos`; `profile_required` → `/bienvenida/perfil`; rutas de administración y docente según `permissions`; retomar el paso pendiente del primer ingreso, FR-022) → Qwen
+- [x] T066 [P] Prueba: guardias de navegación en `frontend/src/app/guards.test.tsx` (sin sesión → `/ingresar`; `consent_required` → `/bienvenida/datos`; `profile_required` → `/bienvenida/perfil`; rutas de administración y docente según `permissions`; retomar el paso pendiente del primer ingreso, FR-022) → Qwen
   - Terminado: la prueba falla.
-- [ ] T067 Implementar `frontend/src/app/guards.ts` y su conexión en `frontend/src/app/router.tsx` → Qwen
+  - Estado: ver T067.
+- [x] T067 Implementar `frontend/src/app/guards.ts` y su conexión en `frontend/src/app/router.tsx` → Qwen
   - Terminado: T066 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T066 falló al no
+    existir el módulo (commit `4facb22`). `decideNavigation` (función pura): sin sesión →
+    `/ingresar?return_to=…` (públicas: `/ingresar`, `/acceso`); autorización pendiente →
+    `/bienvenida/datos`; perfil pendiente → `/bienvenida/perfil`; pasos ya completados o
+    `/ingresar` con sesión → `/inicio` (FR-022); rutas de docente y administración según
+    `permissions` (sin permiso → `/inicio`); más de 7 días sin conexión → `/sin-conexion`
+    (FR-039). La ruta raíz del router la aplica en `beforeLoad` con `getSession` del contexto;
+    por defecto `createSessionLoader()` (renovación + `/me` con caché; sin red usa la instantánea
+    de Dexie o bloquea; T080 llamará a `invalidate()` al ingresar y al salir). Páginas mínimas de
+    `/ingresar`, `/acceso`, `/bienvenida/datos`, `/bienvenida/perfil` (las completan T080, T085,
+    T097) y `/sin-conexion`. Frontend: 95 pruebas, `lint`, `typecheck` y `build` en verde.
 - [ ] T068 [P] Configurar la PWA en `frontend/vite.config.ts` (vite-plugin-pwa: manifest con nombre "Saber Uli", `lang: es-CO`, íconos 192/512 y maskable en `frontend/public/icons/`, `display: standalone`, precache del shell) y la guía de instalación para iPhone en `frontend/src/shared/ui/InstallHint.tsx` con su prueba `frontend/src/shared/ui/InstallHint.test.tsx` → Qwen
   - Terminado: `npm run build` genera `sw.js` y `manifest.webmanifest`; la prueba del componente pasa.
 - [ ] T069 [P] Configurar Playwright en `frontend/playwright.config.ts` (viewport móvil Pixel 7 e iPhone 14, `locale: es-CO`) y los fixtures `frontend/tests/e2e/fixtures/{auth.ts,mailpit.ts,axe.ts,api.ts}` (ingreso con el proveedor de prueba eligiendo usuario del inquilino o externo; lectura de correos de Mailpit; chequeo axe nivel AA; llamadas API como administrador) → Qwen

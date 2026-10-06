@@ -1,11 +1,12 @@
 /**
- * Rutas de la interfaz (research R-35). En 001 la base tiene el shell, `/inicio` (marcador hasta
- * la spec 003) y la página de ruta desconocida; cada historia agrega sus rutas aquí.
+ * Rutas de la interfaz (research R-35). La ruta raíz aplica las guardias (T067) antes de cargar
+ * cualquier página. Las páginas de ingreso, autorización y perfil son mínimas y las completan
+ * T080, T085 y T097; cada historia agrega aquí sus rutas.
  */
 import {
   Link,
   createMemoryHistory,
-  createRootRoute,
+  createRootRouteWithContext,
   createRoute,
   createRouter,
   redirect,
@@ -13,13 +14,20 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { AppShell } from "@/app/AppShell";
+import { type SessionState, decideNavigation } from "@/app/guards";
+import { OFFLINE_EXPIRED_MESSAGE } from "@/features/auth/offline-access";
+import { createSessionLoader } from "@/features/auth/session-loader";
 
-function HomePage() {
+export interface RouterContext {
+  getSession: () => Promise<SessionState>;
+}
+
+function Page({ titleKey, bodyKey }: { titleKey: string; bodyKey?: string }) {
   const { t } = useTranslation();
   return (
     <section>
-      <h1 className="mb-2 text-2xl font-bold">{t("home.title")}</h1>
-      <p>{t("home.placeholder")}</p>
+      <h1 className="mb-2 text-2xl font-bold">{t(titleKey)}</h1>
+      {bodyKey ? <p>{t(bodyKey)}</p> : null}
     </section>
   );
 }
@@ -37,7 +45,26 @@ function NotFoundPage() {
   );
 }
 
-const rootRoute = createRootRoute({ component: AppShell, notFoundComponent: NotFoundPage });
+function OfflineExpiredPage() {
+  const { t } = useTranslation();
+  return (
+    <section>
+      <h1 className="mb-2 text-2xl font-bold">{t("offline.title")}</h1>
+      <p>{OFFLINE_EXPIRED_MESSAGE}</p>
+    </section>
+  );
+}
+
+const rootRoute = createRootRouteWithContext<RouterContext>()({
+  component: AppShell,
+  notFoundComponent: NotFoundPage,
+  beforeLoad: async ({ context, location }) => {
+    const target = decideNavigation(await context.getSession(), location.pathname);
+    if (target) {
+      throw redirect({ href: target });
+    }
+  },
+});
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -47,22 +74,40 @@ const indexRoute = createRoute({
   },
 });
 
-const homeRoute = createRoute({
+const page = <TPath extends string>(path: TPath, titleKey: string, bodyKey?: string) =>
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path,
+    component: () => <Page titleKey={titleKey} bodyKey={bodyKey} />,
+  });
+
+const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/inicio",
-  component: HomePage,
+  path: "/sin-conexion",
+  component: OfflineExpiredPage,
 });
 
-export const routeTree = rootRoute.addChildren([indexRoute, homeRoute]);
+export const routeTree = rootRoute.addChildren([
+  indexRoute,
+  page("/inicio", "home.title", "home.placeholder"),
+  page("/ingresar", "login.title"),
+  page("/acceso", "guestAccess.title"),
+  page("/bienvenida/datos", "consent.title"),
+  page("/bienvenida/perfil", "profile.title"),
+  offlineRoute,
+]);
 
 export interface AppRouterOptions {
   /** Ruta inicial en memoria (pruebas); sin ella se usa el historial del navegador. */
   initialPath?: string;
+  /** Estado de la sesión para las guardias; por defecto renovación + `/me` con caché. */
+  getSession?: () => Promise<SessionState>;
 }
 
 export function createAppRouter(options: AppRouterOptions = {}) {
   return createRouter({
     routeTree,
+    context: { getSession: options.getSession ?? createSessionLoader() },
     history: options.initialPath
       ? createMemoryHistory({ initialEntries: [options.initialPath] })
       : undefined,

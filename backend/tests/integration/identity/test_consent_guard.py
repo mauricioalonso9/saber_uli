@@ -20,7 +20,11 @@ from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
 from saber_uli.identity.infrastructure.tokens import AccessTokenCodec
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
 from saber_uli.shared.api.auth import current_user
-from saber_uli.shared.api.consent_guard import CONSENT_EXEMPT_OPERATIONS, require_consent
+from saber_uli.shared.api.consent_guard import (
+    CONSENT_EXEMPT_OPERATIONS,
+    PUBLIC_OPERATIONS,
+    require_consent,
+)
 from saber_uli.shared.api.problems import install_problem_handlers
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.domain.clock import SystemClock
@@ -40,6 +44,18 @@ def test_la_lista_de_exentas_coincide_con_el_contrato() -> None:
     }
 
     assert exempt == CONSENT_EXEMPT_OPERATIONS
+
+
+def test_la_lista_de_rutas_publicas_de_v1_coincide_con_el_contrato() -> None:
+    spec: dict[str, Any] = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+    public = {
+        op["operationId"]
+        for path, operations in spec["paths"].items()
+        for op in operations.values()
+        if path.startswith("/api/v1") and isinstance(op, dict) and op.get("security") == []
+    }
+
+    assert public == PUBLIC_OPERATIONS
 
 
 def build_app(app_engine: AsyncEngine, redis_url: str, token_codec: AccessTokenCodec) -> FastAPI:
@@ -64,6 +80,10 @@ def build_app(app_engine: AsyncEngine, redis_url: str, token_codec: AccessTokenC
     @v1.get("/me/profile", operation_id="getMyProfile")
     async def profile(user: Annotated[AuthenticatedUser, Depends(current_user)]) -> dict[str, str]:
         return {"id": str(user.id)}
+
+    @v1.get("/privacy-policy/current", operation_id="getCurrentPolicy")
+    async def policy() -> dict[str, str]:
+        return {"status": "ok"}
 
     app.include_router(v1)
     return app
@@ -186,3 +206,7 @@ async def test_sin_token_responde_401_antes_que_403(app: FastAPI) -> None:
     response = await get(app, "/api/v1/me/profile", None)
 
     assert response.status_code == 401
+
+
+async def test_las_rutas_publicas_no_exigen_sesion_ni_autorizacion(app: FastAPI) -> None:
+    assert (await get(app, "/api/v1/privacy-policy/current", None)).status_code == 200

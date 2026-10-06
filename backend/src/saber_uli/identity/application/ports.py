@@ -6,6 +6,7 @@ from enum import StrEnum
 from typing import Protocol
 from uuid import UUID
 
+from saber_uli.identity.domain.consent import ConsentRecord
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
 
@@ -67,6 +68,12 @@ class GuestAccessReader(Protocol):
     async def status_for(self, user_id: UUID, *, now: datetime) -> GuestAccessStatus:
         """Estado del acceso derivado de la invitación más reciente del invitado (§4.2)."""
         ...
+
+
+class ConsentReader(Protocol):
+    async def latest_for_user(self, user_id: UUID) -> ConsentRecord | None: ...
+
+    async def current_policy_version_id(self, *, now: datetime) -> UUID | None: ...
 
 
 class UserRepository(Protocol):

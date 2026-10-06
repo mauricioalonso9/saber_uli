@@ -3,6 +3,7 @@
 from abc import abstractmethod
 
 from saber_uli.identity.application.ports import (
+    ConsentReader,
     GuestAccessReader,
     SessionRepository,
     UserRepository,
@@ -22,3 +23,7 @@ class IdentityUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def guest_access(self) -> GuestAccessReader: ...
+
+    @property
+    @abstractmethod
+    def consents(self) -> ConsentReader: ...

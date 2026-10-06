@@ -5,6 +5,8 @@ Es lo único que otros contextos y el kernel compartido pueden importar de `iden
 - `AuthenticatedUser` y `Authenticator`: los usa `shared/api/auth.py` (T048). La implementación
   (`identity.application.access_guard.AccessGuard`) la arma `main.py` (T058) y la deja en
   `app.state.authenticator`.
+- `ConsentChecker`: lo usa `shared/api/consent_guard.py` (T052); lo implementa
+  `identity.application.queries.consent_status.ConsentStatusQuery`.
 - `is_institutional`, `is_guest` y `director_program_ids` llegan con T117 y T145.
 """
 
@@ -30,4 +32,10 @@ class Authenticator(Protocol):
 
     async def record_privileged_activity(self, user: AuthenticatedUser) -> None:
         """Extiende la ventana de 30 minutos de la sesión privilegiada (R-15)."""
+        ...
+
+
+class ConsentChecker(Protocol):
+    async def has_current_consent(self, user_id: UUID) -> bool:
+        """Autorización de datos vigente (FR-014)."""
         ...

@@ -493,10 +493,23 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     documentado) y logout → 204 sin revocar nada. Opción: documentar 401 (o 403) en ambas rutas.
   - Pendiente para T054: auditar `session.reuse_detected` cuando se revoca una sesión por
     reutilización (el escritor de auditoría aún no existe).
-- [ ] T051 [P] Prueba: estado de autorización y guardia de consentimiento en `backend/tests/unit/identity/test_consent_status.py` (vigente solo si el último registro es `accepted` y su versión es la vigente; sin registros, `rejected`, `revoked` o versión anterior → `consent_required`) y `backend/tests/integration/identity/test_consent_guard.py` (ruta sin `x-consent-exempt` → 403 `consent-required`; rutas exentas responden; FR-014) → Qwen
+- [x] T051 [P] Prueba: estado de autorización y guardia de consentimiento en `backend/tests/unit/identity/test_consent_status.py` (vigente solo si el último registro es `accepted` y su versión es la vigente; sin registros, `rejected`, `revoked` o versión anterior → `consent_required`) y `backend/tests/integration/identity/test_consent_guard.py` (ruta sin `x-consent-exempt` → 403 `consent-required`; rutas exentas responden; FR-014) → Qwen
   - Terminado: las pruebas fallan.
-- [ ] T052 Implementar `backend/src/saber_uli/identity/domain/consent.py` (estado vigente), `backend/src/saber_uli/identity/application/queries/consent_status.py` y `backend/src/saber_uli/shared/api/consent_guard.py` (lista de rutas exentas tomada del contrato) → Qwen
+  - Estado: ver T052.
+- [x] T052 Implementar `backend/src/saber_uli/identity/domain/consent.py` (estado vigente), `backend/src/saber_uli/identity/application/queries/consent_status.py` y `backend/src/saber_uli/shared/api/consent_guard.py` (lista de rutas exentas tomada del contrato) → Qwen
   - Terminado: T051 en verde.
+  - Estado: implementadas por Opus (2026-10-06) porque Qwen no tenía créditos; T051 falló por
+    `ImportError` (commit `d5a2163`). `consent_is_current` (último registro `accepted` de la
+    versión vigente; sin política publicada no hay autorización posible). `SqlAlchemyConsentReader`
+    (último registro; versión vigente = mayor `effective_from ≤ now`) dentro de la unidad de
+    trabajo. `ConsentStatusQuery` implementa el puerto `ConsentChecker` de la fachada pública y
+    da `status()` para `/me` (T079). `require_consent` omite las operaciones públicas
+    (`getCurrentPolicy`, `getPolicyVersion`, sin sesión) y las `x-consent-exempt` (con sesión);
+    el resto sin autorización vigente → 403 `consent-required`, siempre después del 401. Las dos
+    listas copian el contrato y una prueba verifica que coincidan. Fixture `committed_login` en
+    el conftest de integración. 15 pruebas en verde.
+  - Nota: mientras no se publique una versión de la política (US2), toda ruta no exenta de
+    `/api/v1` responde 403 `consent-required`.
 - [ ] T053 [P] Prueba: auditoría en `backend/tests/integration/identity/test_audit_writer.py` (el evento se escribe en la misma transacción que la acción; `action` del catálogo de data-model §5; rechaza `details` con claves `email`, `name`, `display_name` o valores con forma de correo; `actor_id` `NULL` = sistema) → Qwen
   - Terminado: la prueba falla.
 - [ ] T054 Implementar `backend/src/saber_uli/identity/application/audit.py` y `backend/src/saber_uli/identity/infrastructure/repositories/audit.py` → Qwen

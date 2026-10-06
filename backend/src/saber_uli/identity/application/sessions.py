@@ -26,6 +26,7 @@ from saber_uli.identity.application.ports import (
     AccessTokenEncoder,
     GuestAccessStatus,
     RefreshTokenGenerator,
+    SessionRevocations,
 )
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
 from saber_uli.identity.domain.session import (
@@ -56,11 +57,13 @@ class SessionService:
         clock: Clock,
         access_tokens: AccessTokenEncoder,
         refresh_tokens: RefreshTokenGenerator,
+        revocations: SessionRevocations,
     ) -> None:
         self._uow_factory = uow_factory
         self._clock = clock
         self._access_tokens = access_tokens
         self._refresh_tokens = refresh_tokens
+        self._revocations = revocations
 
     def seconds_until(self, moment: datetime) -> int:
         return max(0, int((moment - self._clock.now()).total_seconds()))
@@ -110,6 +113,8 @@ class SessionService:
                         now=now,
                     )
                     await uow.commit()
+                    if session.id is not None:
+                        await self._revocations.revoke(session.id)
                 raise
 
             await uow.sessions.save_refresh_token(current)
@@ -133,6 +138,9 @@ class SessionService:
             session.revoke(now, "logout")
             await uow.sessions.save(session)
             await uow.commit()
+        if session.id is not None:
+            # El token de acceso ya emitido deja de servir de inmediato (ASVS V3.3.1).
+            await self._revocations.revoke(session.id)
 
     async def _ensure_can_continue(
         self, uow: IdentityUnitOfWork, user: User, now: datetime

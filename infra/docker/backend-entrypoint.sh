@@ -11,9 +11,11 @@ case "$service" in
     # `--factory`: la configuración se lee al crear la app, no al importar el módulo.
     # Logs: cada worker crea la app, que llama a configure_logging (T019) y redirige los
     # loggers de uvicorn al manejador JSON. Solo el proceso supervisor conserva el formato de
-    # uvicorn en sus mensajes de arranque.
+    # uvicorn en sus mensajes de arranque. Sin log de acceso de uvicorn: incluiría la IP
+    # y la consulta; el middleware `http_request` registra método, ruta, estado y
+    # duración (revisión T070).
     exec uvicorn --factory saber_uli.main:create_app --host 0.0.0.0 --port 8000 --workers "${API_WORKERS:-4}" \
-      --proxy-headers --forwarded-allow-ips "*" "$@"
+      --proxy-headers --forwarded-allow-ips "*" --no-access-log "$@"
     ;;
   worker)
     exec celery -A saber_uli.worker worker --loglevel "${LOG_LEVEL:-INFO}" "$@"

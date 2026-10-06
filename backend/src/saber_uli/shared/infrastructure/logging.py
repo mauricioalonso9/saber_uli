@@ -103,7 +103,10 @@ _SHARED_PROCESSORS: list[Processor] = [
 ]
 
 # Loggers de uvicorn: traen sus propios manejadores; se redirigen al manejador JSON.
-_THIRD_PARTY_LOGGERS = ("uvicorn", "uvicorn.error", "uvicorn.access")
+_THIRD_PARTY_LOGGERS = ("uvicorn", "uvicorn.error")
+# El log de acceso de uvicorn incluye la IP y la consulta: se silencia; el middleware
+# `http_request` registra método, ruta sin consulta, estado y duración (revisión T070).
+_SILENCED_LOGGERS = ("uvicorn.access",)
 
 
 def configure_logging(level: str = "INFO", stream: TextIO | None = None) -> None:
@@ -132,6 +135,10 @@ def configure_logging(level: str = "INFO", stream: TextIO | None = None) -> None
         third_party = logging.getLogger(name)
         third_party.handlers.clear()
         third_party.propagate = True
+    for name in _SILENCED_LOGGERS:
+        silenced = logging.getLogger(name)
+        silenced.handlers.clear()
+        silenced.propagate = False
 
     structlog.configure(
         processors=[

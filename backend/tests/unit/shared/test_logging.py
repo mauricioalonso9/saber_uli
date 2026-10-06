@@ -146,3 +146,12 @@ def test_respeta_el_nivel_configurado(json_logs: Any) -> None:
     logging.getLogger("saber_uli").debug("detalle")
 
     assert json_logs() == []
+
+
+def test_el_log_de_acceso_de_uvicorn_se_silencia(json_logs: Any) -> None:
+    # Incluye la IP y la consulta; el middleware `http_request` lo reemplaza (revisión T070).
+    logging.getLogger("uvicorn.access").info('203.0.113.7:5000 - "GET /x?nombre=Ana HTTP/1.1" 200')
+    logging.getLogger("uvicorn.error").info("arranque")
+
+    lines = json_logs()
+    assert [line["logger"] for line in lines] == ["uvicorn.error"]

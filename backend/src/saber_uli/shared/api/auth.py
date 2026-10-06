@@ -6,8 +6,12 @@
   401 con la causa (`account-disabled`, `session-revoked`…).
 - `require_privileged`: para las rutas `x-requires-privileged-session`. Sin `priv` responde 401
   `reauthentication-required`; con `priv`, registra la actividad privilegiada (R-15).
+- `require_permission(*permisos)`: niega por defecto (ASVS V4.1.3, FR-030); basta uno de
+  los permisos del contrato (`users:manage`…). Sin él responde 403 `forbidden`. El alcance
+  (recursos propios) lo verifica cada caso de uso y responde 404 fuera de alcance (R-22).
 """
 
+from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 from fastapi import Depends, Header, Request
@@ -52,3 +56,18 @@ async def require_privileged(
         )
     await authenticator.record_privileged_activity(user)
     return user
+
+
+def require_permission(*permissions: str) -> Callable[..., Awaitable[AuthenticatedUser]]:
+    if not permissions:
+        raise ValueError("indique al menos un permiso")
+    required = frozenset(permissions)
+
+    async def dependency(
+        user: Annotated[AuthenticatedUser, Depends(current_user)],
+    ) -> AuthenticatedUser:
+        if not required & user.permissions:
+            raise ProblemException(403, "forbidden", detail="No tienes permiso para esta función.")
+        return user
+
+    return dependency

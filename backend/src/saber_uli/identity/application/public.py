@@ -23,6 +23,7 @@ class AuthenticatedUser:
     session_id: UUID
     roles: frozenset[str]
     privileged: bool
+    permissions: frozenset[str] = frozenset()
 
 
 class Authenticator(Protocol):

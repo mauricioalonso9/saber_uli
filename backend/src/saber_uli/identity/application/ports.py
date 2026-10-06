@@ -60,6 +60,14 @@ class EpochStore(Protocol):
     async def invalidate(self, user_id: UUID) -> None: ...
 
 
+class SessionRevocations(Protocol):
+    """Sesiones revocadas cuyo token de acceso aún no vence (ASVS V3.3.1). Nunca lanza."""
+
+    async def revoke(self, session_id: UUID) -> None: ...
+
+    async def is_revoked(self, session_id: UUID) -> bool: ...
+
+
 class GuestAccessStatus(StrEnum):
     ACTIVE = "active"
     EXPIRED = "expired"

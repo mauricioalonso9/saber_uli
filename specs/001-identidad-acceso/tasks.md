@@ -733,8 +733,51 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     override publica el simulador en `127.0.0.1:8080:8080` y el host agrega `127.0.0.1 oidc` a su
     archivo hosts (CI lo hace en el trabajo `e2e`, que además fija el inquilino de prueba).
     Documentarlo en el quickstart (T177).
-- [ ] T070 Revisión de seguridad de la fase 2 (T010, T011, T029–T030, T035–T036, T045–T050, T062–T063) en `specs/001-identidad-acceso/tasks.md`: ASVS 4.0.3 V2, V3, V4 y V7 aplicables; secretos solo por entorno; ningún dato personal en logs ni outbox → Opus
+- [x] T070 Revisión de seguridad de la fase 2 (T010, T011, T029–T030, T035–T036, T045–T050, T062–T063) en `specs/001-identidad-acceso/tasks.md`: ASVS 4.0.3 V2, V3, V4 y V7 aplicables; secretos solo por entorno; ningún dato personal en logs ni outbox → Opus
   - Terminado: hallazgos corregidos o registrados como tareas nuevas; casillas de la fase 2 marcadas.
+  - Revisión de Opus (2026-10-06). Alcance: T010, T011, T029–T030, T035–T036, T045–T050, T062–T063,
+    más lo que la fase 2 agregó después (outbox, correo, `main.py`, CI). Comprobado con las pruebas
+    automáticas (388 backend, 100 frontend, 11 de infraestructura, contrato con Schemathesis) y en
+    Compose.
+    - V2 (autenticación): los flujos de ingreso llegan con US1 y US4; lo de la fase 2 cumple:
+      límites de R-31 en Redis con clave HMAC del correo (nunca el correo) y 429 con
+      `Retry-After`.
+    - V3 (sesiones): token de acceso HS256 de 10 min con `kid` y claves ≥ 256 bits; renovación de
+      256 bits guardada solo como SHA-256, rotación en cada uso con bloqueo de fila y revocación
+      de la sesión ante reutilización (auditada); cookie `HttpOnly`, `Secure`, `SameSite=Strict`,
+      `Path=/api/auth`; inactividad 7 días y absoluto 30 días con la desviación de ASVS 3.3.2
+      acotada por la sesión privilegiada (12 h / 30 min, R-15); `X-Requested-With` y la cookie
+      exigidos en refresh y logout; el token de acceso solo en memoria en el frontend.
+      **Corregido**: al cerrar sesión o revocarla por reutilización, el token de acceso ya
+      emitido seguía sirviendo hasta 10 min (V3.3.1). Ahora el `sid` entra en una lista de
+      sesiones revocadas en Redis (`RedisSessionRevocations`, vence con el token) que
+      `AccessGuard` consulta en cada petición.
+    - V4 (control de acceso): la API niega por defecto (sin token → 401; sin autorización de
+      datos → 403 `consent-required`; rutas privilegiadas sin `priv` → 401
+      `reauthentication-required`); matriz de permisos del contrato; permisos de base de datos
+      con mínimo privilegio (auditoría y consentimientos de solo inserción, políticas inmutables,
+      sin `DELETE` de usuarios, `saber_bi` sin acceso; T029). **Corregido**: faltaba una
+      dependencia para exigir permisos por ruta; se agregó `require_permission(...)` (403
+      `forbidden`) y `AuthenticatedUser.permissions`.
+    - V7 (logs): JSON con limpieza final de claves y valores sensibles (incluidos parámetros de
+      URL y excepciones formateadas), log por petición sin consulta ni IP, auditoría y outbox que
+      rechazan datos personales, `last_error` solo con la clase, `ConfigError` sin valores,
+      Problem Details sin valores recibidos. **Corregido**: el log de acceso de uvicorn (IP y
+      consulta) reaparecía porque `configure_logging` lo reconectaba aunque uvicorn arrancara con
+      `--no-access-log`; ahora `uvicorn.access` queda silenciado (prueba nueva en T018) y la
+      imagen arranca con `--no-access-log`. Verificado en Compose: 0 líneas de `uvicorn.access`.
+    - Secretos: solo por entorno (`${VAR:?}` en Compose, `.env` ignorado, detect-secrets en
+      pre-commit, Trivy en CI); `migrate` recibe solo su URL; claves HMAC derivadas, nunca el
+      secreto tal cual.
+    - Riesgos aceptados (documentados): si Redis no responde, la limitación de peticiones, la
+      caché de épocas y la lista de sesiones revocadas se omiten (la época se lee de la base); el
+      vencimiento natural del acceso de invitado puede tardar hasta 10 min en surtir efecto en un
+      token de acceso ya emitido (lo resuelven la renovación y T126).
+    - Hallazgos abiertos (tareas nuevas T070a y T070b).
+- [ ] T070a [P] Redis con contraseña en producción: `requirepass` en `compose.prod.yaml` y `REDIS_URL` con credenciales armada por Compose desde una variable nueva `REDIS_PASSWORD` (documentada en `.env.example`); prueba en T007 de que `redis-cli ping` sin contraseña falla con el archivo de producción → Qwen
+  - Terminado: T007 en verde con la comprobación nueva.
+- [ ] T070b [P] Alertas operativas: documentar en quickstart.md (operación) que los eventos `rate_limit_unavailable`, `epoch_cache_unavailable`, `session_revocation_unavailable`, `outbox_delivery_failed` y `readiness_check_failed` deben generar alerta, con un ejemplo de consulta sobre los logs JSON → Qwen
+  - Terminado: sección nueva en quickstart.md revisada por Opus.
 
 **Checkpoint**: base lista; las historias pueden empezar (en paralelo si hay capacidad).
 

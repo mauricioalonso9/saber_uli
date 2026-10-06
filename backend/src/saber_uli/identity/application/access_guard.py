@@ -3,9 +3,11 @@
 En cada petición autenticada:
 
 1. Se decodifica el token (firma, `kid`, vencimiento).
-2. Se compara su `epoch` con el vigente: primero en la caché (Redis) y, si falta o Redis no
+2. Se rechaza si su sesión está en la lista de revocadas (cierre de sesión o
+   reutilización del token de renovación; ASVS V3.3.1, revisión T070).
+3. Se compara su `epoch` con el vigente: primero en la caché (Redis) y, si falta o Redis no
    responde, en la base de datos (se vuelve a guardar en la caché).
-3. Si no coincide, se responde 401 con la causa: `account-disabled`, `account-deleted`,
+4. Si no coincide, se responde 401 con la causa: `account-disabled`, `account-deleted`,
    `guest-access-revoked`, `guest-access-expired` o, si nada de eso aplica (por ejemplo, se
    retiró un rol), `session-revoked`.
 
@@ -21,9 +23,11 @@ from saber_uli.identity.application.ports import (
     AccessTokenDecoder,
     EpochStore,
     GuestAccessStatus,
+    SessionRevocations,
 )
 from saber_uli.identity.application.public import AuthenticatedUser
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
+from saber_uli.identity.domain.permissions import permissions_for
 from saber_uli.identity.domain.user import UserKind, UserStatus
 from saber_uli.shared.domain.clock import Clock
 from saber_uli.shared.domain.errors import UnauthenticatedError
@@ -57,16 +61,20 @@ class AccessGuard:
         *,
         decoder: AccessTokenDecoder,
         epochs: EpochStore,
+        revocations: SessionRevocations,
         uow_factory: Callable[[], IdentityUnitOfWork],
         clock: Clock,
     ) -> None:
         self._decoder = decoder
         self._epochs = epochs
+        self._revocations = revocations
         self._uow_factory = uow_factory
         self._clock = clock
 
     async def authenticate(self, token: str) -> AuthenticatedUser:
         claims = self._decoder.decode(token, now=self._clock.now())
+        if await self._revocations.is_revoked(claims.sid):
+            raise SessionAccessRevokedError("La sesión se cerró.")
         if await self._current_epoch(claims.sub) != claims.epoch:
             raise await self._denial(claims.sub)
         return AuthenticatedUser(
@@ -74,6 +82,7 @@ class AccessGuard:
             session_id=claims.sid,
             roles=frozenset(claims.roles),
             privileged=claims.priv,
+            permissions=frozenset(p.value for p in permissions_for(claims.roles)),
         )
 
     async def record_privileged_activity(self, user: AuthenticatedUser) -> None:

@@ -27,6 +27,7 @@ from saber_uli.identity.application.queries.consent_status import ConsentStatusQ
 from saber_uli.identity.application.sessions import SessionService
 from saber_uli.identity.domain.events import UserAccessChanged
 from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
+from saber_uli.identity.infrastructure.session_revocations import RedisSessionRevocations
 from saber_uli.identity.infrastructure.tokens import AccessTokenCodec, RefreshTokenFactory
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
 from saber_uli.shared.api.health import router as health_router
@@ -67,6 +68,7 @@ def create_app(
         return SqlAlchemyIdentityUnitOfWork(session_factory, bus)
 
     epochs = RedisEpochStore(redis_url)
+    revocations = RedisSessionRevocations(redis_url)
     codec = AccessTokenCodec(
         {settings.jwt_key_id: settings.jwt_signing_key.get_secret_value().encode()},
         active_kid=settings.jwt_key_id,
@@ -91,6 +93,7 @@ def create_app(
         await engine.dispose()
         await readiness_redis.aclose()
         await epochs.close()
+        await revocations.close()
 
     app = FastAPI(
         title="Saber Uli API",
@@ -109,7 +112,11 @@ def create_app(
         redis_url, hash_key=_derived_key(cookie_secret, "saber-uli/rate-limit-email")
     )
     app.state.authenticator = AccessGuard(
-        decoder=codec, epochs=epochs, uow_factory=identity_uow, clock=clock
+        decoder=codec,
+        epochs=epochs,
+        revocations=revocations,
+        uow_factory=identity_uow,
+        clock=clock,
     )
     app.state.consent_checker = ConsentStatusQuery(uow_factory=identity_uow, clock=clock)
     app.state.session_service = SessionService(
@@ -117,6 +124,7 @@ def create_app(
         clock=clock,
         access_tokens=codec,
         refresh_tokens=RefreshTokenFactory(),
+        revocations=revocations,
     )
     app.state.readiness_checks = {"database": database_ready, "redis": redis_ready}
 

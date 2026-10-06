@@ -473,10 +473,26 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Decisión de Opus (revisar en T070): el vencimiento natural del acceso de invitado no cambia
     la época por sí solo; lo hará `expire_invitations` (T126) y la renovación (T050) lo comprueba.
     Un token de acceso de un invitado vencido puede durar como máximo sus 10 minutos.
-- [ ] T049 [P] Prueba: renovación y cierre de sesión en `backend/tests/integration/identity/test_refresh_logout.py` (`POST /api/auth/refresh` exige `X-Requested-With: saber-uli`; cookie `su_refresh` con `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`; rota la cookie; reutilización → 401 `session-revoked` y familia revocada; cuenta desactivada → 401 `account-disabled`; inactividad > 7 días → 401 `session-expired`; `POST /api/auth/logout` → 204 y cookie borrada; escenario 1.4) → Opus
+- [x] T049 [P] Prueba: renovación y cierre de sesión en `backend/tests/integration/identity/test_refresh_logout.py` (`POST /api/auth/refresh` exige `X-Requested-With: saber-uli`; cookie `su_refresh` con `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`; rota la cookie; reutilización → 401 `session-revoked` y familia revocada; cuenta desactivada → 401 `account-disabled`; inactividad > 7 días → 401 `session-expired`; `POST /api/auth/logout` → 204 y cookie borrada; escenario 1.4) → Opus
   - Terminado: la prueba falla.
-- [ ] T050 Implementar `backend/src/saber_uli/identity/application/sessions.py` y `backend/src/saber_uli/identity/api/auth_router.py` (refresh y logout) → Opus
+  - Estado: ver T050.
+- [x] T050 Implementar `backend/src/saber_uli/identity/application/sessions.py` y `backend/src/saber_uli/identity/api/auth_router.py` (refresh y logout) → Opus
   - Terminado: T049 en verde.
+  - Estado: implementadas por Opus (2026-10-06); T049 falló por `ImportError` (commit
+    `eea4cbe`). `SessionService` (`open_session` para T076/T107, `refresh`, `logout`): la
+    renovación bloquea el token (`FOR UPDATE`), valida cuenta y acceso de invitado (mismas causas
+    que T048), rota el token, confirma la revocación por reutilización aunque la petición falle,
+    registra el ingreso (conservación, FR-034b/c) y emite `priv` según R-15. Puertos
+    `AccessTokenEncoder` y `RefreshTokenGenerator` (`RefreshTokenFactory`). Router con
+    `refreshSession` (límite 30/min por IP compartido con el ingreso; cookie `su_refresh` con
+    `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth` y `Max-Age` hasta el vencimiento
+    por inactividad; `Cache-Control: no-store`; ante un 401 la cookie se borra) y `logout` (204,
+    revoca la sesión y borra la cookie). T049 (10 pruebas) en verde; suite: 305.
+  - Decisión pendiente: el contrato exige `X-Requested-With: saber-uli` en refresh y logout pero
+    no documenta un 4xx para su ausencia. Implementado: refresh → 401 `unauthenticated` (código
+    documentado) y logout → 204 sin revocar nada. Opción: documentar 401 (o 403) en ambas rutas.
+  - Pendiente para T054: auditar `session.reuse_detected` cuando se revoca una sesión por
+    reutilización (el escritor de auditoría aún no existe).
 - [ ] T051 [P] Prueba: estado de autorización y guardia de consentimiento en `backend/tests/unit/identity/test_consent_status.py` (vigente solo si el último registro es `accepted` y su versión es la vigente; sin registros, `rejected`, `revoked` o versión anterior → `consent_required`) y `backend/tests/integration/identity/test_consent_guard.py` (ruta sin `x-consent-exempt` → 403 `consent-required`; rutas exentas responden; FR-014) → Qwen
   - Terminado: las pruebas fallan.
 - [ ] T052 Implementar `backend/src/saber_uli/identity/domain/consent.py` (estado vigente), `backend/src/saber_uli/identity/application/queries/consent_status.py` y `backend/src/saber_uli/shared/api/consent_guard.py` (lista de rutas exentas tomada del contrato) → Qwen

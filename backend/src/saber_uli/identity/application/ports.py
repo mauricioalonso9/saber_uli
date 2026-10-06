@@ -28,6 +28,18 @@ class AccessTokenClaims:
         return self.iat + timedelta(seconds=ACCESS_TOKEN_TTL_SECONDS)
 
 
+class AccessTokenEncoder(Protocol):
+    def encode(self, claims: AccessTokenClaims) -> str: ...
+
+
+class RefreshTokenGenerator(Protocol):
+    def new(self) -> tuple[str, bytes]:
+        """Token en claro (solo para la cookie) y su hash (solo para la base de datos)."""
+        ...
+
+    def hash(self, plaintext: str) -> bytes: ...
+
+
 class AccessTokenDecoder(Protocol):
     def decode(self, token: str, *, now: datetime) -> AccessTokenClaims:
         """Lanza un `UnauthenticatedError` si el token no es válido o venció."""

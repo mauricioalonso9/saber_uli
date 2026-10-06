@@ -24,6 +24,7 @@ __all__ = [
     "AccessTokenClaims",
     "AccessTokenCodec",
     "InvalidAccessTokenError",
+    "RefreshTokenFactory",
     "hash_refresh_token",
     "new_refresh_token",
 ]
@@ -101,3 +102,13 @@ def new_refresh_token() -> tuple[str, bytes]:
     """Devuelve el token en claro (va solo a la cookie) y su SHA-256 (va a la base de datos)."""
     plaintext = secrets.token_urlsafe(32)
     return plaintext, hash_refresh_token(plaintext)
+
+
+class RefreshTokenFactory:
+    """Implementa `RefreshTokenGenerator` (R-14, R-19)."""
+
+    def new(self) -> tuple[str, bytes]:
+        return new_refresh_token()
+
+    def hash(self, plaintext: str) -> bytes:
+        return hash_refresh_token(plaintext)

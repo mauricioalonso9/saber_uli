@@ -1,0 +1,1717 @@
+openapi: 3.1.0
+info:
+  title: Saber Uli API — Identidad y acceso
+  version: 1.0.0
+  summary: Identidad, acceso institucional, invitados, roles, perfil y autorización de datos.
+  description: |
+    Contrato de la funcionalidad 001-identidad-acceso. Es la fuente de verdad para la
+    implementación (principio III) y para generar el cliente del frontend (orval).
+
+    Convenciones:
+    - Los flujos de autenticación viven en `/api/auth` (sin versión, porque la URL de retorno
+      está registrada en Microsoft Entra ID). Los recursos viven en `/api/v1`.
+    - Autenticación con `Authorization: Bearer <token de acceso>`. El token de renovación viaja
+      solo en la cookie `su_refresh` (HttpOnly, Secure, SameSite=Strict, Path=/api/auth).
+    - Errores con RFC 9457 (`application/problem+json`). El campo `type` identifica la causa con
+      un URN `urn:saber-uli:problem:<slug>`; ver `components.schemas.Problem`.
+    - Listas paginadas con `page` (desde 1) y `page_size` (máximo 100).
+    - Todas las rutas de `/api/v1` exigen autorización de datos vigente, salvo las marcadas con
+      `x-consent-exempt: true` (FR-014).
+    - Las rutas marcadas con `x-requires-privileged-session: true` exigen el claim `priv`
+      (ver research R-15); sin él responden 401 `reauthentication-required`.
+servers:
+  - url: http://localhost
+    description: Desarrollo local (detrás del proxy Nginx)
+tags:
+  - name: auth
+    description: Ingreso institucional, invitados y sesión
+  - name: me
+    description: Cuenta propia, perfil, autorización y derechos del titular
+  - name: policy
+    description: Política de tratamiento de datos
+  - name: programs
+    description: Catálogo de programas académicos
+  - name: invitations
+    description: Invitaciones de invitados (Docente y Administrador)
+  - name: teacher
+    description: Funciones del docente sobre sus grupos
+  - name: admin
+    description: Administración de usuarios, grupos, parámetros, supresiones y auditoría
+  - name: ops
+    description: Salud del servicio
+
+paths:
+  # ---------------------------------------------------------------- ops
+  /api/health:
+    get:
+      tags: [ops]
+      operationId: getHealth
+      summary: El proceso está vivo
+      security: []
+      responses:
+        '200':
+          description: Vivo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthStatus' }
+  /api/ready:
+    get:
+      tags: [ops]
+      operationId: getReadiness
+      summary: Base de datos y Redis disponibles
+      security: []
+      responses:
+        '200':
+          description: Listo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthStatus' }
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  # ---------------------------------------------------------------- auth
+  /api/auth/microsoft/login:
+    get:
+      tags: [auth]
+      operationId: startMicrosoftLogin
+      summary: Inicia el ingreso con la cuenta institucional (FR-001)
+      description: Redirige a Microsoft Entra ID con authorization code + PKCE.
+      security: []
+      parameters:
+        - name: return_to
+          in: query
+          required: false
+          description: Ruta interna a la que volver tras el ingreso. Solo rutas relativas.
+          schema: { type: string, pattern: '^/[^/].*$', maxLength: 200 }
+      responses:
+        '302':
+          description: Redirección al proveedor de identidad institucional
+          headers:
+            Location: { schema: { type: string, format: uri } }
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+  /api/auth/microsoft/callback:
+    get:
+      tags: [auth]
+      operationId: completeMicrosoftLogin
+      summary: Retorno desde Microsoft Entra ID (FR-002, FR-003, FR-005)
+      description: |
+        Valida state, nonce, firma del ID token, `iss` y `tid`. Si el inquilino no es el de
+        Unilibre, redirige a `/ingresar?error=tenant_not_allowed` sin crear cuenta. Si es
+        válido, crea o actualiza la cuenta, abre sesión, fija la cookie de renovación y redirige
+        al frontend (`/bienvenida/datos`, `/bienvenida/perfil` o `return_to`).
+      security: []
+      parameters:
+        - { name: code, in: query, required: false, schema: { type: string } }
+        - { name: state, in: query, required: true, schema: { type: string } }
+        - { name: error, in: query, required: false, schema: { type: string } }
+      responses:
+        '302':
+          description: Redirección al frontend (éxito o página de error con `error=<slug>`)
+          headers:
+            Location: { schema: { type: string } }
+            Set-Cookie:
+              description: Cookie `su_refresh` cuando el ingreso es exitoso
+              schema: { type: string }
+  /api/auth/guest/link-requests:
+    post:
+      tags: [auth]
+      operationId: requestGuestSignInLink
+      summary: Un invitado pide un enlace de ingreso (FR-013)
+      description: Responde siempre 202 con el mismo cuerpo, exista o no el correo.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              additionalProperties: false
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+      responses:
+        '202':
+          description: Solicitud recibida
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Accepted' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /api/auth/guest/sessions:
+    post:
+      tags: [auth]
+      operationId: createGuestSession
+      summary: Consume un enlace de invitación o de ingreso (FR-007, FR-011)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              additionalProperties: false
+              properties:
+                token: { type: string, minLength: 32, maxLength: 128 }
+      responses:
+        '200':
+          description: Sesión abierta; fija la cookie `su_refresh`
+          headers:
+            Set-Cookie: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionTokens' }
+        '400':
+          description: Enlace inválido, usado o vencido (`access-link-invalid`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Acceso de invitado vencido o revocado (`guest-access-expired`, `guest-access-revoked`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /api/auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refreshSession
+      summary: Renueva el token de acceso y rota la cookie (FR-037, FR-038, FR-039)
+      description: |
+        Requiere la cookie `su_refresh` y la cabecera `X-Requested-With: saber-uli`. Valida que
+        la cuenta siga activa, que el acceso de invitado no haya vencido ni sido revocado y que
+        la sesión no haya superado 7 días de inactividad ni 30 días absolutos.
+      security:
+        - refreshCookie: []
+      parameters:
+        - name: X-Requested-With
+          in: header
+          required: true
+          schema: { type: string, const: saber-uli }
+      responses:
+        '200':
+          description: Token renovado; la cookie se rota
+          headers:
+            Set-Cookie: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionTokens' }
+        '401':
+          description: |
+            Sesión no renovable. `type` indica la causa: `session-expired`, `session-revoked`,
+            `account-disabled`, `account-deleted`, `guest-access-expired`, `guest-access-revoked`.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /api/auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      summary: Cierra la sesión actual (escenario 1.4)
+      security:
+        - refreshCookie: []
+      parameters:
+        - name: X-Requested-With
+          in: header
+          required: true
+          schema: { type: string, const: saber-uli }
+      responses:
+        '204':
+          description: Sesión cerrada; la cookie se elimina
+          headers:
+            Set-Cookie: { schema: { type: string } }
+
+  # ---------------------------------------------------------------- me
+  /api/v1/me:
+    get:
+      tags: [me]
+      operationId: getMe
+      summary: Estado de la cuenta, roles, permisos y pasos pendientes del primer ingreso
+      x-consent-exempt: true
+      responses:
+        '200':
+          description: Cuenta actual
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/me/profile:
+    get:
+      tags: [me]
+      operationId: getMyProfile
+      responses:
+        '200':
+          description: Perfil
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ConsentRequired' }
+    put:
+      tags: [me]
+      operationId: updateMyProfile
+      summary: Completa o edita el perfil (FR-019, FR-020, FR-021)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileUpdate' }
+      responses:
+        '200':
+          description: Perfil actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ConsentRequired' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/me/consents:
+    get:
+      tags: [me]
+      operationId: listMyConsents
+      summary: Historial de autorizaciones (escenario 2.4, FR-018)
+      x-consent-exempt: true
+      responses:
+        '200':
+          description: Historial, del más reciente al más antiguo
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [current, items]
+                properties:
+                  current:
+                    oneOf:
+                      - $ref: '#/components/schemas/Consent'
+                      - type: 'null'
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Consent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [me]
+      operationId: decideConsent
+      summary: Acepta o rechaza la versión vigente de la política (FR-015)
+      x-consent-exempt: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [policy_version_id, decision]
+              additionalProperties: false
+              properties:
+                policy_version_id: { type: string, format: uuid }
+                decision: { type: string, enum: [accepted, rejected] }
+      responses:
+        '201':
+          description: Decisión registrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Consent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: La versión indicada no es la vigente (`policy-version-not-current`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /api/v1/me/consents/revocation:
+    post:
+      tags: [me]
+      operationId: revokeConsent
+      summary: Revoca la autorización vigente; suspende el acceso (escenario 2.5)
+      x-consent-exempt: true
+      responses:
+        '201':
+          description: Revocación registrada; las sesiones del usuario quedan revocadas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Consent' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: No hay autorización vigente (`no-active-consent`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /api/v1/me/data-export:
+    get:
+      tags: [me]
+      operationId: exportMyData
+      summary: Descarga todos los datos personales del usuario (FR-031)
+      responses:
+        '200':
+          description: Archivo JSON
+          headers:
+            Content-Disposition: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PersonalDataExport' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ConsentRequired' }
+  /api/v1/me/deletion-request:
+    get:
+      tags: [me]
+      operationId: getMyDeletionRequest
+      x-consent-exempt: true
+      responses:
+        '200':
+          description: Solicitud en curso
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletionRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [me]
+      operationId: requestMyDeletion
+      summary: Solicita la supresión de la cuenta y los datos (FR-032)
+      x-consent-exempt: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmation]
+              additionalProperties: false
+              properties:
+                confirmation:
+                  type: string
+                  const: ELIMINAR
+                  description: Confirmación explícita que el usuario escribe
+      responses:
+        '202':
+          description: Solicitud registrada; las sesiones terminan de inmediato
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletionRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: |
+            Ya existe una solicitud en curso (`deletion-already-requested`) o el usuario es el
+            último administrador activo (`last-admin`, FR-034d).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  # ---------------------------------------------------------------- policy
+  /api/v1/privacy-policy/current:
+    get:
+      tags: [policy]
+      operationId: getCurrentPolicy
+      summary: Versión vigente de la política (FR-016)
+      security: []
+      responses:
+        '200':
+          description: Política vigente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PolicyVersion' }
+  /api/v1/privacy-policy/versions/{policyVersionId}:
+    get:
+      tags: [policy]
+      operationId: getPolicyVersion
+      summary: Texto de una versión concreta (escenario 2.4)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PolicyVersionId'
+      responses:
+        '200':
+          description: Versión
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PolicyVersion' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/admin/privacy-policy/versions:
+    post:
+      tags: [admin, policy]
+      operationId: publishPolicyVersion
+      summary: Publica una nueva versión; exige nueva aceptación a todos (FR-017)
+      x-requires-privileged-session: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version, title, body_markdown, effective_from]
+              additionalProperties: false
+              properties:
+                version: { type: string, pattern: '^[0-9]+\.[0-9]+$' }
+                title: { type: string, maxLength: 200 }
+                body_markdown: { type: string, minLength: 200, maxLength: 100000 }
+                effective_from: { type: string, format: date-time }
+      responses:
+        '201':
+          description: Publicada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PolicyVersion' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  # ---------------------------------------------------------------- programs
+  /api/v1/programs:
+    get:
+      tags: [programs]
+      operationId: listActivePrograms
+      summary: Programas activos para completar el perfil
+      responses:
+        '200':
+          description: Programas activos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Program' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/ConsentRequired' }
+  /api/v1/admin/programs:
+    get:
+      tags: [admin, programs]
+      operationId: adminListPrograms
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+      responses:
+        '200':
+          description: Programas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProgramPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [admin, programs]
+      operationId: adminCreateProgram
+      summary: Crea un programa (FR-028)
+      x-requires-privileged-session: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProgramInput' }
+      responses:
+        '201':
+          description: Creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Program' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/programs/{programId}:
+    patch:
+      tags: [admin, programs]
+      operationId: adminUpdateProgram
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/ProgramId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProgramPatch' }
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Program' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  # ---------------------------------------------------------------- invitations
+  /api/v1/invitations:
+    get:
+      tags: [invitations]
+      operationId: listInvitations
+      summary: Lista invitaciones (docente solo las suyas; administrador todas) (FR-006)
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/InvitationStatus' }
+        - name: invited_by
+          in: query
+          required: false
+          description: Solo administradores; para un docente se ignora.
+          schema: { type: string, format: uuid }
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 254 } }
+      responses:
+        '200':
+          description: Invitaciones
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InvitationPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [invitations]
+      operationId: createInvitation
+      summary: Envía una invitación individual (escenario 5.1)
+      x-requires-privileged-session: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/InvitationInput' }
+      responses:
+        '201':
+          description: Invitación creada y encolada para envío
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invitation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: Ya existe una invitación vigente para ese correo (`invitation-already-active`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: |
+            Datos inválidos. `type` puede ser `validation-error`,
+            `institutional-email-not-invitable` (FR-008) o `access-expiry-out-of-range` (FR-006a).
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /api/v1/invitations/{invitationId}:
+    get:
+      tags: [invitations]
+      operationId: getInvitation
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/InvitationId'
+      responses:
+        '200':
+          description: Invitación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invitation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [invitations]
+      operationId: updateInvitationExpiry
+      summary: Amplía, reduce o renueva el vencimiento del acceso (escenario 5.5)
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/InvitationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [access_expires_at]
+              additionalProperties: false
+              properties:
+                access_expires_at: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Vencimiento actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invitation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: El invitado ya fue suprimido y no puede renovarse (`guest-erased`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/invitations/{invitationId}/resend:
+    post:
+      tags: [invitations]
+      operationId: resendInvitation
+      summary: Reenvía una invitación no aceptada con un enlace nuevo
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/InvitationId'
+      responses:
+        '202':
+          description: Reenvío encolado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invitation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/v1/invitations/{invitationId}/revocation:
+    post:
+      tags: [invitations]
+      operationId: revokeInvitation
+      summary: Revoca la invitación o el acceso del invitado (escenario 5.4, FR-010)
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/InvitationId'
+      responses:
+        '200':
+          description: Revocada; las sesiones del invitado terminan
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invitation' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/v1/invitation-batches:
+    post:
+      tags: [invitations]
+      operationId: validateInvitationBatch
+      summary: Valida un lote de invitaciones y devuelve el reporte por fila (FR-009)
+      x-requires-privileged-session: true
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+              description: UTF-8 con encabezado `correo,nombre,vence`; máximo 500 filas.
+          application/json:
+            schema:
+              type: object
+              required: [rows]
+              additionalProperties: false
+              properties:
+                default_access_expires_at: { type: string, format: date-time }
+                rows:
+                  type: array
+                  minItems: 1
+                  maxItems: 500
+                  items:
+                    type: object
+                    required: [email]
+                    additionalProperties: false
+                    properties:
+                      email: { type: string, maxLength: 254 }
+                      name: { type: string, maxLength: 120 }
+                      access_expires_at: { type: string, format: date-time }
+      responses:
+        '201':
+          description: Lote validado, pendiente de confirmación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InvitationBatch' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '413':
+          description: Más de 500 filas (`batch-too-large`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/invitation-batches/{batchId}:
+    get:
+      tags: [invitations]
+      operationId: getInvitationBatch
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/BatchId'
+      responses:
+        '200':
+          description: Lote
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InvitationBatch' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/invitation-batches/{batchId}/confirmation:
+    post:
+      tags: [invitations]
+      operationId: confirmInvitationBatch
+      summary: Confirma el lote; crea y envía solo las filas válidas
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/BatchId'
+      responses:
+        '200':
+          description: Confirmado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InvitationBatch' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Lote ya confirmado o vencido (`batch-not-pending`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  # ---------------------------------------------------------------- teacher
+  /api/v1/teacher/groups:
+    get:
+      tags: [teacher]
+      operationId: listMyTeachingGroups
+      summary: Grupos donde el usuario es docente (FR-027)
+      x-requires-privileged-session: true
+      responses:
+        '200':
+          description: Grupos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/GroupSummary' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/v1/teacher/groups/{groupId}/students:
+    get:
+      tags: [teacher]
+      operationId: listMyGroupStudents
+      summary: Estudiantes de un grupo propio (nombre, sin correo) (FR-027)
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Estudiantes
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GroupStudentPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ---------------------------------------------------------------- admin: users
+  /api/v1/admin/users:
+    get:
+      tags: [admin]
+      operationId: adminListUsers
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 254 } }
+        - name: kind
+          in: query
+          required: false
+          schema: { type: string, enum: [institutional, guest] }
+        - name: role
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/Role' }
+        - name: status
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/AccountStatus' }
+      responses:
+        '200':
+          description: Usuarios
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUserPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/v1/admin/users/{userId}:
+    get:
+      tags: [admin]
+      operationId: adminGetUser
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Usuario
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUser' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [admin]
+      operationId: adminUpdateUserStatus
+      summary: Desactiva o reactiva una cuenta (FR-029)
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              additionalProperties: false
+              properties:
+                status: { type: string, enum: [active, disabled] }
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUser' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: No se puede desactivar al último administrador activo (`last-admin`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /api/v1/admin/users/{userId}/roles:
+    put:
+      tags: [admin]
+      operationId: adminSetUserRoles
+      summary: Define los roles y programas dirigidos de un usuario (FR-023…FR-026)
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [roles]
+              additionalProperties: false
+              properties:
+                roles:
+                  type: array
+                  minItems: 1
+                  uniqueItems: true
+                  items: { $ref: '#/components/schemas/Role' }
+                director_program_ids:
+                  type: array
+                  uniqueItems: true
+                  items: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Roles actualizados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminUser' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: |
+            Regla de roles incumplida: `last-admin`, `guest-role-exclusive`,
+            `student-role-required` o `director-requires-programs`.
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  # ---------------------------------------------------------------- admin: groups
+  /api/v1/admin/groups:
+    get:
+      tags: [admin]
+      operationId: adminListGroups
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: q, in: query, required: false, schema: { type: string, maxLength: 100 } }
+      responses:
+        '200':
+          description: Grupos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GroupPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [admin]
+      operationId: adminCreateGroup
+      x-requires-privileged-session: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GroupInput' }
+      responses:
+        '201':
+          description: Creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/groups/{groupId}:
+    get:
+      tags: [admin]
+      operationId: adminGetGroup
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      responses:
+        '200':
+          description: Grupo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [admin]
+      operationId: adminUpdateGroup
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GroupPatch' }
+      responses:
+        '200':
+          description: Actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/groups/{groupId}/members:
+    post:
+      tags: [admin]
+      operationId: adminAddGroupMembers
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserIdList' }
+      responses:
+        '200':
+          description: Miembros agregados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Algún usuario no es estudiante institucional (`not-institutional-student`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /api/v1/admin/groups/{groupId}/members/{userId}:
+    delete:
+      tags: [admin]
+      operationId: adminRemoveGroupMember
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204': { description: Miembro retirado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/admin/groups/{groupId}/teachers:
+    post:
+      tags: [admin]
+      operationId: adminAddGroupTeachers
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserIdList' }
+      responses:
+        '200':
+          description: Docentes asociados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Group' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Algún usuario no tiene rol Docente (`not-a-teacher`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /api/v1/admin/groups/{groupId}/teachers/{userId}:
+    delete:
+      tags: [admin]
+      operationId: adminRemoveGroupTeacher
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/GroupId'
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204': { description: Docente retirado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ---------------------------------------------------------------- admin: other
+  /api/v1/admin/deletion-requests:
+    get:
+      tags: [admin]
+      operationId: adminListDeletionRequests
+      summary: Solicitudes de supresión con estado y fecha límite (FR-034)
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, enum: [received, in_progress, completed] }
+      responses:
+        '200':
+          description: Solicitudes
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeletionRequestPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/v1/admin/settings:
+    get:
+      tags: [admin]
+      operationId: adminGetSettings
+      x-requires-privileged-session: true
+      responses:
+        '200':
+          description: Parámetros
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Settings' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    patch:
+      tags: [admin]
+      operationId: adminUpdateSettings
+      summary: Ajusta parámetros como el plazo máximo de docentes (FR-006a)
+      x-requires-privileged-session: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SettingsPatch' }
+      responses:
+        '200':
+          description: Parámetros actualizados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Settings' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/admin/audit-events:
+    get:
+      tags: [admin]
+      operationId: adminListAuditEvents
+      summary: Consulta de auditoría, solo lectura (FR-035)
+      x-requires-privileged-session: true
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - { name: action, in: query, required: false, schema: { type: string, maxLength: 64 } }
+        - { name: actor_id, in: query, required: false, schema: { type: string, format: uuid } }
+        - { name: subject_user_id, in: query, required: false, schema: { type: string, format: uuid } }
+        - { name: from, in: query, required: false, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: false, schema: { type: string, format: date-time } }
+      responses:
+        '200':
+          description: Eventos, del más reciente al más antiguo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditEventPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: su_refresh
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: page_size
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+    UserId:
+      { name: userId, in: path, required: true, schema: { type: string, format: uuid } }
+    GroupId:
+      { name: groupId, in: path, required: true, schema: { type: string, format: uuid } }
+    ProgramId:
+      { name: programId, in: path, required: true, schema: { type: string, format: uuid } }
+    InvitationId:
+      { name: invitationId, in: path, required: true, schema: { type: string, format: uuid } }
+    BatchId:
+      { name: batchId, in: path, required: true, schema: { type: string, format: uuid } }
+    PolicyVersionId:
+      { name: policyVersionId, in: path, required: true, schema: { type: string, format: uuid } }
+
+  responses:
+    Unauthorized:
+      description: |
+        Sin sesión válida. `type`: `unauthenticated`, `session-revoked`, `account-disabled`,
+        `guest-access-expired`, `guest-access-revoked` o `reauthentication-required`.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ConsentRequired:
+      description: Falta autorización de datos vigente (`consent-required`, FR-014)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Forbidden:
+      description: El rol no permite esta función (`forbidden`)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NotFound:
+      description: No existe o está fuera del alcance del usuario (`not-found`)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflict:
+      description: Conflicto con el estado actual (`conflict` u otro tipo específico)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ValidationError:
+      description: Datos inválidos (`validation-error`)
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    TooManyRequests:
+      description: Demasiadas solicitudes (`rate-limited`)
+      headers:
+        Retry-After: { schema: { type: integer } }
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ServiceUnavailable:
+      description: Dependencia no disponible
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+
+  schemas:
+    # ---------------------------------------------------------- comunes
+    Problem:
+      type: object
+      description: RFC 9457 Problem Details. `detail` está en español y nunca contiene datos personales.
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          examples: ['urn:saber-uli:problem:guest-access-expired']
+        title: { type: string }
+        status: { type: integer, minimum: 400, maximum: 599 }
+        detail: { type: string }
+        instance: { type: string }
+        errors:
+          type: array
+          description: Errores de validación por campo
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field: { type: string }
+              message: { type: string }
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ok, degraded, unavailable] }
+        checks:
+          type: object
+          additionalProperties: { type: string, enum: [ok, failed] }
+    Accepted:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    PageMeta:
+      type: object
+      required: [page, page_size, total]
+      properties:
+        page: { type: integer, minimum: 1 }
+        page_size: { type: integer, minimum: 1, maximum: 100 }
+        total: { type: integer, minimum: 0 }
+    UserIdList:
+      type: object
+      required: [user_ids]
+      additionalProperties: false
+      properties:
+        user_ids:
+          type: array
+          minItems: 1
+          maxItems: 500
+          uniqueItems: true
+          items: { type: string, format: uuid }
+
+    # ---------------------------------------------------------- sesión y cuenta
+    SessionTokens:
+      type: object
+      required: [access_token, token_type, expires_in]
+      properties:
+        access_token: { type: string }
+        token_type: { type: string, const: Bearer }
+        expires_in: { type: integer, description: Segundos (600) }
+    Role:
+      type: string
+      enum: [student, guest, teacher, program_director, admin]
+    Permission:
+      type: string
+      enum:
+        - invitations:manage_own
+        - invitations:manage_all
+        - users:manage
+        - groups:manage
+        - groups:read_own_students
+        - programs:read_aggregated
+        - programs:manage
+        - settings:manage
+        - audit:read
+        - policy:publish
+        - deletions:read
+    AccountStatus:
+      type: string
+      description: Estado visible, combinación del estado de la cuenta y del acceso de invitado.
+      enum: [active, disabled, guest_expired, guest_revoked, deletion_pending, deleted]
+    Me:
+      type: object
+      required: [id, kind, status, display_name, email, roles, permissions, onboarding, access]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [institutional, guest] }
+        status: { $ref: '#/components/schemas/AccountStatus' }
+        display_name: { type: string }
+        email: { type: string, format: email }
+        roles:
+          type: array
+          items: { $ref: '#/components/schemas/Role' }
+        permissions:
+          type: array
+          items: { $ref: '#/components/schemas/Permission' }
+        onboarding:
+          type: object
+          required: [consent_required, profile_required]
+          properties:
+            consent_required: { type: boolean }
+            current_policy_version_id: { type: string, format: uuid }
+            profile_required: { type: boolean }
+        access:
+          type: object
+          required: [valid, validated_at, offline_grace_until]
+          properties:
+            valid: { type: boolean }
+            validated_at: { type: string, format: date-time }
+            offline_grace_until:
+              type: string
+              format: date-time
+              description: validated_at + 7 días (FR-038)
+            guest_access_expires_at: { type: string, format: date-time }
+            privileged_session: { type: boolean }
+    Profile:
+      type: object
+      required: [daily_goal, complete]
+      properties:
+        program: { $ref: '#/components/schemas/Program' }
+        semester: { type: integer, minimum: 1, maximum: 12 }
+        expected_exam_date: { type: string, format: date }
+        daily_goal: { type: string, enum: [casual, regular, intense] }
+        guest_display_name: { type: string, maxLength: 120 }
+        complete: { type: boolean }
+    ProfileUpdate:
+      type: object
+      required: [daily_goal]
+      additionalProperties: false
+      description: |
+        Institucional: `program_id`, `semester`, `expected_exam_date` y `daily_goal` son
+        obligatorios. Invitado: `guest_display_name` y `daily_goal` obligatorios;
+        `expected_exam_date` opcional; `program_id` y `semester` no se aceptan.
+      properties:
+        program_id: { type: string, format: uuid }
+        semester: { type: integer, minimum: 1, maximum: 12 }
+        expected_exam_date: { type: string, format: date }
+        daily_goal: { type: string, enum: [casual, regular, intense] }
+        guest_display_name: { type: string, minLength: 2, maxLength: 120 }
+    PolicyVersion:
+      type: object
+      required: [id, version, title, body_markdown, effective_from]
+      properties:
+        id: { type: string, format: uuid }
+        version: { type: string }
+        title: { type: string }
+        body_markdown: { type: string }
+        effective_from: { type: string, format: date-time }
+    Consent:
+      type: object
+      required: [id, policy_version_id, policy_version, decision, channel, decided_at]
+      properties:
+        id: { type: string, format: uuid }
+        policy_version_id: { type: string, format: uuid }
+        policy_version: { type: string }
+        decision: { type: string, enum: [accepted, rejected, revoked] }
+        channel: { type: string }
+        decided_at: { type: string, format: date-time }
+    DeletionRequest:
+      type: object
+      required: [id, status, origin, requested_at, due_date]
+      properties:
+        id: { type: string, format: uuid }
+        user_id:
+          type: string
+          format: uuid
+          description: Solo en vistas de administrador
+        status: { type: string, enum: [received, in_progress, completed] }
+        origin: { type: string, enum: [user_request, guest_retention, institutional_retention] }
+        requested_at: { type: string, format: date-time }
+        due_date: { type: string, format: date }
+        completed_at: { type: string, format: date-time }
+    DeletionRequestPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/DeletionRequest' }
+    PersonalDataExport:
+      type: object
+      required: [generated_at, identity, roles, consents]
+      properties:
+        generated_at: { type: string, format: date-time }
+        identity:
+          type: object
+          properties:
+            id: { type: string, format: uuid }
+            kind: { type: string }
+            display_name: { type: string }
+            email: { type: string }
+            created_at: { type: string, format: date-time }
+            last_login_at: { type: string, format: date-time }
+            source_note:
+              type: string
+              description: Explica que nombre y correo institucionales se corrigen en el directorio de Unilibre (escenario 8.2)
+        profile: { $ref: '#/components/schemas/Profile' }
+        roles:
+          type: array
+          items: { $ref: '#/components/schemas/Role' }
+        groups:
+          type: array
+          items: { type: string, description: Nombre del grupo }
+        consents:
+          type: array
+          items: { $ref: '#/components/schemas/Consent' }
+        invitation:
+          type: object
+          description: Solo invitados
+          properties:
+            accepted_at: { type: string, format: date-time }
+            access_expires_at: { type: string, format: date-time }
+        sections:
+          type: object
+          description: Secciones agregadas por otros contextos en especificaciones futuras
+          additionalProperties: true
+
+    # ---------------------------------------------------------- programas
+    Program:
+      type: object
+      required: [id, code, name, campus, active]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        campus: { type: string }
+        active: { type: boolean }
+    ProgramInput:
+      type: object
+      required: [code, name, campus]
+      additionalProperties: false
+      properties:
+        code: { type: string, pattern: '^[A-Z0-9-]{2,20}$' }
+        name: { type: string, minLength: 3, maxLength: 200 }
+        campus: { type: string, minLength: 2, maxLength: 100 }
+        active: { type: boolean, default: true }
+    ProgramPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 3, maxLength: 200 }
+        campus: { type: string, minLength: 2, maxLength: 100 }
+        active: { type: boolean }
+    ProgramPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Program' }
+
+    # ---------------------------------------------------------- invitaciones
+    InvitationStatus:
+      type: string
+      enum: [sent, accepted, expired, revoked]
+    Invitation:
+      type: object
+      description: |
+        `email` e `invitee_name` son `null` cuando el invitado fue suprimido o cuando la
+        invitación nunca aceptada superó su plazo de conservación (FR-034e).
+      required: [id, status, access_expires_at, invited_by, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: [string, 'null'], format: email }
+        invitee_name: { type: [string, 'null'] }
+        status: { $ref: '#/components/schemas/InvitationStatus' }
+        access_expires_at: { type: string, format: date-time }
+        link_expires_at: { type: string, format: date-time }
+        invited_by:
+          type: object
+          description: '`display_name` es `null` si quien invitó fue suprimido.'
+          required: [id]
+          properties:
+            id: { type: string, format: uuid }
+            display_name: { type: [string, 'null'] }
+        guest_user_id: { type: string, format: uuid }
+        delivery_status: { type: string, enum: [queued, sent, failed] }
+        retention_deletion_on:
+          type: string
+          format: date
+          description: Fecha de supresión automática si el acceso ya terminó (FR-034a)
+        created_at: { type: string, format: date-time }
+        sent_at: { type: string, format: date-time }
+        accepted_at: { type: string, format: date-time }
+        revoked_at: { type: string, format: date-time }
+    InvitationInput:
+      type: object
+      required: [email]
+      additionalProperties: false
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        invitee_name: { type: string, maxLength: 120 }
+        access_expires_at:
+          type: string
+          format: date-time
+          description: Si se omite, se usa `default_guest_access_days`.
+    InvitationPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Invitation' }
+    InvitationBatch:
+      type: object
+      required: [id, status, valid_count, invalid_count, rows, expires_at]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [pending_confirmation, confirmed, expired] }
+        valid_count: { type: integer }
+        invalid_count: { type: integer }
+        expires_at: { type: string, format: date-time }
+        confirmed_at: { type: string, format: date-time }
+        rows:
+          type: array
+          items:
+            type: object
+            required: [line, email, result]
+            properties:
+              line: { type: integer, minimum: 1 }
+              email: { type: string }
+              name: { type: string }
+              access_expires_at: { type: string, format: date-time }
+              result:
+                type: string
+                enum:
+                  - valid
+                  - invalid_email
+                  - duplicate_in_file
+                  - already_invited
+                  - institutional_email
+                  - expiry_out_of_range
+              message: { type: string }
+
+    # ---------------------------------------------------------- usuarios
+    AdminUser:
+      type: object
+      description: Las cuentas en estado `deleted` no tienen datos personales (`display_name` y `email` son `null`).
+      required: [id, kind, status, roles, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [institutional, guest] }
+        status: { $ref: '#/components/schemas/AccountStatus' }
+        display_name: { type: [string, 'null'] }
+        email: { type: [string, 'null'], format: email }
+        roles:
+          type: array
+          items: { $ref: '#/components/schemas/Role' }
+        director_programs:
+          type: array
+          items: { $ref: '#/components/schemas/Program' }
+        last_login_at: { type: string, format: date-time }
+        retention_deletion_on: { type: string, format: date }
+        created_at: { type: string, format: date-time }
+    AdminUserPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/AdminUser' }
+
+    # ---------------------------------------------------------- grupos
+    GroupSummary:
+      type: object
+      required: [id, name, member_count]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        cohort_label: { type: string }
+        program_id: { type: string, format: uuid }
+        member_count: { type: integer }
+    Group:
+      allOf:
+        - $ref: '#/components/schemas/GroupSummary'
+        - type: object
+          required: [teachers, created_at]
+          properties:
+            description: { type: string }
+            teachers:
+              type: array
+              items:
+                type: object
+                required: [id, display_name]
+                properties:
+                  id: { type: string, format: uuid }
+                  display_name: { type: string }
+            archived_at: { type: string, format: date-time }
+            created_at: { type: string, format: date-time }
+    GroupInput:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        description: { type: string, maxLength: 500 }
+        cohort_label: { type: string, maxLength: 20 }
+        program_id: { type: string, format: uuid }
+    GroupPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 2, maxLength: 120 }
+        description: { type: string, maxLength: 500 }
+        cohort_label: { type: string, maxLength: 20 }
+        archived: { type: boolean }
+    GroupPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/Group' }
+    GroupStudent:
+      type: object
+      description: Vista del docente; nunca incluye el correo (FR-027).
+      required: [user_id, display_name]
+      properties:
+        user_id: { type: string, format: uuid }
+        display_name: { type: string }
+        progress:
+          type: object
+          description: Se completa en especificaciones posteriores (003, 008).
+          additionalProperties: true
+    GroupStudentPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/GroupStudent' }
+
+    # ---------------------------------------------------------- parámetros y auditoría
+    Settings:
+      type: object
+      required:
+        - teacher_max_access_days
+        - default_guest_access_days
+        - invitation_link_ttl_days
+        - sign_in_link_ttl_minutes
+      properties:
+        teacher_max_access_days: { type: integer, minimum: 1, maximum: 730 }
+        default_guest_access_days: { type: integer, minimum: 1, maximum: 730 }
+        invitation_link_ttl_days: { type: integer, minimum: 1, maximum: 30 }
+        sign_in_link_ttl_minutes: { type: integer, minimum: 5, maximum: 60 }
+    SettingsPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        teacher_max_access_days: { type: integer, minimum: 1, maximum: 730 }
+        default_guest_access_days: { type: integer, minimum: 1, maximum: 730 }
+        invitation_link_ttl_days: { type: integer, minimum: 1, maximum: 30 }
+        sign_in_link_ttl_minutes: { type: integer, minimum: 5, maximum: 60 }
+    AuditEvent:
+      type: object
+      required: [id, occurred_at, action, target_type]
+      properties:
+        id: { type: string, format: uuid }
+        occurred_at: { type: string, format: date-time }
+        actor_id:
+          oneOf:
+            - { type: string, format: uuid }
+            - { type: 'null' }
+        action: { type: string }
+        target_type: { type: string }
+        target_id: { type: string, format: uuid }
+        subject_user_id: { type: string, format: uuid }
+        details:
+          type: object
+          additionalProperties: true
+    AuditEventPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: '#/components/schemas/AuditEvent' }

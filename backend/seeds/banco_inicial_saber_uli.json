@@ -1,0 +1,878 @@
+{
+  "esquema_version": "1.0",
+  "nombre": "Banco inicial Saber Uli — módulos de competencias genéricas Saber Pro",
+  "descripcion": "Ítems originales de práctica alineados a la estructura publicada por el ICFES. Generados con apoyo de IA: requieren revisión docente antes de publicarse.",
+  "fuente_taxonomia": "Estructura basada en ICFES, Guía de orientación Saber Pro 2026-2, módulos de competencias genéricas. Las etiquetas de competencias, afirmaciones y evidencias están parafraseadas; verificar contra la guía oficial vigente.",
+  "estructura_examen": {
+    "escala_modulo": "0 a 300, sin decimales",
+    "puntaje_global": "Promedio aritmético de los cinco módulos genéricos, aproximado al entero",
+    "sesion_genericos_minutos": 280,
+    "preguntas_por_modulo": { "CE": 1, "RC": 30, "LC": 30, "CC": 30, "ING": 45 }
+  },
+  "modulos": [
+    {
+      "codigo": "LC",
+      "nombre": "Lectura crítica",
+      "tipo_pregunta": "seleccion_multiple_unica_respuesta",
+      "opciones_por_item": 4,
+      "restricciones": { "max_palabras_texto": 500 },
+      "competencias": [
+        {
+          "codigo": "LC-C1",
+          "nombre": "Comprensión lectora",
+          "afirmaciones": [
+            {
+              "codigo": "LC-A1", "peso_aprox": 0.26,
+              "descripcion": "Identifica y comprende los contenidos locales de un texto",
+              "evidencias": [
+                { "codigo": "LC-E1.1", "descripcion": "Comprende el significado de palabras, expresiones y frases del texto" },
+                { "codigo": "LC-E1.2", "descripcion": "Identifica eventos explícitos y los personajes involucrados" }
+              ]
+            },
+            {
+              "codigo": "LC-A2", "peso_aprox": 0.40,
+              "descripcion": "Comprende cómo se relacionan las partes de un texto para construir su sentido global",
+              "evidencias": [
+                { "codigo": "LC-E2.1", "descripcion": "Comprende la estructura del texto y la función de sus partes" },
+                { "codigo": "LC-E2.2", "descripcion": "Identifica y caracteriza voces o situaciones del texto" },
+                { "codigo": "LC-E2.3", "descripcion": "Comprende relaciones entre partes o enunciados del texto" },
+                { "codigo": "LC-E2.4", "descripcion": "Identifica las ideas o afirmaciones de un texto informativo" },
+                { "codigo": "LC-E2.5", "descripcion": "Relaciona elementos de un texto discontinuo" }
+              ]
+            },
+            {
+              "codigo": "LC-A3", "peso_aprox": 0.34,
+              "descripcion": "Reflexiona a partir de un texto y evalúa su contenido",
+              "evidencias": [
+                { "codigo": "LC-E3.1", "descripcion": "Evalúa la validez e implicaciones de un enunciado" },
+                { "codigo": "LC-E3.2", "descripcion": "Relaciona el texto con otros textos o enunciados" },
+                { "codigo": "LC-E3.3", "descripcion": "Reconoce contenidos valorativos" },
+                { "codigo": "LC-E3.4", "descripcion": "Reconoce estrategias discursivas" },
+                { "codigo": "LC-E3.5", "descripcion": "Contextualiza el texto o su información" }
+              ]
+            }
+          ]
+        }
+      ],
+      "tipos_texto": {
+        "continuo_literario": 0.15,
+        "continuo_informativo": 0.70,
+        "discontinuo_literario": 0.06,
+        "discontinuo_informativo": 0.09
+      }
+    },
+    {
+      "codigo": "RC",
+      "nombre": "Razonamiento cuantitativo",
+      "tipo_pregunta": "seleccion_multiple_unica_respuesta",
+      "opciones_por_item": 4,
+      "componentes": ["estadistica", "geometria", "algebra_calculo"],
+      "situaciones": ["familiar_personal", "laboral", "divulgacion_cientifica", "comunitaria_social"],
+      "competencias": [
+        {
+          "codigo": "RC-C1", "nombre": "Interpretación y representación", "peso_aprox": 0.33,
+          "afirmaciones": [
+            {
+              "codigo": "RC-A1",
+              "descripcion": "Comprende y transforma información cuantitativa presentada en distintos formatos",
+              "evidencias": [
+                { "codigo": "RC-E1.1", "descripcion": "Describe características de información en tablas, gráficas, series o esquemas" },
+                { "codigo": "RC-E1.2", "descripcion": "Transforma la representación de la información" }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "RC-C2", "nombre": "Formulación y ejecución", "peso_aprox": 0.33,
+          "afirmaciones": [
+            {
+              "codigo": "RC-A2",
+              "descripcion": "Plantea e implementa estrategias para resolver problemas con información cuantitativa",
+              "evidencias": [
+                { "codigo": "RC-E2.1", "descripcion": "Diseña un plan de solución" },
+                { "codigo": "RC-E2.2", "descripcion": "Ejecuta un plan de solución" },
+                { "codigo": "RC-E2.3", "descripcion": "Resuelve el problema" }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "RC-C3", "nombre": "Argumentación", "peso_aprox": 0.34,
+          "afirmaciones": [
+            {
+              "codigo": "RC-A3",
+              "descripcion": "Valida procedimientos y estrategias matemáticas usados para resolver problemas",
+              "evidencias": [
+                { "codigo": "RC-E3.1", "descripcion": "Sustenta o refuta interpretaciones de la información" },
+                { "codigo": "RC-E3.2", "descripcion": "Argumenta a favor o en contra de un procedimiento" },
+                { "codigo": "RC-E3.3", "descripcion": "Establece la validez de una solución propuesta" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo": "CC",
+      "nombre": "Competencias ciudadanas",
+      "tipo_pregunta": "seleccion_multiple_unica_respuesta",
+      "opciones_por_item": 4,
+      "competencias": [
+        {
+          "codigo": "CC-C1", "nombre": "Conocimientos", "peso_aprox": 0.30,
+          "afirmaciones": [
+            {
+              "codigo": "CC-A1", "descripcion": "Comprende la Constitución Política y sus principios fundamentales",
+              "evidencias": [
+                { "codigo": "CC-E1.1", "descripcion": "Conoce las características básicas de la Constitución" },
+                { "codigo": "CC-E1.2", "descripcion": "Reconoce la protección de la diversidad étnica y cultural" },
+                { "codigo": "CC-E1.3", "descripcion": "Comprende las características del Estado Social de Derecho" }
+              ]
+            },
+            {
+              "codigo": "CC-A2", "descripcion": "Conoce los derechos y deberes consagrados en la Constitución",
+              "evidencias": [
+                { "codigo": "CC-E2.1", "descripcion": "Conoce los derechos fundamentales" },
+                { "codigo": "CC-E2.2", "descripcion": "Reconoce la protección o vulneración de derechos sociales, económicos y culturales" },
+                { "codigo": "CC-E2.3", "descripcion": "Conoce los derechos colectivos y del ambiente" },
+                { "codigo": "CC-E2.4", "descripcion": "Conoce los deberes ciudadanos" }
+              ]
+            },
+            {
+              "codigo": "CC-A3", "descripcion": "Conoce la organización del Estado",
+              "evidencias": [
+                { "codigo": "CC-E3.1", "descripcion": "Conoce funciones de las ramas del poder y de los organismos de control" },
+                { "codigo": "CC-E3.2", "descripcion": "Conoce mecanismos de participación y de protección de derechos" }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "CC-C2", "nombre": "Argumentación", "peso_aprox": 0.20,
+          "afirmaciones": [
+            {
+              "codigo": "CC-A4", "descripcion": "Analiza y evalúa la pertinencia y solidez de enunciados y discursos",
+              "evidencias": [
+                { "codigo": "CC-E4.1", "descripcion": "Devela prejuicios e intenciones" },
+                { "codigo": "CC-E4.2", "descripcion": "Valora la solidez y pertinencia de argumentos" }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "CC-C3", "nombre": "Multiperspectivismo", "peso_aprox": 0.30,
+          "afirmaciones": [
+            {
+              "codigo": "CC-A5", "descripcion": "Reconoce distintas perspectivas en situaciones de interacción",
+              "evidencias": [
+                { "codigo": "CC-E5.1", "descripcion": "Reconoce posiciones e intereses de las partes e identifica conflictos" },
+                { "codigo": "CC-E5.2", "descripcion": "Reconoce que cosmovisiones, ideologías y roles determinan posiciones" }
+              ]
+            },
+            {
+              "codigo": "CC-A6", "descripcion": "Analiza las perspectivas presentes en situaciones de interacción",
+              "evidencias": [
+                { "codigo": "CC-E6.1", "descripcion": "Compara perspectivas de distintos actores" },
+                { "codigo": "CC-E6.2", "descripcion": "Relaciona perspectivas con propuestas de solución" }
+              ]
+            }
+          ]
+        },
+        {
+          "codigo": "CC-C4", "nombre": "Pensamiento sistémico", "peso_aprox": 0.20,
+          "afirmaciones": [
+            {
+              "codigo": "CC-A7", "descripcion": "Comprende que problemas y soluciones involucran distintas dimensiones relacionadas",
+              "evidencias": [
+                { "codigo": "CC-E7.1", "descripcion": "Relaciona las dimensiones de una situación problemática" },
+                { "codigo": "CC-E7.2", "descripcion": "Analiza efectos de una solución en distintas dimensiones" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "codigo": "ING",
+      "nombre": "Inglés",
+      "tipo_pregunta": "seleccion_multiple_unica_respuesta",
+      "partes": [
+        { "parte": 1, "peso_aprox": 0.11, "opciones": 8, "tarea": "Emparejar descripciones con palabras (5 descripciones, 8 palabras, 1 usada en el ejemplo y 2 sobrantes)" },
+        { "parte": 2, "peso_aprox": 0.11, "opciones": 3, "tarea": "Identificar dónde se encuentra un aviso" },
+        { "parte": 3, "peso_aprox": 0.11, "opciones": 3, "tarea": "Completar una conversación breve" },
+        { "parte": 4, "peso_aprox": 0.18, "opciones": 3, "tarea": "Completar los espacios de un texto (uso de la lengua)" },
+        { "parte": 5, "peso_aprox": 0.16, "opciones": 3, "tarea": "Comprender información explícita de un texto, con parafraseo" },
+        { "parte": 6, "peso_aprox": 0.11, "opciones": 4, "tarea": "Inferir información de un texto" },
+        { "parte": 7, "peso_aprox": 0.22, "opciones": 4, "tarea": "Completar los espacios de un texto (léxico y gramática)" }
+      ]
+    },
+    {
+      "codigo": "CE",
+      "nombre": "Comunicación escrita",
+      "tipo_pregunta": "abierta_texto_argumentativo",
+      "restricciones": { "extension_maxima": "2 páginas", "palabras_sugeridas_app": { "min": 150, "max": 700 } },
+      "aspectos_evaluados": ["planteamiento", "organizacion", "forma_de_expresion"]
+    }
+  ],
+  "contextos": [
+    {
+      "id": "LC-CTX-001",
+      "modulo": "LC",
+      "tipo_texto": "continuo_informativo",
+      "subtipo": "columna_de_opinion",
+      "titulo": "Desconectar para aprender",
+      "contenido_md": "Cada semestre, algún colega propone prohibir el celular en el aula. El argumento suele ser sencillo: si el estudiante está pendiente de la pantalla, no está pendiente de la clase. Es difícil discutir esa premisa; lo discutible es la conclusión.\n\nProhibir supone que el problema es el aparato. Pero un estudiante aburrido encontrará en qué distraerse aunque le quitemos el teléfono: la ventana, el cuaderno, la conversación con el compañero. El celular no crea la distracción; la vuelve más visible y, hay que admitirlo, más eficaz.\n\nAdemás, el mismo dispositivo que distrae permite consultar una fuente, verificar un dato o grabar una explicación para repasarla después. Prohibirlo es renunciar también a esos usos. Sería como cerrar la biblioteca porque algunos van a dormir en ella.\n\nLa pregunta de fondo no es qué hacemos con el celular, sino qué hacemos con la clase. Una sesión en la que el estudiante tiene algo que resolver, discutir o construir compite mejor con la pantalla que cualquier reglamento. Esto no exime al estudiante de su responsabilidad: aprender exige atención, y la atención se entrena. Pero una norma que solo castiga el síntoma nos ahorra el esfuerzo incómodo de revisar nuestras propias prácticas.\n\nPropongo, entonces, algo menos espectacular que una prohibición: acuerdos de uso definidos con cada grupo, momentos explícitos de «pantallas abajo» y actividades que justifiquen la presencia de los estudiantes en el aula. Si después de eso el celular sigue ganando, al menos sabremos que el problema era otro.",
+      "palabras": 246,
+      "origen": "ia",
+      "estado": "en_revision"
+    },
+    {
+      "id": "LC-CTX-002",
+      "modulo": "LC",
+      "tipo_texto": "continuo_literario",
+      "subtipo": "microcuento",
+      "titulo": "La herencia",
+      "contenido_md": "Cuando murió el abuelo, nos repartimos sus cosas sin pelear: a mi hermana le tocó la finca, a mi primo los ahorros, a mí el reloj de bolsillo que nunca funcionó. Durante años lo guardé en un cajón, convencido de que había salido perdiendo.\n\nUn día, por curiosidad, lo llevé a un relojero del centro. El hombre lo abrió, lo miró largo rato y me lo devolvió sin cobrarme.\n\n—No está dañado —dijo—. Está detenido a propósito.\n\nLas manecillas marcaban las cuatro y diez. Esa noche le pregunté a mi madre si la hora significaba algo. Se quedó callada y luego sonrió: a las cuatro y diez, cuarenta años atrás, mi abuelo había conocido a mi abuela en la estación del tren.\n\nDesde entonces el reloj está en mi mesa de noche. Sigue sin dar la hora, pero ya no me parece que no sirva.",
+      "palabras": 145,
+      "origen": "ia",
+      "estado": "en_revision"
+    },
+    {
+      "id": "LC-CTX-003",
+      "modulo": "LC",
+      "tipo_texto": "discontinuo_informativo",
+      "subtipo": "reglamento",
+      "titulo": "Préstamo de equipos — Laboratorio de Sistemas",
+      "contenido_md": "| Tipo de usuario | Equipos simultáneos | Plazo máximo | Renovaciones | Sanción por retraso |\n|---|---|---|---|---|\n| Estudiante de pregrado | 1 | 3 días hábiles | 1 | 2 días de suspensión por cada día de retraso |\n| Estudiante de posgrado | 2 | 5 días hábiles | 2 | 1 día de suspensión por cada día de retraso |\n| Docente | 3 | 10 días hábiles | Sin límite | No aplica |\n\n**Notas:**\n- Las renovaciones deben solicitarse antes de la fecha de vencimiento.\n- No se pueden renovar equipos que otro usuario haya reservado previamente.",
+      "palabras": 76,
+      "origen": "ia",
+      "estado": "en_revision"
+    },
+    {
+      "id": "ING-CTX-P1-001",
+      "modulo": "ING",
+      "parte": 1,
+      "titulo": "Part 1 — Match the descriptions with the words",
+      "contenido_md": "Read the descriptions (1–5) and choose the word (A–H) that matches each one. There is one example (0).\n\n**Example:** 0. You go here to borrow books. → **G (library)**",
+      "opciones_compartidas": [
+        { "clave": "A", "texto": "museum", "retroalimentacion": "«Museum» es un museo: un lugar para ver exposiciones o colecciones." },
+        { "clave": "B", "texto": "pharmacy", "retroalimentacion": "«Pharmacy» es una farmacia: allí se compran medicamentos." },
+        { "clave": "C", "texto": "passport", "retroalimentacion": "«Passport» es el pasaporte: el documento para viajar a otro país." },
+        { "clave": "D", "texto": "umbrella", "retroalimentacion": "«Umbrella» es un paraguas: se abre cuando llueve." },
+        { "clave": "E", "texto": "dentist", "retroalimentacion": "«Dentist» es el odontólogo: la persona que cuida los dientes." },
+        { "clave": "F", "texto": "ticket", "retroalimentacion": "«Ticket» es un tiquete o boleto para entrar a un lugar o usar un transporte." },
+        { "clave": "G", "texto": "library", "retroalimentacion": "«Library» es la biblioteca; ya se usó en el ejemplo." },
+        { "clave": "H", "texto": "wallet", "retroalimentacion": "«Wallet» es la billetera: allí se guardan dinero y tarjetas." }
+      ],
+      "origen": "ia",
+      "estado": "en_revision"
+    },
+    {
+      "id": "ING-CTX-P4-001",
+      "modulo": "ING",
+      "parte": 4,
+      "titulo": "Coffee in Colombia",
+      "contenido_md": "Colombia is one of the largest coffee producers in the world. Most coffee **(1)** ____ grown in the mountains, where the climate is mild. Farmers usually pick the beans **(2)** ____ hand, because the plants grow on steep slopes. **(3)** ____ coffee is exported, but more and more Colombians now enjoy high-quality coffee at home.",
+      "origen": "ia",
+      "estado": "en_revision"
+    },
+    {
+      "id": "ING-CTX-P5-001",
+      "modulo": "ING",
+      "parte": 5,
+      "titulo": "The Night Library",
+      "contenido_md": "In 2024, a public library in a small town decided to stay open until midnight on Fridays. The idea came from a group of university students who needed a quiet place to study after work. At first, only a few people came, but after six months more than one hundred visitors were using the library every Friday night. Now the town plans to open two more libraries late at night, one of them near the bus station.",
+      "origen": "ia",
+      "estado": "en_revision"
+    },
+    {
+      "id": "ING-CTX-P6-001",
+      "modulo": "ING",
+      "parte": 6,
+      "titulo": "The Marathon",
+      "contenido_md": "Maria had been preparing for the marathon for almost a year. She woke up at five every morning to train, even on holidays. On the day of the race, it started raining heavily after the first ten kilometres. Many runners stopped, but Maria kept going. When she crossed the finish line, four hours later, she didn't look at the clock. She just sat on the wet grass and smiled.",
+      "origen": "ia",
+      "estado": "en_revision"
+    },
+    {
+      "id": "ING-CTX-P7-001",
+      "modulo": "ING",
+      "parte": 7,
+      "titulo": "Working from home",
+      "contenido_md": "Since 2020, millions of people **(1)** ____ started working from home at least part of the week. Some workers say they are more productive **(2)** ____ they do not lose time travelling. **(3)** ____, others miss the contact with their colleagues and find it hard to separate work from personal life.",
+      "origen": "ia",
+      "estado": "en_revision"
+    }
+  ],
+  "items": [
+    {
+      "id": "LC-0001", "version": 1, "modulo": "LC", "contexto_id": "LC-CTX-001",
+      "competencia": "LC-C1", "afirmacion": "LC-A1", "evidencia": "LC-E1.1", "dificultad": "baja",
+      "enunciado": "En el segundo párrafo, la expresión «la vuelve más visible» indica que el celular:",
+      "opciones": [
+        { "clave": "A", "texto": "hace evidente una distracción que ya existía.", "correcta": true, "retroalimentacion": "Correcto. El autor afirma que el celular no crea la distracción: la hace notar, porque el estudiante aburrido se distraería de todos modos." },
+        { "clave": "B", "texto": "genera la distracción de los estudiantes en clase.", "correcta": false, "retroalimentacion": "El texto dice lo contrario: el celular no crea la distracción." },
+        { "clave": "C", "texto": "permite al docente vigilar mejor a los estudiantes.", "correcta": false, "retroalimentacion": "El texto no habla de vigilancia; «visible» se refiere a que la distracción se nota más." },
+        { "clave": "D", "texto": "mejora la visibilidad de los contenidos de la clase.", "correcta": false, "retroalimentacion": "Es una lectura literal equivocada: lo que se vuelve visible es la distracción, no los contenidos." }
+      ],
+      "explicacion": "Para comprender una expresión local, identifica a qué se refiere el pronombre «la»: remite a «la distracción», mencionada justo antes.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "LC-0002", "version": 1, "modulo": "LC", "contexto_id": "LC-CTX-001",
+      "competencia": "LC-C1", "afirmacion": "LC-A2", "evidencia": "LC-E2.3", "dificultad": "media",
+      "enunciado": "¿Qué función cumple la comparación con la biblioteca en el tercer párrafo?",
+      "opciones": [
+        { "clave": "A", "texto": "Ilustrar que prohibir un recurso por su mal uso implica perder también sus buenos usos.", "correcta": true, "retroalimentacion": "Correcto. La analogía refuerza la idea anterior: prohibir el celular es renunciar también a sus usos valiosos." },
+        { "clave": "B", "texto": "Demostrar que los estudiantes usan el celular para dormir en clase.", "correcta": false, "retroalimentacion": "Dormir en la biblioteca es parte de la analogía, no un hecho que el autor atribuya al celular." },
+        { "clave": "C", "texto": "Proponer que la biblioteca reemplace al celular como fuente de consulta.", "correcta": false, "retroalimentacion": "El autor no propone ningún reemplazo; usa la biblioteca solo como comparación." },
+        { "clave": "D", "texto": "Señalar que las bibliotecas universitarias están subutilizadas.", "correcta": false, "retroalimentacion": "El texto no evalúa el uso real de las bibliotecas." }
+      ],
+      "explicacion": "Las analogías trasladan una relación conocida a otro caso. Aquí la relación es: un mal uso de algunos no justifica eliminar un recurso útil para todos.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "LC-0003", "version": 1, "modulo": "LC", "contexto_id": "LC-CTX-001",
+      "competencia": "LC-C1", "afirmacion": "LC-A3", "evidencia": "LC-E3.1", "dificultad": "alta",
+      "enunciado": "¿Cuál de los siguientes es un supuesto del autor en el cuarto párrafo?",
+      "opciones": [
+        { "clave": "A", "texto": "El diseño de la clase influye en la atención de los estudiantes.", "correcta": true, "retroalimentacion": "Correcto. Al afirmar que una clase activa compite mejor con la pantalla, el autor da por sentado que el diseño de la clase afecta la atención." },
+        { "clave": "B", "texto": "Los estudiantes no tienen ninguna responsabilidad en su aprendizaje.", "correcta": false, "retroalimentacion": "El autor dice explícitamente que esto no exime al estudiante de su responsabilidad." },
+        { "clave": "C", "texto": "Los reglamentos universitarios son siempre ineficaces.", "correcta": false, "retroalimentacion": "Es una generalización: el autor critica una norma específica que solo castiga el síntoma, no todos los reglamentos." },
+        { "clave": "D", "texto": "El celular es la principal causa del bajo rendimiento académico.", "correcta": false, "retroalimentacion": "Contradice la tesis del autor, que desplaza el problema del aparato hacia la clase." }
+      ],
+      "explicacion": "Un supuesto es una idea que el autor no enuncia pero que necesita para que su argumento funcione. Pregúntate: ¿qué debe ser cierto para que esta afirmación tenga sentido?",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "LC-0004", "version": 1, "modulo": "LC", "contexto_id": "LC-CTX-002",
+      "competencia": "LC-C1", "afirmacion": "LC-A1", "evidencia": "LC-E1.2", "dificultad": "baja",
+      "enunciado": "¿Quién le revela al narrador el significado de la hora que marca el reloj?",
+      "opciones": [
+        { "clave": "A", "texto": "Su madre.", "correcta": true, "retroalimentacion": "Correcto. El narrador le pregunta a su madre, y ella le cuenta que a esa hora se conocieron sus abuelos." },
+        { "clave": "B", "texto": "El relojero.", "correcta": false, "retroalimentacion": "El relojero solo dice que el reloj está detenido a propósito; no explica por qué." },
+        { "clave": "C", "texto": "Su abuela.", "correcta": false, "retroalimentacion": "La abuela es mencionada en la historia, pero no habla con el narrador." },
+        { "clave": "D", "texto": "Su hermana.", "correcta": false, "retroalimentacion": "La hermana solo aparece al inicio, en el reparto de la herencia." }
+      ],
+      "explicacion": "Las preguntas de información explícita se responden ubicando en el texto el momento exacto del evento: aquí, la conversación de esa noche.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "LC-0005", "version": 1, "modulo": "LC", "contexto_id": "LC-CTX-002",
+      "competencia": "LC-C1", "afirmacion": "LC-A2", "evidencia": "LC-E2.2", "dificultad": "media",
+      "enunciado": "¿Cómo cambia la valoración que el narrador hace del reloj a lo largo del relato?",
+      "opciones": [
+        { "clave": "A", "texto": "Pasa de considerarlo una herencia sin valor a apreciarlo por su significado afectivo.", "correcta": true, "retroalimentacion": "Correcto. Al inicio cree que salió perdiendo; al final lo conserva en su mesa de noche por lo que representa." },
+        { "clave": "B", "texto": "Pasa de apreciarlo a querer venderlo al relojero.", "correcta": false, "retroalimentacion": "En ningún momento el narrador piensa en venderlo." },
+        { "clave": "C", "texto": "Lo valora porque el relojero le dijo que era costoso.", "correcta": false, "retroalimentacion": "El relojero no menciona el precio; solo dice que el reloj está detenido a propósito." },
+        { "clave": "D", "texto": "Mantiene la misma opinión porque el reloj sigue sin funcionar.", "correcta": false, "retroalimentacion": "Su opinión sí cambia, aunque el reloj siga sin dar la hora." }
+      ],
+      "explicacion": "Para identificar la transformación de una situación, compara cómo se presenta al inicio y al final del texto.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "LC-0006", "version": 1, "modulo": "LC", "contexto_id": "LC-CTX-002",
+      "competencia": "LC-C1", "afirmacion": "LC-A2", "evidencia": "LC-E2.3", "dificultad": "media",
+      "enunciado": "En la última oración, la frase «ya no me parece que no sirva» sugiere que el narrador:",
+      "opciones": [
+        { "clave": "A", "texto": "entiende que el valor del reloj no depende de que dé la hora.", "correcta": true, "retroalimentacion": "Correcto. El reloj sigue sin funcionar, pero ahora cumple otra función: recordar una historia familiar." },
+        { "clave": "B", "texto": "logró que el reloj volviera a funcionar.", "correcta": false, "retroalimentacion": "El texto dice que el reloj sigue sin dar la hora." },
+        { "clave": "C", "texto": "planea repararlo próximamente.", "correcta": false, "retroalimentacion": "No hay indicios de esa intención; repararlo borraría la hora que lo hace valioso." },
+        { "clave": "D", "texto": "sigue arrepentido de haber recibido el reloj.", "correcta": false, "retroalimentacion": "La doble negación expresa lo contrario: ahora sí le encuentra sentido." }
+      ],
+      "explicacion": "Fíjate en la doble negación: «ya no me parece que no sirva» equivale a «ahora me parece que sí sirve», aunque sea para algo distinto de dar la hora.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "LC-0007", "version": 1, "modulo": "LC", "contexto_id": "LC-CTX-003",
+      "competencia": "LC-C1", "afirmacion": "LC-A2", "evidencia": "LC-E2.5", "dificultad": "baja",
+      "enunciado": "Un estudiante de pregrado devolvió un equipo con 3 días de retraso. Según el reglamento, ¿qué sanción recibe?",
+      "opciones": [
+        { "clave": "A", "texto": "6 días de suspensión.", "correcta": true, "retroalimentacion": "Correcto. Para pregrado son 2 días de suspensión por cada día de retraso: 3 × 2 = 6." },
+        { "clave": "B", "texto": "3 días de suspensión.", "correcta": false, "retroalimentacion": "Esa sería la sanción para un estudiante de posgrado (1 día por cada día de retraso)." },
+        { "clave": "C", "texto": "2 días de suspensión.", "correcta": false, "retroalimentacion": "2 días es la sanción por cada día de retraso, no el total." },
+        { "clave": "D", "texto": "Ninguna, si solicita una renovación.", "correcta": false, "retroalimentacion": "Las renovaciones deben pedirse antes del vencimiento; con el equipo ya retrasado no aplican." }
+      ],
+      "explicacion": "En los textos discontinuos hay que cruzar la fila (tipo de usuario) con la columna (sanción) y luego aplicar la regla.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "LC-0008", "version": 1, "modulo": "LC", "contexto_id": "LC-CTX-003",
+      "competencia": "LC-C1", "afirmacion": "LC-A1", "evidencia": "LC-E1.1", "dificultad": "baja",
+      "enunciado": "Según el reglamento, ¿en cuál de los siguientes casos NO es posible renovar un préstamo?",
+      "opciones": [
+        { "clave": "A", "texto": "Cuando otro usuario ya había reservado el equipo.", "correcta": true, "retroalimentacion": "Correcto. La segunda nota lo prohíbe expresamente." },
+        { "clave": "B", "texto": "Cuando un docente solicita su tercera renovación.", "correcta": false, "retroalimentacion": "Los docentes tienen renovaciones sin límite." },
+        { "clave": "C", "texto": "Cuando un estudiante de posgrado pide su primera renovación antes del vencimiento.", "correcta": false, "retroalimentacion": "Posgrado tiene derecho a 2 renovaciones, y esta se pide a tiempo." },
+        { "clave": "D", "texto": "Cuando el equipo se usó en una clase.", "correcta": false, "retroalimentacion": "El reglamento no menciona esta condición." }
+      ],
+      "explicacion": "Las notas al pie de una tabla suelen contener excepciones a las reglas generales. Léelas siempre.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "RC-0001", "version": 1, "modulo": "RC", "contexto_id": null,
+      "competencia": "RC-C1", "afirmacion": "RC-A1", "evidencia": "RC-E1.1", "componente": "estadistica", "situacion": "comunitaria_social", "dificultad": "baja",
+      "enunciado": "Una biblioteca municipal registró sus visitantes durante una semana:\n\n| Lun | Mar | Mié | Jue | Vie | Sáb | Dom |\n|---|---|---|---|---|---|---|\n| 120 | 95 | 110 | 95 | 150 | 200 | 60 |\n\n¿Cuál es el rango del número de visitantes en esa semana?",
+      "opciones": [
+        { "clave": "A", "texto": "140", "correcta": true, "retroalimentacion": "Correcto. Rango = valor máximo − valor mínimo = 200 − 60 = 140." },
+        { "clave": "B", "texto": "95", "correcta": false, "retroalimentacion": "95 es la moda (el valor que más se repite), no el rango." },
+        { "clave": "C", "texto": "118,6", "correcta": false, "retroalimentacion": "118,6 es aproximadamente el promedio (830 ÷ 7)." },
+        { "clave": "D", "texto": "110", "correcta": false, "retroalimentacion": "110 es la mediana: el valor central al ordenar los datos." }
+      ],
+      "explicacion": "El rango mide la dispersión de los datos: la diferencia entre el valor más alto y el más bajo.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "RC-0002", "version": 1, "modulo": "RC", "contexto_id": null,
+      "competencia": "RC-C1", "afirmacion": "RC-A1", "evidencia": "RC-E1.2", "componente": "estadistica", "situacion": "comunitaria_social", "dificultad": "media",
+      "enunciado": "En una encuesta a 200 estudiantes, 90 prefieren clases presenciales, 70 híbridas y 40 virtuales. Si los resultados se representan en un diagrama circular, ¿cuántos grados corresponden al sector de clases híbridas?",
+      "opciones": [
+        { "clave": "A", "texto": "126°", "correcta": true, "retroalimentacion": "Correcto. 70 ÷ 200 = 0,35, y 0,35 × 360° = 126°." },
+        { "clave": "B", "texto": "70°", "correcta": false, "retroalimentacion": "70 es el número de estudiantes; hay que convertirlo a una proporción de 360°." },
+        { "clave": "C", "texto": "35°", "correcta": false, "retroalimentacion": "35 es el porcentaje (35 %), no la medida del ángulo." },
+        { "clave": "D", "texto": "162°", "correcta": false, "retroalimentacion": "162° corresponde a las clases presenciales (90 ÷ 200 × 360°)." }
+      ],
+      "explicacion": "En un diagrama circular, cada sector mide (frecuencia ÷ total) × 360°.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "RC-0003", "version": 1, "modulo": "RC", "contexto_id": null,
+      "competencia": "RC-C2", "afirmacion": "RC-A2", "evidencia": "RC-E2.3", "componente": "algebra_calculo", "situacion": "familiar_personal", "dificultad": "media",
+      "enunciado": "Un portátil cuesta $2.400.000. La tienda ofrece un descuento del 15 % y, sobre el precio con descuento, cobra un recargo del 5 % por pago a cuotas. ¿Cuál es el precio final a cuotas?",
+      "opciones": [
+        { "clave": "A", "texto": "$2.142.000", "correcta": true, "retroalimentacion": "Correcto. 2.400.000 × 0,85 = 2.040.000; luego 2.040.000 × 1,05 = 2.142.000." },
+        { "clave": "B", "texto": "$2.160.000", "correcta": false, "retroalimentacion": "Restaste los porcentajes (15 % − 5 % = 10 %), pero se aplican sobre bases distintas." },
+        { "clave": "C", "texto": "$2.040.000", "correcta": false, "retroalimentacion": "Aplicaste el descuento pero olvidaste el recargo por cuotas." },
+        { "clave": "D", "texto": "$2.520.000", "correcta": false, "retroalimentacion": "Aplicaste solo el recargo, sin el descuento." }
+      ],
+      "explicacion": "Los porcentajes sucesivos se multiplican: un descuento del 15 % equivale a × 0,85 y un recargo del 5 % a × 1,05.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "RC-0004", "version": 1, "modulo": "RC", "contexto_id": null,
+      "competencia": "RC-C2", "afirmacion": "RC-A2", "evidencia": "RC-E2.1", "componente": "algebra_calculo", "situacion": "familiar_personal", "dificultad": "media",
+      "enunciado": "Un plan de datos móviles cobra $25.000 fijos al mes más $3.000 por cada GB adicional. Otro plan cobra $40.000 fijos con datos ilimitados. ¿Qué procedimiento permite determinar a partir de cuántos GB adicionales conviene el segundo plan?",
+      "opciones": [
+        { "clave": "A", "texto": "Resolver 25.000 + 3.000x > 40.000 y tomar el menor número entero x que cumpla la desigualdad.", "correcta": true, "retroalimentacion": "Correcto. x > 5: con 5 GB ambos planes cuestan $40.000, y desde 6 GB conviene el segundo." },
+        { "clave": "B", "texto": "Dividir 40.000 entre 3.000.", "correcta": false, "retroalimentacion": "Este cálculo ignora el cargo fijo de $25.000 del primer plan." },
+        { "clave": "C", "texto": "Sumar 25.000 y 40.000 y dividir el resultado entre 3.000.", "correcta": false, "retroalimentacion": "Sumar los cargos fijos no representa la comparación entre los dos planes." },
+        { "clave": "D", "texto": "Resolver 25.000x + 3.000 = 40.000.", "correcta": false, "retroalimentacion": "Intercambia los papeles: el valor por GB es 3.000 y el fijo es 25.000." }
+      ],
+      "explicacion": "Modela cada plan como una función del consumo y plantea la condición de comparación: costo del plan 1 > costo del plan 2.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "RC-0005", "version": 1, "modulo": "RC", "contexto_id": null,
+      "competencia": "RC-C2", "afirmacion": "RC-A2", "evidencia": "RC-E2.3", "componente": "geometria", "situacion": "laboral", "dificultad": "media",
+      "enunciado": "Se va a pintar una pared rectangular de 6 m de largo por 2,5 m de alto, que tiene una ventana de 1,5 m × 1 m. Un galón de pintura cubre 12 m² por mano y se aplicarán dos manos. Si solo se venden galones completos, ¿cuántos galones se deben comprar como mínimo?",
+      "opciones": [
+        { "clave": "A", "texto": "3", "correcta": true, "retroalimentacion": "Correcto. Área a pintar: 15 − 1,5 = 13,5 m²; con dos manos, 27 m²; 27 ÷ 12 = 2,25, así que se necesitan 3 galones completos." },
+        { "clave": "B", "texto": "2", "correcta": false, "retroalimentacion": "Redondeaste 2,25 hacia abajo: con 2 galones no alcanza para cubrir los 27 m²." },
+        { "clave": "C", "texto": "2,25", "correcta": false, "retroalimentacion": "Es la cantidad exacta, pero solo se venden galones completos." },
+        { "clave": "D", "texto": "1", "correcta": false, "retroalimentacion": "Calculaste una sola mano y redondeaste hacia abajo." }
+      ],
+      "explicacion": "Resta las áreas que no se pintan, multiplica por el número de manos y redondea siempre hacia arriba cuando el producto se vende por unidades.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "RC-0006", "version": 1, "modulo": "RC", "contexto_id": null,
+      "competencia": "RC-C3", "afirmacion": "RC-A3", "evidencia": "RC-E3.3", "componente": "estadistica", "situacion": "familiar_personal", "dificultad": "alta",
+      "enunciado": "En una urna hay 3 balotas rojas y 2 azules. Se extraen dos balotas, una tras otra, sin devolver la primera. Andrés afirma que la probabilidad de que ambas sean rojas es 9/25, porque (3/5) × (3/5) = 9/25. ¿Es correcta su afirmación?",
+      "opciones": [
+        { "clave": "A", "texto": "No, porque sin reposición la probabilidad de la segunda roja es 2/4; la probabilidad correcta es 3/10.", "correcta": true, "retroalimentacion": "Correcto. (3/5) × (2/4) = 6/20 = 3/10." },
+        { "clave": "B", "texto": "Sí, porque las dos extracciones son independientes.", "correcta": false, "retroalimentacion": "Sin reposición, la primera extracción cambia la composición de la urna: no son independientes." },
+        { "clave": "C", "texto": "No, la probabilidad correcta es 3/5, porque hay 3 rojas entre 5 balotas.", "correcta": false, "retroalimentacion": "3/5 es la probabilidad de una sola extracción, no de dos." },
+        { "clave": "D", "texto": "No, la probabilidad correcta es 6/25.", "correcta": false, "retroalimentacion": "Ajustaste el numerador (2 rojas) pero no el denominador: después de sacar una balota quedan 4." }
+      ],
+      "explicacion": "En extracciones sin reposición, tanto los casos favorables como los totales cambian después de cada extracción.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "RC-0007", "version": 1, "modulo": "RC", "contexto_id": null,
+      "competencia": "RC-C3", "afirmacion": "RC-A3", "evidencia": "RC-E3.1", "componente": "estadistica", "situacion": "comunitaria_social", "dificultad": "media",
+      "enunciado": "Una aplicación de domicilios encuestó a 500 de sus usuarios más frecuentes y encontró que el 80 % pide comida al menos tres veces por semana. Un periodista concluye que el 80 % de los colombianos pide domicilios al menos tres veces por semana. ¿Cuál es la principal razón por la que esta conclusión no es válida?",
+      "opciones": [
+        { "clave": "A", "texto": "La muestra no representa a la población colombiana, porque solo incluye usuarios frecuentes de la aplicación.", "correcta": true, "retroalimentacion": "Correcto. La muestra está sesgada: no se puede generalizar a toda la población." },
+        { "clave": "B", "texto": "Una muestra de 500 personas es insuficiente para cualquier encuesta.", "correcta": false, "retroalimentacion": "500 personas pueden ser suficientes si la muestra es representativa; el problema es el sesgo, no el tamaño." },
+        { "clave": "C", "texto": "El porcentaje debió expresarse como una fracción.", "correcta": false, "retroalimentacion": "La forma de expresar el número no afecta la validez de la conclusión." },
+        { "clave": "D", "texto": "Se debió encuestar a 1.000 usuarios frecuentes para que fuera válida.", "correcta": false, "retroalimentacion": "Una muestra más grande pero igual de sesgada seguiría sin representar a la población." }
+      ],
+      "explicacion": "Para generalizar de una muestra a una población, la muestra debe ser representativa de esa población.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "RC-0008", "version": 1, "modulo": "RC", "contexto_id": null,
+      "competencia": "RC-C3", "afirmacion": "RC-A3", "evidencia": "RC-E3.2", "componente": "algebra_calculo", "situacion": "familiar_personal", "dificultad": "media",
+      "enunciado": "Una tienda subió el precio de un producto un 20 % en enero y lo bajó un 20 % en febrero. Laura asegura que el precio volvió a ser el mismo del inicio. ¿Cuál de los siguientes argumentos es correcto?",
+      "opciones": [
+        { "clave": "A", "texto": "Laura se equivoca: el precio final es el 96 % del inicial, porque la rebaja se aplica sobre un precio mayor.", "correcta": true, "retroalimentacion": "Correcto. 1,20 × 0,80 = 0,96: el precio final es 4 % menor que el inicial." },
+        { "clave": "B", "texto": "Laura tiene razón, porque el aumento y la rebaja tienen el mismo porcentaje.", "correcta": false, "retroalimentacion": "Los porcentajes se aplican sobre bases distintas, así que no se compensan." },
+        { "clave": "C", "texto": "Laura se equivoca: el precio final es 4 % mayor que el inicial.", "correcta": false, "retroalimentacion": "La diferencia es del 4 %, pero el precio final es menor, no mayor." },
+        { "clave": "D", "texto": "Laura se equivoca: el precio final es el 80 % del inicial.", "correcta": false, "retroalimentacion": "Ese resultado ignora el aumento de enero." }
+      ],
+      "explicacion": "Un aumento y una rebaja del mismo porcentaje no se anulan: se multiplican (1 + p)(1 − p) = 1 − p².",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CC-0001", "version": 1, "modulo": "CC", "contexto_id": null,
+      "competencia": "CC-C1", "afirmacion": "CC-A3", "evidencia": "CC-E3.2", "dificultad": "baja",
+      "enunciado": "A una estudiante su EPS le niega una atención médica urgente porque tiene una deuda con la entidad. ¿Cuál es el mecanismo constitucional más adecuado para proteger de inmediato su derecho a la salud?",
+      "opciones": [
+        { "clave": "A", "texto": "La acción de tutela.", "correcta": true, "retroalimentacion": "Correcto. La tutela protege de forma inmediata los derechos fundamentales, y la salud tiene ese carácter en Colombia." },
+        { "clave": "B", "texto": "La acción popular.", "correcta": false, "retroalimentacion": "La acción popular protege derechos colectivos, como el ambiente o el espacio público, no un derecho individual." },
+        { "clave": "C", "texto": "La acción de cumplimiento.", "correcta": false, "retroalimentacion": "Sirve para exigir que una autoridad cumpla una ley o un acto administrativo, no para proteger un derecho fundamental vulnerado." },
+        { "clave": "D", "texto": "El derecho de petición.", "correcta": false, "retroalimentacion": "Permite presentar solicitudes respetuosas, pero no garantiza una protección inmediata ante una urgencia." }
+      ],
+      "explicacion": "Asocia cada mecanismo con el tipo de derecho que protege: tutela (fundamentales), acción popular (colectivos), cumplimiento (normas).",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CC-0002", "version": 1, "modulo": "CC", "contexto_id": null,
+      "competencia": "CC-C1", "afirmacion": "CC-A3", "evidencia": "CC-E3.1", "dificultad": "baja",
+      "enunciado": "¿Qué entidad tiene la función de vigilar la gestión fiscal y el uso de los recursos públicos?",
+      "opciones": [
+        { "clave": "A", "texto": "La Contraloría General de la República.", "correcta": true, "retroalimentacion": "Correcto. La Contraloría ejerce el control fiscal sobre quienes manejan recursos públicos." },
+        { "clave": "B", "texto": "La Procuraduría General de la Nación.", "correcta": false, "retroalimentacion": "La Procuraduría ejerce el control disciplinario sobre los servidores públicos." },
+        { "clave": "C", "texto": "La Defensoría del Pueblo.", "correcta": false, "retroalimentacion": "La Defensoría promueve y vela por los derechos humanos." },
+        { "clave": "D", "texto": "La Registraduría Nacional del Estado Civil.", "correcta": false, "retroalimentacion": "La Registraduría organiza las elecciones y administra la identificación de las personas." }
+      ],
+      "explicacion": "Recuerda los tres controles: fiscal (Contraloría), disciplinario (Procuraduría) y de derechos humanos (Defensoría).",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CC-0003", "version": 1, "modulo": "CC", "contexto_id": null,
+      "competencia": "CC-C1", "afirmacion": "CC-A1", "evidencia": "CC-E1.2", "dificultad": "media",
+      "enunciado": "Una comunidad indígena se opone a un proyecto minero que se desarrollaría en su territorio. De acuerdo con el marco constitucional colombiano, antes de autorizar el proyecto el Estado debe:",
+      "opciones": [
+        { "clave": "A", "texto": "garantizar la consulta previa a la comunidad.", "correcta": true, "retroalimentacion": "Correcto. La consulta previa es un derecho de los grupos étnicos frente a medidas que afectan su territorio y su cultura." },
+        { "clave": "B", "texto": "obtener la autorización de la asamblea departamental.", "correcta": false, "retroalimentacion": "Las asambleas departamentales no tienen esa competencia en este caso." },
+        { "clave": "C", "texto": "convocar un referendo nacional.", "correcta": false, "retroalimentacion": "El referendo es un mecanismo de participación general; no reemplaza la consulta previa a la comunidad afectada." },
+        { "clave": "D", "texto": "obtener la aprobación del Congreso de la República.", "correcta": false, "retroalimentacion": "Los proyectos mineros no requieren aprobación del Congreso caso por caso." }
+      ],
+      "explicacion": "La Constitución reconoce y protege la diversidad étnica y cultural; la consulta previa es una de sus garantías concretas.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CC-0004", "version": 1, "modulo": "CC", "contexto_id": null,
+      "competencia": "CC-C2", "afirmacion": "CC-A4", "evidencia": "CC-E4.1", "dificultad": "media",
+      "enunciado": "En una reunión de vecinos, alguien afirma: «Desde que llegaron familias de otra región al barrio aumentaron los robos; por eso no deberíamos arrendarles más apartamentos». ¿Cuál es el principal problema de este argumento?",
+      "opciones": [
+        { "clave": "A", "texto": "Atribuye a todo un grupo la responsabilidad de un problema sin evidencia de una relación causal.", "correcta": true, "retroalimentacion": "Correcto. Que dos hechos coincidan en el tiempo no prueba que uno cause el otro, y generalizar a todo un grupo es un prejuicio." },
+        { "clave": "B", "texto": "No menciona el número exacto de robos.", "correcta": false, "retroalimentacion": "Aunque diera la cifra, seguiría sin demostrar la causa ni justificar la generalización." },
+        { "clave": "C", "texto": "Propone una solución que solo afecta a los propietarios.", "correcta": false, "retroalimentacion": "El problema central no es a quién afecta la medida, sino el razonamiento discriminatorio que la sustenta." },
+        { "clave": "D", "texto": "Supone que los vecinos pueden fijar el valor del arriendo.", "correcta": false, "retroalimentacion": "El argumento no habla del valor del arriendo." }
+      ],
+      "explicacion": "Para develar un prejuicio, busca generalizaciones sobre grupos de personas y relaciones causales sin pruebas.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CC-0005", "version": 1, "modulo": "CC", "contexto_id": null,
+      "competencia": "CC-C2", "afirmacion": "CC-A4", "evidencia": "CC-E4.2", "dificultad": "baja",
+      "enunciado": "Un candidato a la alcaldía afirma: «Mi propuesta de construir una nueva vía es la mejor, porque la apoyan más de 10.000 personas en redes sociales». ¿Por qué este argumento es débil?",
+      "opciones": [
+        { "clave": "A", "texto": "Porque la popularidad de una propuesta no demuestra que sea la mejor solución.", "correcta": true, "retroalimentacion": "Correcto. Es una apelación a la popularidad: el número de seguidores no prueba la conveniencia técnica ni social de la vía." },
+        { "clave": "B", "texto": "Porque 10.000 personas es una cifra baja.", "correcta": false, "retroalimentacion": "Aunque fueran muchas más, el apoyo seguiría sin probar que la propuesta sea la mejor." },
+        { "clave": "C", "texto": "Porque está prohibido usar redes sociales en las campañas.", "correcta": false, "retroalimentacion": "Esa afirmación es falsa: las campañas pueden usar redes sociales." },
+        { "clave": "D", "texto": "Porque las alcaldías no pueden construir vías.", "correcta": false, "retroalimentacion": "Es falso: los municipios sí construyen y mantienen vías." }
+      ],
+      "explicacion": "Un argumento sólido justifica su conclusión con razones pertinentes (costos, beneficios, impactos), no con el número de personas que lo apoyan.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CC-0006", "version": 1, "modulo": "CC", "contexto_id": null,
+      "competencia": "CC-C3", "afirmacion": "CC-A6", "evidencia": "CC-E6.2", "dificultad": "media",
+      "enunciado": "En un municipio, el concejo discute peatonalizar la calle principal. Los comerciantes temen perder a los clientes que llegan en carro; los residentes quieren menos ruido y contaminación; los transportadores necesitan acceso para abastecer los locales. ¿Cuál de las siguientes propuestas atiende a la vez intereses de los tres actores?",
+      "opciones": [
+        { "clave": "A", "texto": "Peatonalizar la calle con horarios para carga y descarga y habilitar parqueaderos cercanos.", "correcta": true, "retroalimentacion": "Correcto. Reduce el tráfico para los residentes, mantiene el abastecimiento y facilita la llegada de clientes." },
+        { "clave": "B", "texto": "Peatonalizar totalmente la calle de inmediato.", "correcta": false, "retroalimentacion": "Atiende a los residentes, pero ignora a comerciantes y transportadores." },
+        { "clave": "C", "texto": "Mantener la calle tal como está.", "correcta": false, "retroalimentacion": "Deja sin atender el interés de los residentes." },
+        { "clave": "D", "texto": "Permitir únicamente el tránsito de vehículos de carga.", "correcta": false, "retroalimentacion": "Favorece a los transportadores, pero no a los clientes ni a los residentes." }
+      ],
+      "explicacion": "Identifica primero qué quiere cada actor y luego evalúa qué propuesta responde a más intereses a la vez.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CC-0007", "version": 1, "modulo": "CC", "contexto_id": null,
+      "competencia": "CC-C3", "afirmacion": "CC-A5", "evidencia": "CC-E5.2", "dificultad": "media",
+      "enunciado": "Ante la propuesta de instalar cámaras con reconocimiento facial en una universidad, el director de seguridad la apoya y un grupo de estudiantes se opone. ¿Qué explica mejor la diferencia entre sus posiciones?",
+      "opciones": [
+        { "clave": "A", "texto": "Sus roles los llevan a priorizar valores distintos: la seguridad del campus en un caso y la privacidad de los datos personales en el otro.", "correcta": true, "retroalimentacion": "Correcto. El rol social de cada actor influye en qué valores pone en primer lugar." },
+        { "clave": "B", "texto": "Los estudiantes desconocen que en la universidad ocurren delitos.", "correcta": false, "retroalimentacion": "Es una suposición sin fundamento: pueden conocer los delitos y aun así valorar más la privacidad." },
+        { "clave": "C", "texto": "El director de seguridad no tiene derecho a la privacidad.", "correcta": false, "retroalimentacion": "Todas las personas tienen derecho a la intimidad; esto no explica la diferencia de posiciones." },
+        { "clave": "D", "texto": "Los estudiantes se oponen a cualquier tipo de tecnología.", "correcta": false, "retroalimentacion": "Es una generalización que no se desprende de la situación." }
+      ],
+      "explicacion": "En un conflicto, pregúntate qué valores o intereses defiende cada parte según el papel que cumple.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CC-0008", "version": 1, "modulo": "CC", "contexto_id": null,
+      "competencia": "CC-C4", "afirmacion": "CC-A7", "evidencia": "CC-E7.2", "dificultad": "alta",
+      "enunciado": "Para reducir la deserción, una universidad propone eliminar las asignaturas de matemáticas del primer semestre en todos sus programas. ¿Qué efecto, en una dimensión distinta a la deserción, debería analizarse antes de aplicar la medida?",
+      "opciones": [
+        { "clave": "A", "texto": "El impacto en la calidad académica y en las competencias que los estudiantes necesitarán en semestres posteriores.", "correcta": true, "retroalimentacion": "Correcto. La medida podría reducir la deserción inicial, pero afectar la dimensión académica y trasladar el problema a semestres superiores." },
+        { "clave": "B", "texto": "El aumento inmediato de la tasa de graduación.", "correcta": false, "retroalimentacion": "Es un efecto esperado dentro de la misma dimensión (permanencia), y además no sería inmediato." },
+        { "clave": "C", "texto": "La reducción del número de salones necesarios.", "correcta": false, "retroalimentacion": "Es un efecto logístico menor frente al impacto académico." },
+        { "clave": "D", "texto": "La disminución de la deserción en primer semestre.", "correcta": false, "retroalimentacion": "Es el objetivo de la medida, no un efecto en otra dimensión." }
+      ],
+      "explicacion": "El pensamiento sistémico exige mirar los efectos de una solución más allá del problema que pretende resolver.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0001", "version": 1, "modulo": "ING", "parte": 1, "contexto_id": "ING-CTX-P1-001", "dificultad": "baja",
+      "enunciado": "1. You use this to keep money and cards in your pocket.",
+      "usa_opciones_del_contexto": true, "clave_correcta": "H",
+      "explicacion": "«Wallet» (billetera) es el objeto donde se guardan dinero y tarjetas.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0002", "version": 1, "modulo": "ING", "parte": 1, "contexto_id": "ING-CTX-P1-001", "dificultad": "baja",
+      "enunciado": "2. You need this document to travel to another country.",
+      "usa_opciones_del_contexto": true, "clave_correcta": "C",
+      "explicacion": "«Passport» (pasaporte) es el documento para viajar al exterior.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0003", "version": 1, "modulo": "ING", "parte": 1, "contexto_id": "ING-CTX-P1-001", "dificultad": "baja",
+      "enunciado": "3. You buy medicine here.",
+      "usa_opciones_del_contexto": true, "clave_correcta": "B",
+      "explicacion": "«Pharmacy» (farmacia) es el lugar donde se compran medicamentos.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0004", "version": 1, "modulo": "ING", "parte": 1, "contexto_id": "ING-CTX-P1-001", "dificultad": "baja",
+      "enunciado": "4. This person takes care of your teeth.",
+      "usa_opciones_del_contexto": true, "clave_correcta": "E",
+      "explicacion": "«Dentist» (odontólogo) es la persona que cuida los dientes.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0005", "version": 1, "modulo": "ING", "parte": 1, "contexto_id": "ING-CTX-P1-001", "dificultad": "baja",
+      "enunciado": "5. You open this when it is raining.",
+      "usa_opciones_del_contexto": true, "clave_correcta": "D",
+      "explicacion": "«Umbrella» (paraguas) se abre cuando llueve. Las palabras «museum» y «ticket» quedan sin usar.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0006", "version": 1, "modulo": "ING", "parte": 2, "contexto_id": null, "dificultad": "baja",
+      "enunciado": "Where can you see this notice?\n\n> **PLEASE SWITCH OFF YOUR MOBILE PHONE DURING THE FILM**",
+      "opciones": [
+        { "clave": "A", "texto": "In a cinema", "correcta": true, "retroalimentacion": "Correcto. «Film» (película) indica que el aviso está en un cine." },
+        { "clave": "B", "texto": "In a bank", "correcta": false, "retroalimentacion": "En un banco no se proyectan películas." },
+        { "clave": "C", "texto": "In a supermarket", "correcta": false, "retroalimentacion": "En un supermercado no hay películas durante las cuales apagar el celular." }
+      ],
+      "explicacion": "Identifica la palabra clave del aviso («film») y asóciala con el lugar.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0007", "version": 1, "modulo": "ING", "parte": 2, "contexto_id": null, "dificultad": "baja",
+      "enunciado": "Where can you see this notice?\n\n> **KEEP REFRIGERATED AFTER OPENING**",
+      "opciones": [
+        { "clave": "A", "texto": "On a food product", "correcta": true, "retroalimentacion": "Correcto. «Refrigerate after opening» es una instrucción típica de alimentos." },
+        { "clave": "B", "texto": "On a bus", "correcta": false, "retroalimentacion": "Un bus no se refrigera ni se «abre» en este sentido." },
+        { "clave": "C", "texto": "In a classroom", "correcta": false, "retroalimentacion": "La instrucción de refrigerar no tiene sentido en un salón de clase." }
+      ],
+      "explicacion": "«Keep refrigerated» (mantener refrigerado) es una instrucción de conservación de productos.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0008", "version": 1, "modulo": "ING", "parte": 3, "contexto_id": null, "dificultad": "media",
+      "enunciado": "Complete the conversation.\n\n**A:** Would you mind closing the window?\n**B:** ________",
+      "opciones": [
+        { "clave": "A", "texto": "Not at all.", "correcta": true, "retroalimentacion": "Correcto. «Would you mind…?» significa «¿te molestaría…?»; «Not at all» (para nada) indica que acepta hacerlo." },
+        { "clave": "B", "texto": "Yes, it's mine.", "correcta": false, "retroalimentacion": "Responde a una pregunta sobre posesión, no a una petición." },
+        { "clave": "C", "texto": "I'm closing it yesterday.", "correcta": false, "retroalimentacion": "Es gramaticalmente incorrecta: el presente continuo no se combina con «yesterday»." }
+      ],
+      "explicacion": "Con «Would you mind…?», responder «yes» significaría que sí molesta; por eso se acepta con «Not at all» o «No problem».",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0009", "version": 1, "modulo": "ING", "parte": 3, "contexto_id": null, "dificultad": "baja",
+      "enunciado": "Complete the conversation.\n\n**A:** How long have you lived in Bogotá?\n**B:** ________",
+      "opciones": [
+        { "clave": "A", "texto": "For about five years.", "correcta": true, "retroalimentacion": "Correcto. «How long» pregunta por duración, y «for» + periodo de tiempo la expresa." },
+        { "clave": "B", "texto": "It's very big.", "correcta": false, "retroalimentacion": "Describe la ciudad, pero no responde cuánto tiempo lleva viviendo allí." },
+        { "clave": "C", "texto": "By bus, usually.", "correcta": false, "retroalimentacion": "Responde a «how do you travel?», no a «how long?»." }
+      ],
+      "explicacion": "«How long have you…?» pregunta por la duración de una acción que continúa en el presente.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0010", "version": 1, "modulo": "ING", "parte": 4, "contexto_id": "ING-CTX-P4-001", "dificultad": "baja",
+      "enunciado": "Choose the correct word for gap (1).",
+      "opciones": [
+        { "clave": "A", "texto": "is", "correcta": true, "retroalimentacion": "Correcto. «Coffee» es incontable, así que lleva verbo en singular: «most coffee is grown»." },
+        { "clave": "B", "texto": "are", "correcta": false, "retroalimentacion": "«Are» se usa con sujetos plurales; «coffee» es incontable." },
+        { "clave": "C", "texto": "be", "correcta": false, "retroalimentacion": "La voz pasiva necesita el verbo «to be» conjugado, no en infinitivo." }
+      ],
+      "explicacion": "Voz pasiva: sujeto + be conjugado + participio (is grown).",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0011", "version": 1, "modulo": "ING", "parte": 4, "contexto_id": "ING-CTX-P4-001", "dificultad": "baja",
+      "enunciado": "Choose the correct word for gap (2).",
+      "opciones": [
+        { "clave": "A", "texto": "by", "correcta": true, "retroalimentacion": "Correcto. «By hand» (a mano) es una expresión fija." },
+        { "clave": "B", "texto": "with", "correcta": false, "retroalimentacion": "«With hand» no es una expresión correcta en inglés." },
+        { "clave": "C", "texto": "on", "correcta": false, "retroalimentacion": "«On hand» significa «disponible», no «a mano»." }
+      ],
+      "explicacion": "Algunas preposiciones forman expresiones fijas que conviene memorizar: by hand, by car, on foot.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0012", "version": 1, "modulo": "ING", "parte": 4, "contexto_id": "ING-CTX-P4-001", "dificultad": "media",
+      "enunciado": "Choose the correct word for gap (3).",
+      "opciones": [
+        { "clave": "A", "texto": "Much", "correcta": true, "retroalimentacion": "Correcto. «Much» se usa con sustantivos incontables como «coffee»." },
+        { "clave": "B", "texto": "Many", "correcta": false, "retroalimentacion": "«Many» se usa con sustantivos contables en plural." },
+        { "clave": "C", "texto": "A few", "correcta": false, "retroalimentacion": "«A few» también acompaña sustantivos contables en plural." }
+      ],
+      "explicacion": "Incontables: much, a little. Contables plurales: many, a few.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0013", "version": 1, "modulo": "ING", "parte": 5, "contexto_id": "ING-CTX-P5-001", "dificultad": "baja",
+      "enunciado": "Who suggested opening the library at night?",
+      "opciones": [
+        { "clave": "A", "texto": "A group of students", "correcta": true, "retroalimentacion": "Correcto. El texto dice que la idea vino de un grupo de estudiantes universitarios." },
+        { "clave": "B", "texto": "The town's mayor", "correcta": false, "retroalimentacion": "El texto no menciona al alcalde." },
+        { "clave": "C", "texto": "The bus company", "correcta": false, "retroalimentacion": "La estación de buses solo se menciona como ubicación de una futura biblioteca." }
+      ],
+      "explicacion": "Busca en el texto la frase equivalente: «The idea came from…».",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0014", "version": 1, "modulo": "ING", "parte": 5, "contexto_id": "ING-CTX-P5-001", "dificultad": "media",
+      "enunciado": "What happened after six months?",
+      "opciones": [
+        { "clave": "A", "texto": "The number of visitors increased considerably.", "correcta": true, "retroalimentacion": "Correcto. Pasó de pocas personas a más de cien visitantes cada viernes: es un parafraseo de lo que dice el texto." },
+        { "clave": "B", "texto": "The library stopped opening on Fridays.", "correcta": false, "retroalimentacion": "El texto dice lo contrario: la biblioteca sigue abriendo y el pueblo planea abrir más." },
+        { "clave": "C", "texto": "Only a few people continued visiting.", "correcta": false, "retroalimentacion": "«Only a few people» describe el inicio, no lo que pasó a los seis meses." }
+      ],
+      "explicacion": "En la Parte 5 la respuesta correcta suele expresar con otras palabras la información del texto.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0015", "version": 1, "modulo": "ING", "parte": 6, "contexto_id": "ING-CTX-P6-001", "dificultad": "media",
+      "enunciado": "What can we infer about Maria?",
+      "opciones": [
+        { "clave": "A", "texto": "Finishing the race was more important to her than her final time.", "correcta": true, "retroalimentacion": "Correcto. No mira el reloj y sonríe al terminar: lo importante para ella era completar la carrera." },
+        { "clave": "B", "texto": "She was disappointed with her result.", "correcta": false, "retroalimentacion": "Su sonrisa al final indica satisfacción, no decepción." },
+        { "clave": "C", "texto": "She did not train enough for the race.", "correcta": false, "retroalimentacion": "El texto dice que entrenó casi un año, incluso en días festivos." },
+        { "clave": "D", "texto": "She stopped running because of the rain.", "correcta": false, "retroalimentacion": "Fueron otros corredores quienes se detuvieron; ella siguió." }
+      ],
+      "explicacion": "Inferir es deducir algo que el texto no dice directamente, a partir de pistas: aquí, sus acciones al cruzar la meta.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0016", "version": 1, "modulo": "ING", "parte": 6, "contexto_id": "ING-CTX-P6-001", "dificultad": "media",
+      "enunciado": "Why did many runners probably stop?",
+      "opciones": [
+        { "clave": "A", "texto": "Because the weather made the race more difficult.", "correcta": true, "retroalimentacion": "Correcto. Se detuvieron justo después de que empezó a llover fuerte." },
+        { "clave": "B", "texto": "Because the race was too short.", "correcta": false, "retroalimentacion": "Una maratón no es corta, y eso no sería motivo para detenerse." },
+        { "clave": "C", "texto": "Because Maria asked them to stop.", "correcta": false, "retroalimentacion": "El texto no menciona que Maria hablara con otros corredores." },
+        { "clave": "D", "texto": "Because the finish line was closed.", "correcta": false, "retroalimentacion": "Maria cruzó la meta, así que no estaba cerrada." }
+      ],
+      "explicacion": "La palabra «probably» indica que la respuesta se deduce relacionando los hechos del texto.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0017", "version": 1, "modulo": "ING", "parte": 7, "contexto_id": "ING-CTX-P7-001", "dificultad": "media",
+      "enunciado": "Choose the correct word for gap (1).",
+      "opciones": [
+        { "clave": "A", "texto": "have", "correcta": true, "retroalimentacion": "Correcto. «Since 2020» exige presente perfecto, y «millions of people» es plural: «have started»." },
+        { "clave": "B", "texto": "has", "correcta": false, "retroalimentacion": "«Has» se usa con sujetos en tercera persona del singular." },
+        { "clave": "C", "texto": "are", "correcta": false, "retroalimentacion": "«Are started» sería voz pasiva y no tiene sentido aquí." },
+        { "clave": "D", "texto": "was", "correcta": false, "retroalimentacion": "«Was» es singular y pasado simple; no concuerda con el sujeto ni con «since»." }
+      ],
+      "explicacion": "Since + punto en el tiempo → presente perfecto (have/has + participio).",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0018", "version": 1, "modulo": "ING", "parte": 7, "contexto_id": "ING-CTX-P7-001", "dificultad": "media",
+      "enunciado": "Choose the correct word for gap (2).",
+      "opciones": [
+        { "clave": "A", "texto": "because", "correcta": true, "retroalimentacion": "Correcto. Introduce la causa: son más productivos porque no pierden tiempo viajando." },
+        { "clave": "B", "texto": "although", "correcta": false, "retroalimentacion": "«Although» expresa contraste, pero aquí hay una relación de causa." },
+        { "clave": "C", "texto": "unless", "correcta": false, "retroalimentacion": "«Unless» significa «a menos que», lo que no tiene sentido en la oración." },
+        { "clave": "D", "texto": "despite", "correcta": false, "retroalimentacion": "«Despite» expresa contraste y va seguido de un sustantivo, no de una oración." }
+      ],
+      "explicacion": "Identifica la relación lógica entre las dos partes de la oración: causa, contraste o condición.",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "ING-0019", "version": 1, "modulo": "ING", "parte": 7, "contexto_id": "ING-CTX-P7-001", "dificultad": "media",
+      "enunciado": "Choose the correct word for gap (3).",
+      "opciones": [
+        { "clave": "A", "texto": "However", "correcta": true, "retroalimentacion": "Correcto. Introduce una idea opuesta a la anterior: algunos son más productivos; otros extrañan a sus colegas." },
+        { "clave": "B", "texto": "Therefore", "correcta": false, "retroalimentacion": "«Therefore» introduce una consecuencia, no un contraste." },
+        { "clave": "C", "texto": "Moreover", "correcta": false, "retroalimentacion": "«Moreover» agrega una idea en la misma dirección, no una opuesta." },
+        { "clave": "D", "texto": "For example", "correcta": false, "retroalimentacion": "«For example» introduce un ejemplo de la idea anterior." }
+      ],
+      "explicacion": "Los conectores organizan las ideas: however (contraste), therefore (consecuencia), moreover (adición).",
+      "origen": "ia", "estado": "en_revision"
+    }
+  ],
+  "consignas_escritura": [
+    {
+      "id": "CE-0001", "version": 1, "modulo": "CE", "dificultad": "media",
+      "contexto": "Varias universidades evalúan permitir el uso de herramientas de inteligencia artificial en la elaboración de trabajos académicos. Algunos consideran que son herramientas como cualquier otra; otros piensan que impiden que los estudiantes desarrollen sus propias habilidades de análisis y escritura.",
+      "pregunta": "¿Está de acuerdo con que las universidades permitan el uso de inteligencia artificial en los trabajos académicos? Escriba un texto argumentativo en el que tome una posición clara y la justifique.",
+      "rubrica_id": "RUB-CE-01",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CE-0002", "version": 1, "modulo": "CE", "dificultad": "media",
+      "contexto": "Se ha propuesto que los estudiantes universitarios presten un servicio social obligatorio en comunidades vulnerables como requisito para obtener su título. Quienes lo apoyan destacan el compromiso social; quienes se oponen señalan que alarga la carrera y puede convertirse en trabajo no remunerado.",
+      "pregunta": "¿Está de acuerdo con que el servicio social sea un requisito obligatorio para obtener el título universitario? Escriba un texto argumentativo en el que tome una posición clara y la justifique.",
+      "rubrica_id": "RUB-CE-01",
+      "origen": "ia", "estado": "en_revision"
+    },
+    {
+      "id": "CE-0003", "version": 1, "modulo": "CE", "dificultad": "media",
+      "contexto": "Algunas instituciones educativas han decidido prohibir la venta de bebidas azucaradas en sus cafeterías para promover hábitos saludables. Otros sectores consideran que la medida limita la libertad de elección y afecta a los pequeños comerciantes.",
+      "pregunta": "¿Está de acuerdo con que se prohíba la venta de bebidas azucaradas en las instituciones educativas? Escriba un texto argumentativo en el que tome una posición clara y la justifique.",
+      "rubrica_id": "RUB-CE-01",
+      "origen": "ia", "estado": "en_revision"
+    }
+  ],
+  "rubricas": [
+    {
+      "id": "RUB-CE-01",
+      "nombre": "Rúbrica de práctica — texto argumentativo",
+      "nota": "Rúbrica propia de práctica, inspirada en los aspectos que evalúa el ICFES. No reproduce la rúbrica oficial.",
+      "condicion_previa": {
+        "nombre": "Pertinencia",
+        "descripcion": "El texto responde la pregunta, toma una posición explícita (de acuerdo, en desacuerdo o parcialmente de acuerdo) y da razones. Si no es pertinente, no se califica y se explica por qué."
+      },
+      "dimensiones": [
+        {
+          "codigo": "planteamiento", "nombre": "Planteamiento",
+          "niveles": [
+            { "nivel": 1, "descripcion": "La postura es confusa o no hay razones; repite o copia el contexto." },
+            { "nivel": 2, "descripcion": "La postura es clara, pero las razones son pocas, generales o redundantes." },
+            { "nivel": 3, "descripcion": "La postura es clara y se sustenta con varias razones pertinentes y desarrolladas." },
+            { "nivel": 4, "descripcion": "Además, analiza el tema desde perspectivas que no están en el contexto y considera posibles objeciones." }
+          ]
+        },
+        {
+          "codigo": "organizacion", "nombre": "Organización",
+          "niveles": [
+            { "nivel": 1, "descripcion": "Ideas sueltas, sin orden ni párrafos reconocibles." },
+            { "nivel": 2, "descripcion": "Hay una estructura básica, pero con saltos o información irrelevante." },
+            { "nivel": 3, "descripcion": "Introducción, desarrollo y cierre claros; usa conectores adecuados." },
+            { "nivel": 4, "descripcion": "Además, la progresión de las ideas muestra planeación y jerarquiza bien la información." }
+          ]
+        },
+        {
+          "codigo": "forma_de_expresion", "nombre": "Forma de expresión",
+          "niveles": [
+            { "nivel": 1, "descripcion": "Errores de redacción o vocabulario que impiden entender las ideas." },
+            { "nivel": 2, "descripcion": "Se entiende, pero con errores frecuentes o un registro inadecuado para el lector." },
+            { "nivel": 3, "descripcion": "Lenguaje claro, vocabulario preciso y registro adecuado al propósito." },
+            { "nivel": 4, "descripcion": "Además, usa recursos como ejemplos, comparaciones o citas para persuadir al lector." }
+          ]
+        }
+      ]
+    }
+  ]
+}

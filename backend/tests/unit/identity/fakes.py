@@ -299,6 +299,11 @@ class FakeSettings:
     async def load(self) -> IdentitySettings:
         return self.current
 
+    async def save(
+        self, settings: IdentitySettings, *, previous: IdentitySettings, updated_by: UUID | None
+    ) -> None:
+        self.current = settings
+
 
 class FakeGroups:
     """Grupos: las pruebas unitarias de grupos usan solo el dominio (T138)."""

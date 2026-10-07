@@ -8,7 +8,7 @@ import re
 from dataclasses import dataclass
 from uuid import UUID
 
-from saber_uli.shared.domain.errors import RuleViolationError
+from saber_uli.shared.domain.errors import ConflictError, RuleViolationError
 
 CODE_PATTERN = re.compile(r"[A-Z0-9-]{2,20}")
 NAME_MIN, NAME_MAX = 3, 200
@@ -17,6 +17,10 @@ CAMPUS_MIN, CAMPUS_MAX = 2, 100
 
 class InvalidProgramError(RuleViolationError):
     slug = "invalid-program"
+
+
+class ProgramCodeExistsError(ConflictError):
+    slug = "program-code-exists"
 
 
 def _validate(code: str, name: str, campus: str) -> None:

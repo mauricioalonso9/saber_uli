@@ -21,6 +21,7 @@ from sqlalchemy import text
 from starlette.middleware.sessions import SessionMiddleware
 
 from saber_uli.config import Settings, get_settings
+from saber_uli.identity.api.admin_catalogs_router import router as admin_catalogs_router
 from saber_uli.identity.api.admin_users_router import router as admin_users_router
 from saber_uli.identity.api.auth_router import router as auth_router
 from saber_uli.identity.api.consent_router import router as consent_router
@@ -37,6 +38,7 @@ from saber_uli.identity.application.admin_users import AdminUsersService
 from saber_uli.identity.application.authenticate_institutional_user import (
     AuthenticateInstitutionalUser,
 )
+from saber_uli.identity.application.catalogs import AuditQuery, ProgramAdmin, SettingsAdmin
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
 from saber_uli.identity.application.groups import GroupService, TeacherGroups
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
@@ -184,6 +186,9 @@ def create_app(
     app.state.admin_users_service = AdminUsersService(uow_factory=identity_uow, clock=clock)
     app.state.group_service = GroupService(uow_factory=identity_uow, clock=clock)
     app.state.teacher_groups = TeacherGroups(uow_factory=identity_uow)
+    app.state.program_admin = ProgramAdmin(uow_factory=identity_uow, clock=clock)
+    app.state.settings_admin = SettingsAdmin(uow_factory=identity_uow, clock=clock)
+    app.state.audit_query = AuditQuery(uow_factory=identity_uow)
     app.state.profile_service = ProfileService(uow_factory=identity_uow, clock=clock)
     app.state.program_catalog = ProgramCatalog(uow_factory=identity_uow)
     app.state.privacy_policy_service = PrivacyPolicyService(uow_factory=identity_uow, clock=clock)
@@ -204,6 +209,7 @@ def create_app(
     app.include_router(admin_users_router, dependencies=v1)
     app.include_router(groups_router, dependencies=v1)
     app.include_router(teacher_router, dependencies=v1)
+    app.include_router(admin_catalogs_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

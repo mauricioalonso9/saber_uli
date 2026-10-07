@@ -4,7 +4,7 @@ from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 from uuid import UUID
 
 from saber_uli.identity.domain.access_link import AccessLink, LinkPurpose
@@ -95,8 +95,36 @@ class GuestAccessReader(Protocol):
         ...
 
 
+@dataclass(frozen=True)
+class AuditRecord:
+    """Evento de auditoría guardado (esquema `AuditEvent`)."""
+
+    id: UUID
+    occurred_at: datetime
+    actor_id: UUID | None
+    action: str
+    target_type: str
+    target_id: UUID | None
+    subject_user_id: UUID | None
+    details: dict[str, Any]
+
+
 class AuditRepository(Protocol):
     async def add(self, entry: "AuditEntry") -> None: ...
+
+    async def search(
+        self,
+        *,
+        action: str | None,
+        actor_id: UUID | None,
+        subject_user_id: UUID | None,
+        since: datetime | None,
+        until: datetime | None,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[AuditRecord], int]:
+        """Eventos del más reciente al más antiguo (FR-035, solo lectura)."""
+        ...
 
 
 @dataclass(frozen=True)
@@ -142,7 +170,13 @@ class ProgramRepository(Protocol):
         """Programas activos ordenados por nombre y seccional."""
         ...
 
-    async def add(self, program: Program) -> Program: ...
+    async def search(
+        self, *, q: str | None, offset: int, limit: int
+    ) -> tuple[list[Program], int]: ...
+
+    async def add(self, program: Program) -> Program:
+        """Lanza `ProgramCodeExistsError` si el código ya existe."""
+        ...
 
     async def save(self, program: Program) -> None: ...
 
@@ -252,6 +286,10 @@ class AccessLinkRepository(Protocol):
 
 class SettingsReader(Protocol):
     async def load(self) -> IdentitySettings: ...
+
+    async def save(
+        self, settings: IdentitySettings, *, previous: IdentitySettings, updated_by: UUID | None
+    ) -> None: ...
 
 
 class LinkTokenGenerator(Protocol):

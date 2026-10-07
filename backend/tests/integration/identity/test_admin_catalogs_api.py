@@ -52,7 +52,10 @@ async def restore_settings(migrated_database: dict[str, str]) -> Any:
             ("sign_in_link_ttl_minutes", 15),
         ):
             await conn.execute(
-                text("UPDATE identity.settings SET value = :v, updated_by = NULL WHERE key = :k"),
+                text(
+                    "UPDATE identity.settings SET value = to_jsonb(CAST(:v AS integer)),"
+                    " updated_by = NULL WHERE key = :k"
+                ),
                 {"k": key, "v": value},
             )
     await engine.dispose()

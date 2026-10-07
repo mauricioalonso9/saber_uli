@@ -799,8 +799,9 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
 - [x] T072 [P] [US1] Prueba: adaptador Entra ID en `backend/tests/integration/identity/test_entra_adapter.py` con respx y JWK generadas (descubrimiento por `.well-known`; PKCE S256; `state` y `nonce` en cookie firmada de 10 min; rechaza firma inválida, `aud` distinto, `nonce` distinto, `iss` de otro inquilino y `tid` distinto; usa la autoridad del inquilino, nunca `common`; toma solo `oid`, `tid`, `name`, `email` o `preferred_username`; research R-10 a R-13) → Opus
   - Terminado: la prueba falla.
   - Estado: ver T077.
-- [ ] T073 [P] [US1] Prueba: flujo HTTP en `backend/tests/integration/identity/test_microsoft_login_flow.py` (`GET /api/auth/microsoft/login` → 302 a la autoridad del inquilino; `return_to` solo rutas relativas; callback válido → 302 a `/bienvenida/datos` y cookie `su_refresh`; inquilino externo → 302 a `/ingresar?error=tenant_not_allowed` sin crear usuario y log `auth.login_rejected` sin correo (FR-036); proveedor caído → `/ingresar?error=idp_unavailable`; rate limit 30/min por IP) → Opus
+- [x] T073 [P] [US1] Prueba: flujo HTTP en `backend/tests/integration/identity/test_microsoft_login_flow.py` (`GET /api/auth/microsoft/login` → 302 a la autoridad del inquilino; `return_to` solo rutas relativas; callback válido → 302 a `/bienvenida/datos` y cookie `su_refresh`; inquilino externo → 302 a `/ingresar?error=tenant_not_allowed` sin crear usuario y log `auth.login_rejected` sin correo (FR-036); proveedor caído → `/ingresar?error=idp_unavailable`; rate limit 30/min por IP) → Opus
   - Terminado: la prueba falla.
+  - Estado: ver T078.
 - [ ] T074 [P] [US1] Prueba: `GET /api/v1/me` en `backend/tests/integration/identity/test_me.py` (campos del esquema `Me`; `permissions` según roles; `onboarding.consent_required` y `profile_required`; `access.offline_grace_until` = `validated_at` + 7 días; responde sin autorización de datos por ser exenta) → Qwen
   - Terminado: la prueba falla.
 - [ ] T075 [P] [US1] Prueba de componente `frontend/src/features/auth/LoginPage.test.tsx` (botón "Ingresar con mi cuenta Unilibre"; mensaje para `tenant_not_allowed` con la alternativa de pedir invitación (SC-008); mensaje para `idp_unavailable`; enlace a ingreso de invitados) → Qwen
@@ -833,8 +834,23 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
     Override de mypy acotado al módulo por falta de tipos de Authlib. 20 pruebas en verde con
     respx y claves RSA generadas. Aviso: Authlib 1.8 emite una advertencia propia (migración a
     `httpx2`) que no se puede filtrar desde pytest; revisar al actualizar Authlib.
-- [ ] T078 [US1] Implementar `backend/src/saber_uli/identity/api/microsoft_router.py` (login y callback) para que pase T073 → Opus
+- [x] T078 [US1] Implementar `backend/src/saber_uli/identity/api/microsoft_router.py` (login y callback) para que pase T073 → Opus
   - Terminado: T073 en verde.
+  - Estado: implementadas por Opus (2026-10-07); T073 falló al no existir las rutas (commit
+    `468d4a1`). `microsoft_router`: `/login` guarda `state`, `nonce`, verificador PKCE y
+    `return_to` (solo rutas internas: rechaza `//…`, `/\…` y URL absolutas) en `su_oidc`
+    (firmada, `HttpOnly`, `SameSite=Lax`, `/api/auth/microsoft`, 10 min; `Secure` cuando
+    `PUBLIC_BASE_URL` es https) y redirige a la autoridad del inquilino; `/callback` compara
+    `state` en tiempo constante, borra la cookie (un solo uso), canjea y valida, crea o actualiza
+    la cuenta, abre la sesión (cookie `su_refresh`) y redirige a `/bienvenida/datos`,
+    `/bienvenida/perfil` o `return_to` (por defecto `/inicio`). Rechazos →
+    `/ingresar?error=` con `tenant_not_allowed`, `idp_unavailable`, `invalid_state`,
+    `login_cancelled`, `login_failed`, `account_disabled` o `account_deleted`, más el log
+    `auth.login_rejected` con la causa (sin correo ni tokens). Límite 30/min por IP en ambas
+    rutas. `main.py` arma `EntraIdClient` (redirect `PUBLIC_BASE_URL/api/auth/microsoft/callback`)
+    y `AuthenticateInstitutionalUser`. 12 pruebas en verde con la app completa.
+  - Desviación de R-13: `SessionMiddleware` firma la cookie `su_oidc` pero no la cifra. Se acepta:
+    `state`, `nonce` y verificador son del propio navegador que inicia el flujo.
 - [ ] T079 [US1] Implementar `backend/src/saber_uli/identity/application/queries/get_me.py` y `backend/src/saber_uli/identity/api/me_router.py` para que pase T074; agregar `startMicrosoftLogin`, `completeMicrosoftLogin` y `getMe` a `backend/tests/contract/implemented_operations.py` → Qwen
   - Terminado: T074 y la prueba de contrato en verde.
 - [ ] T080 [US1] Implementar `frontend/src/features/auth/LoginPage.tsx` y `frontend/src/features/auth/bootstrap.ts` (tras volver de Microsoft: renovar, consultar `/me`, guardar instantánea, redirigir según guardias; botón de cerrar sesión en `AppShell`) → Qwen

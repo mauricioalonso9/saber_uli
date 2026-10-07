@@ -22,10 +22,15 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from saber_uli.config import Settings, get_settings
 from saber_uli.identity.api.auth_router import router as auth_router
+from saber_uli.identity.api.microsoft_router import router as microsoft_router
 from saber_uli.identity.application.access_guard import AccessGuard
+from saber_uli.identity.application.authenticate_institutional_user import (
+    AuthenticateInstitutionalUser,
+)
 from saber_uli.identity.application.queries.consent_status import ConsentStatusQuery
 from saber_uli.identity.application.sessions import SessionService
 from saber_uli.identity.domain.events import UserAccessChanged
+from saber_uli.identity.infrastructure.entra_id import EntraIdClient
 from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
 from saber_uli.identity.infrastructure.session_revocations import RedisSessionRevocations
 from saber_uli.identity.infrastructure.tokens import AccessTokenCodec, RefreshTokenFactory
@@ -126,11 +131,22 @@ def create_app(
         refresh_tokens=RefreshTokenFactory(),
         revocations=revocations,
     )
+    app.state.entra_client = EntraIdClient(
+        authority=settings.entra_authority,
+        tenant_id=settings.entra_tenant_id,
+        client_id=str(settings.entra_client_id),
+        client_secret=settings.entra_client_secret.get_secret_value(),
+        redirect_uri=f"{settings.public_base_url}/api/auth/microsoft/callback",
+    )
+    app.state.authenticate_institutional = AuthenticateInstitutionalUser(
+        uow_factory=identity_uow, clock=clock, tenant_id=settings.entra_tenant_id
+    )
     app.state.readiness_checks = {"database": database_ready, "redis": redis_ready}
 
     install_problem_handlers(app)
     app.include_router(health_router)
     app.include_router(auth_router)
+    app.include_router(microsoft_router)
     # Las rutas de /api/v1 se agregan con `dependencies=[Depends(require_consent)]`
     # (shared.api.consent_guard); llegan con US1 en adelante (T079…).
 

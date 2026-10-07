@@ -17,7 +17,11 @@ Subcomandos actuales:
   `INSTITUTIONAL_EMAIL_DOMAINS`; el worker envía el correo. Sale con 0 si creó la invitación, 1
   si una regla la impidió (correo institucional, invitación vigente) y 2 si los datos no sirven.
 
-T147 agregará `grant-admin`. Ningún mensaje muestra URL, contraseñas ni el correo invitado.
+- `identity grant-admin --email <correo>`: asigna el rol Administrador a una cuenta
+  institucional que ya ingresó una vez (R-28), con actor sistema. Usa `DATABASE_URL`. Sale con
+  0 si quedó asignado (o ya lo estaba) y 1 si la cuenta no existe o no es institucional.
+
+Ningún mensaje muestra URL, contraseñas ni el correo de la persona.
 """
 
 import argparse
@@ -31,6 +35,7 @@ from pathlib import Path
 
 from sqlalchemy.engine import make_url
 
+from saber_uli.identity.application.admin_users import AdminUsersService
 from saber_uli.identity.application.import_programs import (
     ImportPrograms,
     ImportReport,
@@ -204,6 +209,39 @@ def _invite_guest(email: str, days: int | None, name: str | None) -> int:
     return EXIT_OK
 
 
+async def _run_grant_admin(url: str, email: str) -> bool:
+    engine = create_engine(url)
+    try:
+        session_factory = create_session_factory(engine)
+        bus = EventBus()
+        service = AdminUsersService(
+            uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, bus),
+            clock=SystemClock(),
+        )
+        return await service.grant_admin_by_email(email)
+    finally:
+        await engine.dispose()
+
+
+def _grant_admin(email: str) -> int:
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        print("Error: falta la variable de entorno DATABASE_URL (rol saber_app).", file=sys.stderr)
+        return EXIT_USAGE
+    configure_logging(os.environ.get("LOG_LEVEL", "WARNING"))
+    try:
+        granted = asyncio.run(_run_grant_admin(url, email.strip()))
+    except DomainError as error:
+        print(f"No se asignó el rol: {error.message}", file=sys.stderr)
+        return EXIT_FAILURE
+    except Exception as error:
+        detail = _redact(str(error), url).splitlines()[0] if str(error) else ""
+        print(f"Error: la asignación falló ({type(error).__name__}): {detail}", file=sys.stderr)
+        return EXIT_FAILURE
+    print("Rol Administrador asignado." if granted else "La cuenta ya era administradora.")
+    return EXIT_OK
+
+
 def _utf8_output() -> None:
     """Mensajes en español también en consolas de Windows con otra página de códigos."""
     for stream in (sys.stdout, sys.stderr):
@@ -236,6 +274,11 @@ def app(argv: Sequence[str] | None = None) -> None:
     )
     invite_guest.add_argument("--name", default=None, help="nombre de la persona (opcional)")
 
+    grant_admin = identity_commands.add_parser(
+        "grant-admin", help="asigna el rol Administrador a una cuenta institucional"
+    )
+    grant_admin.add_argument("--email", required=True, help="correo institucional de la persona")
+
     _utf8_output()
     args = parser.parse_args(argv)
     if args.command == "migrate":
@@ -244,6 +287,8 @@ def app(argv: Sequence[str] | None = None) -> None:
         sys.exit(_import_programs(args.csv))
     if args.command == "identity" and args.action == "invite-guest":
         sys.exit(_invite_guest(args.email, args.days, args.name))
+    if args.command == "identity" and args.action == "grant-admin":
+        sys.exit(_grant_admin(args.email))
 
 
 if __name__ == "__main__":

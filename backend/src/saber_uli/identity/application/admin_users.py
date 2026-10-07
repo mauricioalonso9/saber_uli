@@ -41,6 +41,10 @@ class UserNotFoundError(NotFoundError):
     slug = "not-found"
 
 
+class NotInstitutionalAccountError(ConflictError):
+    slug = "not-institutional-account"
+
+
 @dataclass(frozen=True)
 class AdminUserView:
     user: User
@@ -167,6 +171,42 @@ class AdminUsersService:
             view = await self._view(uow, user)
             await uow.commit()
         return view
+
+    async def grant_admin_by_email(self, email: str) -> bool:
+        """Primer administrador (R-28, comando `grant-admin`): actor sistema. Devuelve `False` si
+        ya era administrador."""
+        now = self._clock.now()
+        async with self._uow_factory() as uow:
+            user = await uow.users.find_by_email(email)
+            if user is None or user.id is None:
+                raise UserNotFoundError(
+                    "No hay una cuenta con ese correo: la persona debe ingresar una vez con su "
+                    "cuenta Unilibre."
+                )
+            if user.kind is not UserKind.INSTITUTIONAL:
+                raise NotInstitutionalAccountError(
+                    "Solo una cuenta institucional puede ser administradora."
+                )
+            if Role.ADMIN in user.roles:
+                return False
+            before = sorted(role.value for role in user.roles)
+            user.grant_role(Role.ADMIN)
+            await uow.users.save(user)
+            await record_audit(
+                uow,
+                AuditAction.USER_ROLE_GRANTED,
+                target=AuditTarget.USER,
+                target_id=user.id,
+                subject_user_id=user.id,
+                details={
+                    "roles": ["admin"],
+                    "before": before,
+                    "after": sorted(role.value for role in user.roles),
+                },
+                now=now,
+            )
+            await uow.commit()
+        return True
 
     # --- Auxiliares -----------------------------------------------------------------------
 

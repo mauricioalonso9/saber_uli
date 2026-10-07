@@ -343,6 +343,10 @@ class UserRepository(Protocol):
 
     async def get_by_entra_identity(self, identity: InstitutionalIdentity) -> User | None: ...
 
+    async def find_by_email(self, email: str) -> User | None:
+        """Cuenta no suprimida con ese correo, sin distinguir mayúsculas."""
+        ...
+
     async def find_active_guest_by_email(self, email: str) -> User | None:
         """Invitado no suprimido con ese correo, sin distinguir mayúsculas."""
         ...

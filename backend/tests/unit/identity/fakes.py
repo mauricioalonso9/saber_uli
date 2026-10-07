@@ -45,6 +45,10 @@ class FakeUsers:
     async def get_by_entra_identity(self, identity: InstitutionalIdentity) -> User | None:
         return next((u for u in self.rows.values() if u.entra_identity == identity), None)
 
+    async def find_by_email(self, email: str) -> User | None:
+        wanted = email.strip().lower()
+        return next((u for u in self.rows.values() if (u.email or "").lower() == wanted), None)
+
     async def find_active_guest_by_email(self, email: str) -> User | None:
         wanted = email.strip().lower()
         return next(

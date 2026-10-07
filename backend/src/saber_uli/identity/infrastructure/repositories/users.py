@@ -117,6 +117,16 @@ class SqlAlchemyUserRepository:
         )
         return _to_domain(row) if row else None
 
+    async def find_by_email(self, email: str) -> User | None:
+        row = await self._session.scalar(
+            select(UserRow)
+            .where(func.lower(UserRow.email) == email.strip().lower())
+            .where(UserRow.status != UserStatus.DELETED.value)
+            .order_by(UserRow.created_at.desc())
+            .limit(1)
+        )
+        return _to_domain(row) if row else None
+
     async def find_active_guest_by_email(self, email: str) -> User | None:
         row = await self._session.scalar(
             select(UserRow).where(

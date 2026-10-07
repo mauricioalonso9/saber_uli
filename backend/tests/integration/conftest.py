@@ -321,6 +321,7 @@ async def committed_login(
             " OR subject_user_id = ANY(:ids)",
             "DELETE FROM identity.invitations WHERE guest_user_id = ANY(:ids)"
             " OR invited_by = ANY(:ids)",
+            "DELETE FROM identity.invitation_batches WHERE created_by = ANY(:ids)",
             "DELETE FROM identity.users WHERE id = ANY(:ids)",
         ):
             await conn.execute(text(statement), {"ids": created})

@@ -45,14 +45,20 @@ function psql(statement: string, variables: Record<string, string>): void {
   execFileSync("docker", args, { input: statement, stdio: ["pipe", "ignore", "inherit"] });
 }
 
-/** Asigna el rol Administrador a un usuario que ya ingresó una vez. */
-export function grantAdmin(email: string): void {
+/** Asigna un rol a un usuario que ya ingresó una vez (`grant-admin` y la gestión de roles
+ * llegan con US6). */
+export function grantRole(email: string, role: "admin" | "teacher"): void {
   psql(
     `INSERT INTO identity.role_assignments (user_id, role)
-     SELECT id, 'admin' FROM identity.users WHERE lower(email) = lower(:'email')
+     SELECT id, :'role' FROM identity.users WHERE lower(email) = lower(:'email')
      ON CONFLICT DO NOTHING;`,
-    { email },
+    { email, role },
   );
+}
+
+/** Asigna el rol Administrador a un usuario que ya ingresó una vez. */
+export function grantAdmin(email: string): void {
+  grantRole(email, "admin");
 }
 
 /** Da por completado el primer ingreso (perfil, US3) de un usuario. */
@@ -81,6 +87,22 @@ export function expireGuestAccess(email: string): void {
         SET access_expires_at = now() - interval '1 minute',
             created_at = LEAST(created_at, now() - interval '1 day')
       WHERE lower(email) = lower(:'email') AND status IN ('sent', 'accepted');`,
+    { email },
+  );
+}
+
+/**
+ * Deja vencido el acceso de un invitado aceptado, como la tarea `expire_invitations`. No toca
+ * `auth_epoch`: la tarea lo sube e invalida la caché de Redis, y hacerlo aquí solo en la base
+ * dejaría la caché desfasada.
+ */
+export function markGuestAccessExpired(email: string): void {
+  psql(
+    `UPDATE identity.invitations
+        SET access_expires_at = now() - interval '1 minute',
+            created_at = LEAST(created_at, now() - interval '1 day'),
+            status = 'expired'
+      WHERE lower(email) = lower(:'email') AND status = 'accepted';`,
     { email },
   );
 }

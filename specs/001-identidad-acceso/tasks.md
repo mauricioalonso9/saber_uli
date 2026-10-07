@@ -944,12 +944,21 @@ autorización vigente no se usa la plataforma; una versión nueva exige aceptarl
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T083 [P] [US2] Prueba: semilla de la política en `backend/tests/integration/identity/test_policy_seed.py` (tras migrar existe la versión `1.0` vigente con el texto de `backend/seeds/politica_tratamiento_datos_v1.md`; volver a migrar no la duplica) → Qwen
+- [x] T083 [P] [US2] Prueba: semilla de la política en `backend/tests/integration/identity/test_policy_seed.py` (tras migrar existe la versión `1.0` vigente con el texto de `backend/seeds/politica_tratamiento_datos_v1.md`; volver a migrar no la duplica) → Qwen
   - Terminado: la prueba falla.
-- [ ] T084 [P] [US2] Prueba: reglas de autorización en `backend/tests/unit/identity/test_consent.py` (decisión solo `accepted` o `rejected` sobre la versión vigente; revocar solo si hay autorización vigente (`no-active-consent`); decisión sobre versión no vigente → `policy-version-not-current`; publicar versión exige `version` con patrón `^[0-9]+\.[0-9]+$`, `body_markdown` de 200 a 100 000 caracteres y versión única) → Qwen
+  - Estado: implementada por Opus (2026-10-07) porque Qwen no tenía créditos. Verifica título,
+    texto idéntico al archivo, vigencia y que volver a aplicar 0005 (`stamp 0004` + `upgrade`) no
+    duplica. Se agregó `stamp_migrations` a `shared/infrastructure/migrations.py`.
+- [x] T084 [P] [US2] Prueba: reglas de autorización en `backend/tests/unit/identity/test_consent.py` (decisión solo `accepted` o `rejected` sobre la versión vigente; revocar solo si hay autorización vigente (`no-active-consent`); decisión sobre versión no vigente → `policy-version-not-current`; publicar versión exige `version` con patrón `^[0-9]+\.[0-9]+$`, `body_markdown` de 200 a 100 000 caracteres y versión única) → Qwen
   - Terminado: la prueba falla.
-- [ ] T085 [P] [US2] Prueba: API en `backend/tests/integration/identity/test_consent_api.py` (`GET/POST /api/v1/me/consents` registra usuario, fecha, versión, decisión y canal `web_pwa` (FR-015); `POST /api/v1/me/consents/revocation` incrementa `auth_epoch` y la siguiente petición responde 401 (escenario 2.5); `GET /api/v1/privacy-policy/current` y `/versions/{id}` sin autenticación; `POST /api/v1/admin/privacy-policy/versions` exige `policy:publish` y sesión privilegiada y audita `policy.published`; tras publicar, `/me` devuelve `consent_required=true` para todos (FR-017); auditoría `consent.accepted|rejected|revoked`) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Además del alcance: `revoked` no es una decisión
+    válida (`invalid-consent-decision`, 422), sin política publicada no se puede decidir, y el
+    título es obligatorio con máximo 200 caracteres (contrato).
+- [x] T085 [P] [US2] Prueba: API en `backend/tests/integration/identity/test_consent_api.py` (`GET/POST /api/v1/me/consents` registra usuario, fecha, versión, decisión y canal `web_pwa` (FR-015); `POST /api/v1/me/consents/revocation` incrementa `auth_epoch` y la siguiente petición responde 401 (escenario 2.5); `GET /api/v1/privacy-policy/current` y `/versions/{id}` sin autenticación; `POST /api/v1/admin/privacy-policy/versions` exige `policy:publish` y sesión privilegiada y audita `policy.published`; tras publicar, `/me` devuelve `consent_required=true` para todos (FR-017); auditoría `consent.accepted|rejected|revoked`) → Qwen
   - Terminado: la prueba falla.
+  - Estado: implementada por Opus (2026-10-07). 18 casos. Las rutas de administración también
+    pasan por la guardia de FR-014: el administrador debe tener la autorización vigente para
+    publicar. `committed_login` ahora borra también las versiones que publicaron sus usuarios.
 - [ ] T086 [P] [US2] Pruebas de componente `frontend/src/features/onboarding/ConsentPage.test.tsx` (muestra finalidad, datos, derechos y canales; opciones "Acepto" y "No acepto" sin preselección; "No acepto" muestra la explicación con las opciones de aceptar luego o solicitar supresión) y `frontend/src/features/account/ConsentSettingsPage.test.tsx` (versión aceptada, fecha, ver texto, revocar con confirmación) → Qwen
   - Terminado: las pruebas fallan.
 
@@ -957,12 +966,33 @@ autorización vigente no se usa la plataforma; una versión nueva exige aceptarl
 
 - [ ] T087 [US2] Registrar en `specs/001-identidad-acceso/research.md` la dependencia `react-markdown` (sin `rehype-raw`, HTML deshabilitado) para mostrar la política de forma segura, con justificación y alternativas → Opus
   - Terminado: entrada nueva en research.md; ningún otro artefacto de diseño cambia.
-- [ ] T088 [US2] Implementar la migración `backend/migrations/versions/0005_seed_policy_v1.py` (carga idempotente de la versión 1.0) para que pase T083 → Qwen
+- [x] T088 [US2] Implementar la migración `backend/migrations/versions/0005_seed_policy_v1.py` (carga idempotente de la versión 1.0) para que pase T083 → Qwen
   - Terminado: T083 en verde.
-- [ ] T089 [US2] Implementar `backend/src/saber_uli/identity/domain/policy.py` y completar `backend/src/saber_uli/identity/domain/consent.py` para que pase T084 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `INSERT … ON CONFLICT (version) DO NOTHING` con
+    `effective_from = now()`; el `downgrade` conserva la 1.0 si ya hay decisiones sobre ella. La
+    imagen copia `backend/seeds` a `/app/seeds` (`.dockerignore` deja pasar `backend/seeds/*.md`).
+    Las pruebas que creaban versiones con `effective_from` de hace días ahora usan
+    `clock_timestamp()` para quedar después de la 1.0 sembrada.
+  - Pendiente fuera del código: el texto sembrado es el BORRADOR de la política; la oficina
+    jurídica debe aprobarlo antes de usar la app con usuarios reales (se publica la versión
+    aprobada como 1.1 o 2.0 desde la administración).
+- [x] T089 [US2] Implementar `backend/src/saber_uli/identity/domain/policy.py` y completar `backend/src/saber_uli/identity/domain/consent.py` para que pase T084 → Qwen
   - Terminado: T084 en verde.
-- [ ] T090 [US2] Implementar `backend/src/saber_uli/identity/application/consent.py` (decidir, revocar con incremento de `auth_epoch`, publicar), `backend/src/saber_uli/identity/api/consent_router.py` y `backend/src/saber_uli/identity/api/policy_router.py` para que pase T085; agregar las 6 operaciones a `implemented_operations.py` → Qwen
+  - Estado: implementada por Opus (2026-10-07). `domain/policy.py` (`PolicyVersion.publish`,
+    `invalid-policy-version` 422, `policy-version-exists` 409) y en `consent.py`
+    `decide_consent`, `revoke_consent`, canal `web_pwa` y los errores `policy-version-not-current`
+    y `no-active-consent` (409).
+- [x] T090 [US2] Implementar `backend/src/saber_uli/identity/application/consent.py` (decidir, revocar con incremento de `auth_epoch`, publicar), `backend/src/saber_uli/identity/api/consent_router.py` y `backend/src/saber_uli/identity/api/policy_router.py` para que pase T085; agregar las 6 operaciones a `implemented_operations.py` → Qwen
   - Terminado: T085 y la prueba de contrato en verde.
+  - Estado: implementada por Opus (2026-10-07). `ConsentService` (historial, decidir, revocar:
+    `auth_epoch` + 1, sesiones revocadas con `access_changed`, evento `UserAccessChanged`) y
+    `PrivacyPolicyService` (vigente, por id, publicar con `policy:publish` + sesión privilegiada);
+    puertos `ConsentRepository` (antes `ConsentReader`) y `PolicyRepository`. Auditoría con solo
+    el número de versión. Contrato en verde con 13 operaciones.
+  - Decisiones de Opus por hallazgos del contrato (commit 75860dc): el 405 lista en `Allow` los
+    métodos de todas las rutas con la misma URL; un cuerpo ilegible responde 422 en vez de 400;
+    un id mal formado en la ruta responde 404 (no nombra ningún recurso). El contrato agrega el
+    422 de `decideConsent` (cuerpo inválido), que faltaba.
 - [ ] T091 [P] [US2] Implementar `frontend/src/features/onboarding/ConsentPage.tsx` y `frontend/src/features/account/ConsentSettingsPage.tsx` (Markdown con `react-markdown`) para que pase T086 → Qwen
   - Terminado: T086 en verde.
 - [ ] T092 [P] [US2] Implementar `frontend/src/features/admin/PolicyPage.tsx` con su prueba `frontend/src/features/admin/PolicyPage.test.tsx` (publicar versión con vista previa; validación de versión y longitud) → Qwen

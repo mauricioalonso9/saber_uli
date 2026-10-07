@@ -12,6 +12,7 @@ from saber_uli.identity.domain.roles import Role
 from saber_uli.identity.domain.session import (
     ABSOLUTE_LIFETIME,
     IDLE_TIMEOUT,
+    REUSE_GRACE,
     AuthMethod,
     RefreshToken,
     Session,
@@ -183,6 +184,37 @@ def test_reutilizar_un_token_rotado_revoca_la_sesion() -> None:
     assert session.revoked_at == NOW + timedelta(minutes=11)
     assert session.revoked_reason == "token_reuse"
     assert not session.is_active(NOW + timedelta(minutes=12))
+
+
+@pytest.mark.parametrize("delay", [timedelta(0), timedelta(seconds=30)])
+def test_reutilizar_dentro_del_margen_es_una_carrera_y_no_revoca(delay: timedelta) -> None:
+    # Dos pestañas que renuevan a la vez, o la app cerrada antes de recibir la cookie nueva.
+    session = started()
+    current = rt(NOW, session)
+    rotated_at = NOW + timedelta(minutes=10)
+    rotate_refresh_token(session, current, new_hash=b"" * 32, now=rotated_at)
+
+    again = rotate_refresh_token(session, current, new_hash=b"" * 32, now=rotated_at + delay)
+
+    assert again.token_hash == b"" * 32
+    assert session.revoked_at is None
+    assert current.rotated_at == rotated_at  # el margen cuenta desde la primera rotación
+
+
+def test_reutilizar_pasado_el_margen_revoca() -> None:
+    session = started()
+    current = rt(NOW, session)
+    rotated_at = NOW + timedelta(minutes=10)
+    rotate_refresh_token(session, current, new_hash=b"" * 32, now=rotated_at)
+
+    with pytest.raises(SessionRevokedError):
+        rotate_refresh_token(
+            session,
+            current,
+            new_hash=b"" * 32,
+            now=rotated_at + REUSE_GRACE + timedelta(seconds=1),
+        )
+    assert session.revoked_reason == "token_reuse"
 
 
 def test_una_sesion_revocada_no_se_renueva() -> None:

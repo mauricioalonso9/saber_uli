@@ -179,6 +179,12 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
     su hash SHA-256. Cookie `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`.
     Rotación en cada uso con detección de reutilización por familia: si se presenta un token ya
     rotado, se revoca toda la familia (todas las sesiones derivadas).
+  - **Precisión (2026-10-07, T103)**: reutilizar un token rotado hace **30 segundos o menos**
+    no revoca: es una carrera benigna (dos pestañas que renuevan a la vez, o la app cerrada antes
+    de recibir la cookie nueva) y se emite otro token de la familia. Pasado ese margen sí se
+    revoca. Lo mostró la e2e de US3: cerrar la app justo después de ingresar dejaba la sesión
+    revocada «por seguridad» al volver. Es el mismo compromiso que el *reuse interval* de los
+    proveedores de identidad: un ladrón tendría que usar el token en esos 30 s.
   - **Duración para sesiones de aprendizaje**: 7 días de inactividad y 30 días absolutos.
 - **Justificación**: definido en el kit (JWT corto + *refresh* rotativo en cookie). La
   inactividad de 7 días coincide con el plazo sin conexión de FR-038: quien pasa más de 7 días

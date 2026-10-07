@@ -22,7 +22,7 @@ from saber_uli.identity.application.access_guard import AccessGuard
 from saber_uli.identity.application.public import AuthenticatedUser
 from saber_uli.identity.application.sessions import SessionService
 from saber_uli.identity.domain.roles import Role
-from saber_uli.identity.domain.session import AuthMethod
+from saber_uli.identity.domain.session import REUSE_GRACE, AuthMethod
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
 from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
 from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
@@ -216,11 +216,28 @@ async def test_renueva_rota_la_cookie_y_entrega_el_token(
     assert int(new["max-age"]) == int(timedelta(days=7).total_seconds())
 
 
+async def test_dentro_del_margen_reutilizar_es_una_carrera_y_no_revoca(
+    app: FastAPI, login: Login, clock: FixedClock
+) -> None:
+    # Dos pestañas que renuevan a la vez, o la app cerrada antes de recibir la cookie nueva.
+    _, cookie = await login()
+    first = await refresh(app, cookie)
+    clock.advance(timedelta(seconds=5))
+
+    second = await refresh(app, cookie)
+
+    assert second.status_code == 200, second.text
+    assert set_cookie(second).value != set_cookie(first).value
+    assert (await refresh(app, set_cookie(first).value)).status_code == 200
+    assert (await refresh(app, set_cookie(second).value)).status_code == 200
+
+
 async def test_reutilizar_un_token_rotado_revoca_la_familia(
-    app: FastAPI, login: Login, app_engine: AsyncEngine
+    app: FastAPI, login: Login, app_engine: AsyncEngine, clock: FixedClock
 ) -> None:
     user, cookie = await login()
     rotated = set_cookie(await refresh(app, cookie)).value
+    clock.advance(REUSE_GRACE + timedelta(seconds=1))
 
     reused = await refresh(app, cookie)
 
@@ -351,10 +368,11 @@ async def test_tras_logout_el_token_de_acceso_ya_no_sirve(app: FastAPI, login: L
 
 
 async def test_tras_reutilizar_un_token_el_de_acceso_ya_no_sirve(
-    app: FastAPI, login: Login
+    app: FastAPI, login: Login, clock: FixedClock
 ) -> None:
     _, first = await login()
     token, _ = await access_token(app, first)
+    clock.advance(REUSE_GRACE + timedelta(seconds=1))
 
     assert problem(await refresh(app, first)) == "session-revoked"  # reutilización
     assert problem(await protected(app, token)) == "session-revoked"

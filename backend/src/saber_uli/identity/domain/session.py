@@ -25,6 +25,8 @@ IDLE_TIMEOUT = timedelta(days=7)
 ABSOLUTE_LIFETIME = timedelta(days=30)
 PRIVILEGED_REAUTHENTICATION = timedelta(hours=12)
 PRIVILEGED_IDLE = timedelta(minutes=30)
+# Margen en el que reutilizar un token recién rotado no se considera robo (R-14).
+REUSE_GRACE = timedelta(seconds=30)
 
 RevocationReason = Literal["logout", "token_reuse", "access_changed", "reauthenticated"]
 
@@ -120,16 +122,19 @@ def rotate_refresh_token(
     """Valida `current`, lo marca como rotado y emite el siguiente token de la familia.
 
     Lanza `SessionRevokedError` si la sesión estaba revocada o si `current` ya se había usado
-    (reutilización: revoca la sesión), y `SessionExpiredError` si venció por inactividad o por
-    duración absoluta.
+    hace más de `REUSE_GRACE` (reutilización: revoca la sesión), y `SessionExpiredError` si venció
+    por inactividad o por duración absoluta. Dentro del margen, volver a usar `current` es una
+    carrera benigna (dos pestañas que renuevan a la vez, o la app cerrada antes de recibir la
+    cookie nueva) y emite otro token de la familia.
     """
-    if current.rotated_at is not None:
+    if current.rotated_at is not None and now - current.rotated_at > REUSE_GRACE:
         session.revoke(now, "token_reuse")
         raise SessionRevokedError("La sesión se cerró por seguridad.")
     if session.revoked_at is not None:
         raise SessionRevokedError("La sesión se cerró.")
     if now >= current.idle_expires_at or not session.is_active(now):
         raise SessionExpiredError("La sesión venció.")
-    current.rotated_at = now
+    if current.rotated_at is None:
+        current.rotated_at = now
     session.touch(now)
     return RefreshToken.issue(session, token_hash=new_hash, now=now)

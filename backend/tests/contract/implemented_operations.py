@@ -11,5 +11,9 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         "getReadiness",
         "refreshSession",
         "logout",
+        # US1 (T078, T079)
+        "startMicrosoftLogin",
+        "completeMicrosoftLogin",
+        "getMe",
     }
 )

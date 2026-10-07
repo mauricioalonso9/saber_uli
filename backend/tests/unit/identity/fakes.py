@@ -83,6 +83,9 @@ class FakeGuestAccess:
     async def status_for(self, user_id: UUID, *, now: datetime) -> GuestAccessStatus:
         return GuestAccessStatus.NONE
 
+    async def expires_at_for(self, user_id: UUID) -> datetime | None:
+        return None
+
 
 class FakeConsents:
     async def latest_for_user(self, user_id: UUID) -> ConsentRecord | None:

@@ -802,8 +802,9 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
 - [x] T073 [P] [US1] Prueba: flujo HTTP en `backend/tests/integration/identity/test_microsoft_login_flow.py` (`GET /api/auth/microsoft/login` → 302 a la autoridad del inquilino; `return_to` solo rutas relativas; callback válido → 302 a `/bienvenida/datos` y cookie `su_refresh`; inquilino externo → 302 a `/ingresar?error=tenant_not_allowed` sin crear usuario y log `auth.login_rejected` sin correo (FR-036); proveedor caído → `/ingresar?error=idp_unavailable`; rate limit 30/min por IP) → Opus
   - Terminado: la prueba falla.
   - Estado: ver T078.
-- [ ] T074 [P] [US1] Prueba: `GET /api/v1/me` en `backend/tests/integration/identity/test_me.py` (campos del esquema `Me`; `permissions` según roles; `onboarding.consent_required` y `profile_required`; `access.offline_grace_until` = `validated_at` + 7 días; responde sin autorización de datos por ser exenta) → Qwen
+- [x] T074 [P] [US1] Prueba: `GET /api/v1/me` en `backend/tests/integration/identity/test_me.py` (campos del esquema `Me`; `permissions` según roles; `onboarding.consent_required` y `profile_required`; `access.offline_grace_until` = `validated_at` + 7 días; responde sin autorización de datos por ser exenta) → Qwen
   - Terminado: la prueba falla.
+  - Estado: ver T079.
 - [ ] T075 [P] [US1] Prueba de componente `frontend/src/features/auth/LoginPage.test.tsx` (botón "Ingresar con mi cuenta Unilibre"; mensaje para `tenant_not_allowed` con la alternativa de pedir invitación (SC-008); mensaje para `idp_unavailable`; enlace a ingreso de invitados) → Qwen
   - Terminado: la prueba falla.
 
@@ -851,8 +852,24 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
     y `AuthenticateInstitutionalUser`. 12 pruebas en verde con la app completa.
   - Desviación de R-13: `SessionMiddleware` firma la cookie `su_oidc` pero no la cifra. Se acepta:
     `state`, `nonce` y verificador son del propio navegador que inicia el flujo.
-- [ ] T079 [US1] Implementar `backend/src/saber_uli/identity/application/queries/get_me.py` y `backend/src/saber_uli/identity/api/me_router.py` para que pase T074; agregar `startMicrosoftLogin`, `completeMicrosoftLogin` y `getMe` a `backend/tests/contract/implemented_operations.py` → Qwen
+- [x] T079 [US1] Implementar `backend/src/saber_uli/identity/application/queries/get_me.py` y `backend/src/saber_uli/identity/api/me_router.py` para que pase T074; agregar `startMicrosoftLogin`, `completeMicrosoftLogin` y `getMe` a `backend/tests/contract/implemented_operations.py` → Qwen
   - Terminado: T074 y la prueba de contrato en verde.
+  - Estado: implementadas por Opus (2026-10-07) porque Qwen no tenía créditos; T074 falló al no
+    existir la ruta (commit `b3e7b2e`). `GetMe` (estado combinado con el acceso de invitado
+    `guest_expired`/`guest_revoked`; roles y permisos ordenados; `consent_required` y
+    `current_policy_version_id`; `profile_required` según `onboarding_completed_at`;
+    `validated_at` + 7 días; vencimiento del acceso de invitado; `privileged_session`) y
+    `me_router` con modelos del esquema `Me`; `main.py` monta `/api/v1` con la guardia de
+    consentimiento (`getMe` exenta). `GuestAccessReader.expires_at_for` nuevo. Contrato: agregadas
+    `startMicrosoftLogin`, `completeMicrosoftLogin` y `getMe`; el arnés usa un Entra ID simulado
+    (ninguna prueba llama a Microsoft), no sigue redirecciones, excluye las comprobaciones 2xx/4xx
+    en las dos operaciones que solo documentan 302 y usa un limitador sin límite (los límites se
+    prueban en T035). Hallazgos del contrato corregidos en el router de T078: `return_to` inválido
+    o de más de 200 caracteres se ignora (antes 422) y la falta de `state` redirige a
+    `invalid_state` (antes 422). Además, el callback ya no tiene límite propio (el contrato no
+    documenta 429 ahí): solo avanza con la cookie firmada de un solo uso que emite `/login`, que sí
+    tiene el límite de 30/min por IP (precisión de R-31). T074 (7 pruebas) y contrato en verde;
+    suite: 433.
 - [ ] T080 [US1] Implementar `frontend/src/features/auth/LoginPage.tsx` y `frontend/src/features/auth/bootstrap.ts` (tras volver de Microsoft: renovar, consultar `/me`, guardar instantánea, redirigir según guardias; botón de cerrar sesión en `AppShell`) → Qwen
   - Terminado: T075 en verde.
 - [ ] T081 [US1] Prueba e2e `frontend/tests/e2e/us1-institutional-login.spec.ts` (usuario del inquilino llega a `/bienvenida/datos`; usuario externo ve el rechazo y no se crea cuenta; cerrar sesión exige ingresar de nuevo; axe sin infracciones AA en `/ingresar`) → Qwen

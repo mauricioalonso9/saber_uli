@@ -31,3 +31,12 @@ class SqlAlchemyGuestAccessReader:
         if status == "expired" or access_expires_at <= now:
             return GuestAccessStatus.EXPIRED
         return GuestAccessStatus.ACTIVE
+
+    async def expires_at_for(self, user_id: UUID) -> datetime | None:
+        expires: datetime | None = await self._db.scalar(
+            select(InvitationRow.access_expires_at)
+            .where(InvitationRow.guest_user_id == user_id)
+            .order_by(InvitationRow.created_at.desc())
+            .limit(1)
+        )
+        return expires

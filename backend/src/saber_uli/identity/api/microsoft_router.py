@@ -9,16 +9,17 @@ FR-001 a FR-005, FR-036; research R-10 a R-13, R-31.
   canjea el código y valida el ID token; crea o actualiza la cuenta; abre la sesión (cookie
   `su_refresh`) y redirige al primer paso pendiente (`/bienvenida/datos`, `/bienvenida/perfil`)
   o a `return_to` (por defecto `/inicio`).
+- Límite de 30/min por IP en `/login` (R-31).
 - Cualquier rechazo redirige a `/ingresar?error=<código>` sin crear cuenta ni sesión y se
   registra `auth.login_rejected` con la causa, nunca el correo ni los tokens (FR-036).
 """
 
 import hmac
 import re
-from typing import Annotated, Any
+from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import RedirectResponse
 
 from saber_uli.identity.api.auth_router import refresh_cookie
@@ -74,7 +75,8 @@ def _state(request: Request, name: str) -> Any:
 )
 async def start_microsoft_login(
     request: Request,
-    return_to: Annotated[str | None, Query(max_length=200)] = None,
+    # Un `return_to` inválido o externo se ignora (no es un error): se vuelve a /inicio.
+    return_to: str | None = None,
 ) -> RedirectResponse:
     entra: EntraIdClient = _state(request, "entra_client")
     try:
@@ -101,21 +103,22 @@ async def _next_step(request: Request, user: User, return_to: str | None) -> str
     return return_to or HOME_PATH
 
 
-@router.get(
-    "/callback",
-    operation_id="completeMicrosoftLogin",
-    status_code=302,
-    dependencies=[Depends(per_ip(AUTH_PER_IP))],
-)
+# Sin límite propio: el callback solo avanza con la cookie firmada de un solo uso que emite
+# `/login`, que sí está limitado (30/min por IP, R-31); el contrato no documenta 429 aquí.
+@router.get("/callback", operation_id="completeMicrosoftLogin", status_code=302)
 async def complete_microsoft_login(
     request: Request,
-    state: str,
+    state: str | None = None,
     code: str | None = None,
     error: str | None = None,
 ) -> RedirectResponse:
     pending = request.session.get(PENDING_KEY)
-    if not isinstance(pending, dict) or not hmac.compare_digest(
-        str(pending.get("state", "")), state
+    # Todo error se expresa como redirección (el contrato solo documenta 302), también la
+    # ausencia de `state`.
+    if (
+        not state
+        or not isinstance(pending, dict)
+        or not hmac.compare_digest(str(pending.get("state", "")), state)
     ):
         return _rejected(request, "invalid_state")
     request.session.clear()  # un solo uso: la cookie su_oidc se borra en la respuesta

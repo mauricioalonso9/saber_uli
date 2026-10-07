@@ -80,6 +80,10 @@ class GuestAccessReader(Protocol):
         """Estado del acceso derivado de la invitación más reciente del invitado (§4.2)."""
         ...
 
+    async def expires_at_for(self, user_id: UUID) -> datetime | None:
+        """Vencimiento del acceso según la invitación más reciente (`None` si no hay)."""
+        ...
+
 
 class AuditRepository(Protocol):
     async def add(self, entry: "AuditEntry") -> None: ...

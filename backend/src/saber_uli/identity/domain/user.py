@@ -159,6 +159,21 @@ class User:
         if display_name:
             self.display_name = display_name
 
+    # --- Primer ingreso y perfil (FR-019 a FR-022) -----------------------------------------
+
+    def complete_onboarding(self, now: datetime) -> None:
+        """Marca el fin del primer ingreso; editar el perfil después no cambia la fecha."""
+        if self.onboarding_completed_at is None:
+            self.onboarding_completed_at = now
+
+    def rename_guest(self, name: str) -> None:
+        """El nombre visible de un invitado es el que indica en su perfil (FR-020)."""
+        if self.kind is not UserKind.GUEST:
+            raise ValueError(
+                "solo los invitados indican su nombre; el institucional es del directorio"
+            )
+        self.display_name = name
+
     # --- Roles (FR-023, FR-024) -----------------------------------------------------------
 
     def grant_role(self, role: Role) -> None:

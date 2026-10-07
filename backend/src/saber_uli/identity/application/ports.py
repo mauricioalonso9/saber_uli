@@ -8,6 +8,8 @@ from uuid import UUID
 
 from saber_uli.identity.domain.consent import ConsentDecision, ConsentRecord
 from saber_uli.identity.domain.policy import PolicyVersion
+from saber_uli.identity.domain.profile import Profile
+from saber_uli.identity.domain.program import Program
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
 
@@ -114,6 +116,28 @@ class ConsentRepository(Protocol):
         ...
 
     async def add(self, user_id: UUID, record: ConsentRecord) -> ConsentEntry: ...
+
+
+class ProfileRepository(Protocol):
+    async def get(self, user_id: UUID) -> Profile | None: ...
+
+    async def save(self, profile: Profile) -> None:
+        """Inserta o actualiza el perfil (uno por usuario)."""
+        ...
+
+
+class ProgramRepository(Protocol):
+    async def get(self, program_id: UUID) -> Program | None: ...
+
+    async def get_by_code(self, code: str) -> Program | None: ...
+
+    async def list_active(self) -> list[Program]:
+        """Programas activos ordenados por nombre y seccional."""
+        ...
+
+    async def add(self, program: Program) -> Program: ...
+
+    async def save(self, program: Program) -> None: ...
 
 
 class PolicyRepository(Protocol):

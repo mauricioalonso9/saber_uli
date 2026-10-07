@@ -26,11 +26,13 @@ from saber_uli.identity.api.consent_router import router as consent_router
 from saber_uli.identity.api.me_router import router as me_router
 from saber_uli.identity.api.microsoft_router import router as microsoft_router
 from saber_uli.identity.api.policy_router import router as policy_router
+from saber_uli.identity.api.profile_router import router as profile_router
 from saber_uli.identity.application.access_guard import AccessGuard
 from saber_uli.identity.application.authenticate_institutional_user import (
     AuthenticateInstitutionalUser,
 )
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
+from saber_uli.identity.application.profile import ProfileService, ProgramCatalog
 from saber_uli.identity.application.queries.consent_status import ConsentStatusQuery
 from saber_uli.identity.application.queries.get_me import GetMe
 from saber_uli.identity.application.sessions import SessionService
@@ -149,6 +151,8 @@ def create_app(
     )
     app.state.get_me = GetMe(uow_factory=identity_uow, clock=clock)
     app.state.consent_service = ConsentService(uow_factory=identity_uow, clock=clock)
+    app.state.profile_service = ProfileService(uow_factory=identity_uow, clock=clock)
+    app.state.program_catalog = ProgramCatalog(uow_factory=identity_uow)
     app.state.privacy_policy_service = PrivacyPolicyService(uow_factory=identity_uow, clock=clock)
     app.state.readiness_checks = {"database": database_ready, "redis": redis_ready}
 
@@ -161,6 +165,7 @@ def create_app(
     app.include_router(me_router, dependencies=v1)
     app.include_router(consent_router, dependencies=v1)
     app.include_router(policy_router, dependencies=v1)
+    app.include_router(profile_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

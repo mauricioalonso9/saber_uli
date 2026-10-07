@@ -7,6 +7,8 @@ from saber_uli.identity.application.ports import (
     ConsentRepository,
     GuestAccessReader,
     PolicyRepository,
+    ProfileRepository,
+    ProgramRepository,
     SessionRepository,
     UserRepository,
 )
@@ -33,6 +35,14 @@ class IdentityUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def policies(self) -> PolicyRepository: ...
+
+    @property
+    @abstractmethod
+    def profiles(self) -> ProfileRepository: ...
+
+    @property
+    @abstractmethod
+    def programs(self) -> ProgramRepository: ...
 
     @property
     @abstractmethod

@@ -30,6 +30,8 @@ from tests.integration.conftest import REPO, CommittedLogin, settings_for
 
 CONTRACT = REPO / "specs" / "001-identidad-acceso" / "contracts" / "openapi.yaml"
 REDIRECT_ONLY = {"GET /api/auth/microsoft/login", "GET /api/auth/microsoft/callback"}
+# Operaciones con reglas entre campos (institucional frente a invitado en `ProfileUpdate`).
+CROSS_FIELD_RULES = {"PUT /api/v1/me/profile"}
 
 
 class Unlimited:
@@ -111,11 +113,13 @@ def test_contrato(case: Any, contract_headers: dict[str, str]) -> None:
     # Las redirecciones (ingreso con Microsoft) apuntan al frontend o al proveedor: no se siguen.
     # Esas operaciones expresan éxito y error con 302 (el contrato no documenta otra cosa), así que
     # las comprobaciones de aceptación (2xx) y rechazo (4xx) no aplican a ellas.
-    excluded = (
-        [positive_data_acceptance, negative_data_rejection]
-        if case.operation.label in REDIRECT_ONLY
-        else []
-    )
+    excluded: list[Any] = []
+    if case.operation.label in REDIRECT_ONLY:
+        excluded = [positive_data_acceptance, negative_data_rejection]
+    elif case.operation.label in CROSS_FIELD_RULES:
+        # Datos válidos campo por campo pueden violar reglas entre campos que el contrato solo
+        # describe en texto; el 422 es correcto. El resto de comprobaciones sí aplica.
+        excluded = [positive_data_acceptance]
     case.call_and_validate(
         headers=contract_headers, allow_redirects=False, excluded_checks=excluded
     )

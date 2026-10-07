@@ -7,6 +7,8 @@ from saber_uli.identity.application.ports import (
     ConsentRepository,
     GuestAccessReader,
     PolicyRepository,
+    ProfileRepository,
+    ProgramRepository,
     SessionRepository,
     UserRepository,
 )
@@ -17,6 +19,8 @@ from saber_uli.identity.infrastructure.repositories.guest_access import (
     SqlAlchemyGuestAccessReader,
 )
 from saber_uli.identity.infrastructure.repositories.policies import SqlAlchemyPolicyRepository
+from saber_uli.identity.infrastructure.repositories.profiles import SqlAlchemyProfileRepository
+from saber_uli.identity.infrastructure.repositories.programs import SqlAlchemyProgramRepository
 from saber_uli.identity.infrastructure.repositories.sessions import SqlAlchemySessionRepository
 from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
 from saber_uli.shared.application.event_bus import EventBus
@@ -46,6 +50,14 @@ class SqlAlchemyIdentityUnitOfWork(SqlAlchemyUnitOfWork, IdentityUnitOfWork):
     @property
     def policies(self) -> PolicyRepository:
         return SqlAlchemyPolicyRepository(self.session)
+
+    @property
+    def profiles(self) -> ProfileRepository:
+        return SqlAlchemyProfileRepository(self.session)
+
+    @property
+    def programs(self) -> ProgramRepository:
+        return SqlAlchemyProgramRepository(self.session)
 
     @property
     def audit(self) -> AuditRepository:

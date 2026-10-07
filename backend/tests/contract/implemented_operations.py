@@ -22,5 +22,9 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         "getCurrentPolicy",
         "getPolicyVersion",
         "publishPolicyVersion",
+        # US3 (T100)
+        "listActivePrograms",
+        "getMyProfile",
+        "updateMyProfile",
     }
 )

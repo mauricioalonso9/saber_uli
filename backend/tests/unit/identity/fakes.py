@@ -13,6 +13,8 @@ from saber_uli.identity.application.ports import AuditRepository, ConsentEntry, 
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
 from saber_uli.identity.domain.consent import ConsentRecord
 from saber_uli.identity.domain.policy import PolicyVersion
+from saber_uli.identity.domain.profile import Profile
+from saber_uli.identity.domain.program import Program
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
 from saber_uli.shared.application.event_bus import EventBus
@@ -119,6 +121,40 @@ class FakePolicies:
         raise NotImplementedError
 
 
+class FakeProfiles:
+    def __init__(self) -> None:
+        self.rows: dict[UUID, Profile] = {}
+
+    async def get(self, user_id: UUID) -> Profile | None:
+        return self.rows.get(user_id)
+
+    async def save(self, profile: Profile) -> None:
+        self.rows[profile.user_id] = profile
+
+
+class FakePrograms:
+    def __init__(self) -> None:
+        self.rows: dict[UUID, Program] = {}
+
+    async def get(self, program_id: UUID) -> Program | None:
+        return self.rows.get(program_id)
+
+    async def get_by_code(self, code: str) -> Program | None:
+        return next((p for p in self.rows.values() if p.code == code), None)
+
+    async def list_active(self) -> list[Program]:
+        return sorted((p for p in self.rows.values() if p.active), key=lambda p: p.name)
+
+    async def add(self, program: Program) -> Program:
+        program.id = uuid4()
+        self.rows[program.id] = program
+        return program
+
+    async def save(self, program: Program) -> None:
+        assert program.id is not None
+        self.rows[program.id] = program
+
+
 class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     """Comparte los repositorios entre aperturas (como una base de datos) y cuenta los commits."""
 
@@ -130,6 +166,8 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
         self._guest_access = FakeGuestAccess()
         self._consents = FakeConsents()
         self._policies = FakePolicies()
+        self._profiles = FakeProfiles()
+        self._programs = FakePrograms()
         self.commits = 0
 
     def __call__(self) -> "FakeIdentityUnitOfWork":
@@ -154,6 +192,14 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     @property
     def policies(self) -> FakePolicies:
         return self._policies
+
+    @property
+    def profiles(self) -> FakeProfiles:
+        return self._profiles
+
+    @property
+    def programs(self) -> FakePrograms:
+        return self._programs
 
     @property
     def audit(self) -> FakeAudit:

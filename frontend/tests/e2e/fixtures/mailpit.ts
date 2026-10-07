@@ -22,15 +22,17 @@ export class Mailpit {
     await this.api.delete("/api/v1/messages");
   }
 
-  /** Espera el correo más reciente para `to` (hasta `timeoutMs`). */
-  async latestFor(to: string, timeoutMs = 15_000): Promise<MailpitMessage> {
+  /**
+   * Espera el correo más reciente para `to` (hasta `timeoutMs`); con `subject`, el más reciente
+   * con ese asunto.
+   */
+  async latestFor(to: string, timeoutMs = 15_000, subject?: string): Promise<MailpitMessage> {
     let found: MailpitMessage | undefined;
+    const query = subject ? `to:"${to}" subject:"${subject}"` : `to:"${to}"`;
     await expect
       .poll(
         async () => {
-          const response = await this.api.get(
-            `/api/v1/search?query=${encodeURIComponent(`to:"${to}"`)}`,
-          );
+          const response = await this.api.get(`/api/v1/search?query=${encodeURIComponent(query)}`);
           const body = (await response.json()) as { messages: { ID: string }[] };
           const first = body.messages[0];
           if (!first) {

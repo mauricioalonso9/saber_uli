@@ -73,3 +73,14 @@ export function ensureProgram(code: string, name: string, campus: string): void 
     { code, name, campus },
   );
 }
+
+/** Simula que el acceso del invitado ya venció (fecha simulada, quickstart V6). */
+export function expireGuestAccess(email: string): void {
+  psql(
+    `UPDATE identity.invitations
+        SET access_expires_at = now() - interval '1 minute',
+            created_at = LEAST(created_at, now() - interval '1 day')
+      WHERE lower(email) = lower(:'email') AND status IN ('sent', 'accepted');`,
+    { email },
+  );
+}

@@ -793,8 +793,9 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T071 [P] [US1] Prueba: caso de uso en `backend/tests/unit/identity/test_authenticate_institutional_user.py` (primer ingreso crea usuario `institutional` con rol `student`, nombre y correo de los claims (FR-003); ingreso posterior reutiliza la cuenta por `(tid, oid)` y actualiza nombre y correo (FR-005, escenario 1.3); `tid` distinto → error `tenant_not_allowed` sin crear cuenta (FR-002); cuenta `disabled` → `account-disabled`; registra `last_login_at`; audita `user.created` solo en el primer ingreso) → Qwen
+- [x] T071 [P] [US1] Prueba: caso de uso en `backend/tests/unit/identity/test_authenticate_institutional_user.py` (primer ingreso crea usuario `institutional` con rol `student`, nombre y correo de los claims (FR-003); ingreso posterior reutiliza la cuenta por `(tid, oid)` y actualiza nombre y correo (FR-005, escenario 1.3); `tid` distinto → error `tenant_not_allowed` sin crear cuenta (FR-002); cuenta `disabled` → `account-disabled`; registra `last_login_at`; audita `user.created` solo en el primer ingreso) → Qwen
   - Terminado: la prueba falla.
+  - Estado: ver T076.
 - [ ] T072 [P] [US1] Prueba: adaptador Entra ID en `backend/tests/integration/identity/test_entra_adapter.py` con respx y JWK generadas (descubrimiento por `.well-known`; PKCE S256; `state` y `nonce` en cookie firmada de 10 min; rechaza firma inválida, `aud` distinto, `nonce` distinto, `iss` de otro inquilino y `tid` distinto; usa la autoridad del inquilino, nunca `common`; toma solo `oid`, `tid`, `name`, `email` o `preferred_username`; research R-10 a R-13) → Opus
   - Terminado: la prueba falla.
 - [ ] T073 [P] [US1] Prueba: flujo HTTP en `backend/tests/integration/identity/test_microsoft_login_flow.py` (`GET /api/auth/microsoft/login` → 302 a la autoridad del inquilino; `return_to` solo rutas relativas; callback válido → 302 a `/bienvenida/datos` y cookie `su_refresh`; inquilino externo → 302 a `/ingresar?error=tenant_not_allowed` sin crear usuario y log `auth.login_rejected` sin correo (FR-036); proveedor caído → `/ingresar?error=idp_unavailable`; rate limit 30/min por IP) → Opus
@@ -806,8 +807,16 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
 
 ### Implementation for User Story 1
 
-- [ ] T076 [US1] Implementar `backend/src/saber_uli/identity/application/authenticate_institutional_user.py` para que pase T071 → Qwen
+- [x] T076 [US1] Implementar `backend/src/saber_uli/identity/application/authenticate_institutional_user.py` para que pase T071 → Qwen
   - Terminado: T071 en verde.
+  - Estado: implementadas por Opus (2026-10-07) porque Qwen no tenía créditos; T071 falló por
+    `ImportError` (commit `f29ef09`). `AuthenticateInstitutionalUser`: otro `tid` →
+    `TenantNotAllowedError` (código `tenant_not_allowed` para `/ingresar?error=`) sin crear cuenta;
+    cuenta por (`tid`, `oid`): primer ingreso crea institucional con Estudiante y audita
+    `user.created` (sin datos personales, actor sistema); ingresos posteriores actualizan nombre y
+    correo y registran `last_login_at`; desactivada → `account-disabled`; en supresión →
+    `account-deleted`; sin nombre usa el correo. Dobles en memoria reutilizables en
+    `tests/unit/identity/fakes.py`. 6 pruebas en verde.
 - [ ] T077 [US1] Implementar `backend/src/saber_uli/identity/infrastructure/entra_id.py` (cliente Authlib) para que pase T072 → Opus
   - Terminado: T072 en verde.
 - [ ] T078 [US1] Implementar `backend/src/saber_uli/identity/api/microsoft_router.py` (login y callback) para que pase T073 → Opus

@@ -30,12 +30,15 @@ export function InvitationsPage() {
   const isAdmin = me?.permissions.includes("invitations:manage_all") ?? false;
   const [status, setStatus] = useState<InvitationStatus | "">("");
   const [mine, setMine] = useState(false);
+  const [search, setSearch] = useState("");
+  const [q, setQ] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const ids = { status: useId(), mine: useId() };
+  const ids = { status: useId(), mine: useId(), search: useId() };
 
   const params: ListInvitationsParams = { page: 1, page_size: 100 };
   if (status) params.status = status;
+  if (q) params.q = q;
   if (isAdmin && mine && me) params.invited_by = me.id;
   const list = useListInvitations(params);
 
@@ -77,6 +80,29 @@ export function InvitationsPage() {
       ) : null}
 
       <div className="mb-4 flex flex-wrap items-end gap-4">
+        <form
+          role="search"
+          className="flex items-end gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setQ(search.trim());
+          }}
+        >
+          <div>
+            <Label htmlFor={ids.search}>{t("invitations.filters.search")}</Label>
+            <input
+              id={ids.search}
+              type="search"
+              maxLength={254}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="mt-1 h-11 rounded-md border border-input bg-background px-3"
+            />
+          </div>
+          <Button type="submit" variant="outline" className="h-11">
+            {t("invitations.filters.searchButton")}
+          </Button>
+        </form>
         <div>
           <Label htmlFor={ids.status}>{t("invitations.filters.status")}</Label>
           <select
@@ -109,6 +135,14 @@ export function InvitationsPage() {
 
       {list.isPending ? <p role="status">{t("invitations.loading")}</p> : null}
       {list.isError && !reauth ? <p role="alert">{problemText(list.error)}</p> : null}
+      {list.data ? (
+        <p className="mb-2 text-sm text-muted-foreground">
+          {t("invitations.count", { count: list.data.total })}
+          {list.data.total > list.data.items.length
+            ? ` ${t("invitations.partial", { shown: list.data.items.length })}`
+            : ""}
+        </p>
+      ) : null}
       {list.data ? (
         list.data.items.length === 0 ? (
           <p>{t("invitations.empty")}</p>

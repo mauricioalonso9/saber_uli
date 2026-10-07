@@ -196,7 +196,9 @@
     "filters": {
       "status": "Estado",
       "all": "Todas",
-      "mine": "Solo las que yo envié"
+      "mine": "Solo las que yo envié",
+      "search": "Buscar por correo o nombre",
+      "searchButton": "Buscar"
     },
     "table": {
       "email": "Correo",
@@ -262,6 +264,9 @@
       "confirmYes": "Sí, revocar",
       "cancel": "Cancelar",
       "revoked": "Revocamos el acceso de {{who}}."
-    }
+    },
+    "count_one": "{{count}} invitación.",
+    "count_other": "{{count}} invitaciones.",
+    "partial": "Se muestran las {{shown}} más recientes; usa la búsqueda para encontrar otras."
   }
 }

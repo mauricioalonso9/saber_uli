@@ -1508,8 +1508,8 @@ components:
         invited_by:
           type: [object, 'null']
           description: |
-            `null` si la creó el sistema (comando `invite-guest`). `display_name` es `null` si
-            quien invitó fue suprimido.
+            `null` si la creó el sistema (comando de operación invite-guest). `display_name` es
+            `null` si quien invitó fue suprimido.
           required: [id]
           properties:
             id: { type: string, format: uuid }

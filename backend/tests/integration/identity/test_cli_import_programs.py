@@ -8,7 +8,7 @@ reporta las filas inválidas sin abortar las válidas y audita con actor `system
 import os
 import subprocess
 import sys
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from pathlib import Path
 from uuid import uuid4
 
@@ -19,6 +19,8 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 HEADER = "codigo,nombre,seccional\n"
 
+Programs = Callable[[], Awaitable[dict[str, tuple[str, str, bool]]]]
+
 
 def run_import(
     url: str | None, *args: str, cwd: Path | None = None
@@ -26,7 +28,7 @@ def run_import(
     env = {k: v for k, v in os.environ.items() if k != "DATABASE_URL"}
     if url is not None:
         env["DATABASE_URL"] = url
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603 - los argumentos los fija la propia prueba
         [sys.executable, "-m", "saber_uli.cli", "identity", "import-programs", *args],
         env=env,
         capture_output=True,
@@ -45,9 +47,7 @@ def prefix() -> str:
 
 
 @pytest.fixture
-async def programs(
-    migrated_database: dict[str, str], prefix: str
-) -> AsyncIterator[Programs]:
+async def programs(migrated_database: dict[str, str], prefix: str) -> AsyncIterator[Programs]:
     engine = create_async_engine(migrated_database["migrator"], poolclass=NullPool)
 
     async def rows() -> dict[str, tuple[str, str, bool]]:
@@ -125,11 +125,14 @@ async def test_repetir_la_carga_no_duplica_y_actualiza_por_codigo(
     migrated_database: dict[str, str], programs: Programs, prefix: str, tmp_path: Path
 ) -> None:
     url = migrated_database["app"]
-    first = write_csv(tmp_path, HEADER + f"{prefix}-DER,Derecho,Bogotá\n{prefix}-ING,Ingeniería,Cúcuta\n")
+    first = write_csv(
+        tmp_path, HEADER + f"{prefix}-DER,Derecho,Bogotá\n{prefix}-ING,Ingeniería,Cúcuta\n"
+    )
     assert run_import(url, "--csv", str(first)).returncode == 0
 
     second = write_csv(
-        tmp_path, HEADER + f"{prefix}-DER,Derecho,Bogotá\n{prefix}-ING,Ingeniería de Sistemas,Cúcuta\n"
+        tmp_path,
+        HEADER + f"{prefix}-DER,Derecho,Bogotá\n{prefix}-ING,Ingeniería de Sistemas,Cúcuta\n",
     )
     result = run_import(url, "--csv", str(second))
 

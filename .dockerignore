@@ -7,6 +7,7 @@ specs
 docs
 *.md
 !README.md
+!backend/seeds/*.md
 .env
 .env.*
 backend/.venv

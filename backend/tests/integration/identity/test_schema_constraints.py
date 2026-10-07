@@ -267,7 +267,7 @@ async def policy(conn: AsyncConnection) -> UUID:
     result = await run(
         conn,
         """INSERT INTO identity.policy_versions (version, title, body_markdown, effective_from)
-           VALUES ('1.0', 'Política', '...', now()) RETURNING id""",
+           VALUES ('t-unica', 'Política', '...', now()) RETURNING id""",
     )
     return UUID(str(result.scalar_one()))
 
@@ -289,7 +289,7 @@ async def test_version_de_politica_unica(conn: AsyncConnection) -> None:
     await violates(
         conn,
         """INSERT INTO identity.policy_versions (version, title, body_markdown, effective_from)
-           VALUES ('1.0', 'Otra', '...', now())""",
+           VALUES ('t-unica', 'Otra', '...', now())""",
     )
 
 

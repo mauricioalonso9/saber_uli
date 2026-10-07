@@ -235,7 +235,7 @@ async def test_return_to_solo_rutas_internas_y_tras_completar_el_primer_ingreso(
             await conn.execute(
                 text(
                     """INSERT INTO identity.policy_versions (version, title, body_markdown,
-                           effective_from) VALUES (:v, 'Política', '...', now() - interval '1 day')
+                           effective_from) VALUES (:v, 'Política', '...', clock_timestamp())
                        RETURNING id"""
                 ),
                 {"v": f"t-{uuid4()}"},

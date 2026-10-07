@@ -1,7 +1,6 @@
 """T051: guardia de autorización de datos (FR-014; contrato: `x-consent-exempt`)."""
 
 from collections.abc import AsyncIterator, Awaitable, Callable
-from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any
 from uuid import UUID, uuid4
 
@@ -100,19 +99,21 @@ Decide = Callable[[UUID, UUID, str], Awaitable[None]]
 @pytest.fixture
 async def policies(
     app_engine: AsyncEngine, migrated_database: dict[str, str]
-) -> AsyncIterator[Callable[[timedelta], Awaitable[UUID]]]:
+) -> AsyncIterator[Callable[[], Awaitable[UUID]]]:
     created: list[UUID] = []
 
-    async def publish(age: timedelta) -> UUID:
+    async def publish() -> UUID:
+        # Cada versión rige desde el momento de crearla: es posterior a la 1.0 sembrada (0005)
+        # y a las anteriores, así que la última creada es la vigente.
         async with app_engine.begin() as conn:
             version_id = (
                 await conn.execute(
                     text(
                         """INSERT INTO identity.policy_versions
                                (version, title, body_markdown, effective_from)
-                           VALUES (:v, 'Política', '...', :f) RETURNING id"""
+                           VALUES (:v, 'Política', '...', clock_timestamp()) RETURNING id"""
                     ),
-                    {"v": f"t-{uuid4()}", "f": datetime.now(UTC) - age},
+                    {"v": f"t-{uuid4()}"},
                 )
             ).scalar_one()
         created.append(version_id)
@@ -168,7 +169,7 @@ def consent_required(response: httpx.Response) -> bool:
 async def test_sin_autorizacion_solo_responden_las_rutas_exentas(
     app: FastAPI, committed_login: CommittedLogin, policies: Any
 ) -> None:
-    await policies(timedelta(days=1))
+    await policies()
     _, token = await committed_login()
 
     assert (await get(app, "/api/v1/me", token)).status_code == 200
@@ -178,7 +179,7 @@ async def test_sin_autorizacion_solo_responden_las_rutas_exentas(
 async def test_con_autorizacion_vigente_responde(
     app: FastAPI, committed_login: CommittedLogin, policies: Any, app_engine: AsyncEngine
 ) -> None:
-    version = await policies(timedelta(days=1))
+    version = await policies()
     user, token = await committed_login()
     await decide(app_engine, user.id, version, "accepted")
 
@@ -188,7 +189,7 @@ async def test_con_autorizacion_vigente_responde(
 async def test_revocar_suspende_el_acceso(
     app: FastAPI, committed_login: CommittedLogin, policies: Any, app_engine: AsyncEngine
 ) -> None:
-    version = await policies(timedelta(days=1))
+    version = await policies()
     user, token = await committed_login()
     await decide(app_engine, user.id, version, "accepted")
     await decide(app_engine, user.id, version, "revoked")
@@ -199,10 +200,10 @@ async def test_revocar_suspende_el_acceso(
 async def test_una_version_nueva_exige_aceptarla(
     app: FastAPI, committed_login: CommittedLogin, policies: Any, app_engine: AsyncEngine
 ) -> None:
-    old = await policies(timedelta(days=30))
+    old = await policies()
     user, token = await committed_login()
     await decide(app_engine, user.id, old, "accepted")
-    await policies(timedelta(minutes=1))
+    await policies()
 
     assert consent_required(await get(app, "/api/v1/me/profile", token))
 

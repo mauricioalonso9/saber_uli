@@ -35,3 +35,8 @@ def run_migrations(url: str, revision: str = "head") -> None:
 def downgrade_migrations(url: str, revision: str) -> None:
     """Revierte hasta `revision` (por ejemplo `base`). Solo para pruebas y operación manual."""
     command.downgrade(_config(url), revision)
+
+
+def stamp_migrations(url: str, revision: str) -> None:
+    """Marca la base en `revision` sin ejecutar nada. Solo para pruebas y operación manual."""
+    command.stamp(_config(url), revision)

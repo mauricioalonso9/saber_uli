@@ -1,5 +1,6 @@
 """T083: semilla de la política de tratamiento de datos (migración 0005; data-model §2.10)."""
 
+import asyncio
 from pathlib import Path
 
 from sqlalchemy import text
@@ -31,9 +32,11 @@ async def test_tras_migrar_existe_la_version_1_0_vigente_con_el_texto_de_la_semi
 async def test_volver_a_migrar_no_duplica_la_version_1_0(
     db_session: AsyncSession, migrated_database: dict[str, str]
 ) -> None:
-    # Se vuelve a aplicar 0005 sobre una base que ya tiene la versión 1.0.
-    stamp_migrations(migrated_database["migrator"], "0004")
-    run_migrations(migrated_database["migrator"])
+    # Se vuelve a aplicar 0005 sobre una base que ya tiene la versión 1.0. Alembic crea su propio
+    # bucle de eventos: se ejecuta en otro hilo.
+    url = migrated_database["migrator"]
+    await asyncio.to_thread(stamp_migrations, url, "0004")
+    await asyncio.to_thread(run_migrations, url)
 
     count = (
         await db_session.execute(

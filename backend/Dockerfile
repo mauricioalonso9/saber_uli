@@ -47,6 +47,7 @@ WORKDIR /app
 # Archivos de solo lectura para el usuario de ejecución (propiedad de root).
 COPY --from=builder /app/.venv /app/.venv
 COPY backend/migrations /app/migrations
+COPY backend/seeds /app/seeds
 COPY --chmod=0755 infra/docker/backend-entrypoint.sh /usr/local/bin/saber-entrypoint
 
 USER 10001:10001

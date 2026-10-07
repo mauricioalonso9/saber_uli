@@ -5,6 +5,7 @@ búsqueda por identidad institucional) sin base de datos. La unidad de trabajo f
 se confirmó y descarta lo pendiente al revertir.
 """
 
+from collections.abc import Collection
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -14,6 +15,7 @@ from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
 from saber_uli.identity.domain.access_link import AccessLink, LinkPurpose
 from saber_uli.identity.domain.consent import ConsentRecord
 from saber_uli.identity.domain.invitation import Invitation, InvitationStatus
+from saber_uli.identity.domain.invitation_batch import InvitationBatch
 from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.profile import Profile
 from saber_uli.identity.domain.program import Program
@@ -51,6 +53,9 @@ class FakeUsers:
 
     async def lock_active_admins(self) -> list[UUID]:
         return []
+
+    async def display_names(self, user_ids: Collection[UUID]) -> dict[UUID, str | None]:
+        return {i: self.rows[i].display_name for i in user_ids if i in self.rows}
 
 
 class FakeAudit(AuditRepository):
@@ -174,6 +179,36 @@ class FakeInvitations:
     async def get_for_update(self, invitation_id: UUID) -> Invitation | None:
         return self.rows.get(invitation_id)
 
+    async def get(self, invitation_id: UUID) -> Invitation | None:
+        return self.rows.get(invitation_id)
+
+    async def search(
+        self,
+        *,
+        invited_by: UUID | None,
+        status: InvitationStatus | None,
+        q: str | None,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[Invitation], int]:
+        items = [
+            i
+            for i in self.rows.values()
+            if (invited_by is None or i.invited_by == invited_by)
+            and (status is None or i.status is status)
+            and (not q or q.lower() in (i.email or "").lower())
+        ]
+        return items[offset : offset + limit], len(items)
+
+    async def active_emails(self, emails: Collection[str]) -> set[str]:
+        wanted = {e.lower() for e in emails}
+        return {
+            (i.email or "").lower()
+            for i in self.rows.values()
+            if (i.email or "").lower() in wanted
+            and i.status in (InvitationStatus.SENT, InvitationStatus.ACCEPTED)
+        }
+
     async def find_active_by_email(self, email: str) -> Invitation | None:
         wanted = email.strip().lower()
         return next(
@@ -188,6 +223,26 @@ class FakeInvitations:
 
     async def set_delivery_status(self, invitation_id: UUID, status: str) -> None:
         return None
+
+
+class FakeInvitationBatches:
+    def __init__(self) -> None:
+        self.rows: dict[UUID, InvitationBatch] = {}
+
+    async def add(self, batch: InvitationBatch) -> InvitationBatch:
+        batch.id = uuid4()
+        self.rows[batch.id] = batch
+        return batch
+
+    async def save(self, batch: InvitationBatch) -> None:
+        assert batch.id is not None
+        self.rows[batch.id] = batch
+
+    async def get(self, batch_id: UUID) -> InvitationBatch | None:
+        return self.rows.get(batch_id)
+
+    async def get_for_update(self, batch_id: UUID) -> InvitationBatch | None:
+        return self.rows.get(batch_id)
 
 
 class FakeAccessLinks:
@@ -237,6 +292,7 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
         self._profiles = FakeProfiles()
         self._programs = FakePrograms()
         self._invitations = FakeInvitations()
+        self._invitation_batches = FakeInvitationBatches()
         self._access_links = FakeAccessLinks()
         self._settings = FakeSettings()
         self.commits = 0
@@ -275,6 +331,10 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     @property
     def invitations(self) -> FakeInvitations:
         return self._invitations
+
+    @property
+    def invitation_batches(self) -> FakeInvitationBatches:
+        return self._invitation_batches
 
     @property
     def access_links(self) -> FakeAccessLinks:

@@ -1,5 +1,6 @@
 """Puertos de la capa de aplicación de `identity` (los implementa `identity.infrastructure`)."""
 
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
@@ -8,7 +9,8 @@ from uuid import UUID
 
 from saber_uli.identity.domain.access_link import AccessLink, LinkPurpose
 from saber_uli.identity.domain.consent import ConsentDecision, ConsentRecord
-from saber_uli.identity.domain.invitation import Invitation
+from saber_uli.identity.domain.invitation import Invitation, InvitationStatus
+from saber_uli.identity.domain.invitation_batch import InvitationBatch
 from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.profile import Profile
 from saber_uli.identity.domain.program import Program
@@ -153,6 +155,24 @@ class InvitationRepository(Protocol):
 
     async def get_for_update(self, invitation_id: UUID) -> Invitation | None: ...
 
+    async def get(self, invitation_id: UUID) -> Invitation | None: ...
+
+    async def search(
+        self,
+        *,
+        invited_by: UUID | None,
+        status: InvitationStatus | None,
+        q: str | None,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[Invitation], int]:
+        """Página de invitaciones (las más recientes primero) y el total."""
+        ...
+
+    async def active_emails(self, emails: Collection[str]) -> set[str]:
+        """De `emails`, los que ya tienen invitación vigente (en minúsculas)."""
+        ...
+
     async def find_active_by_email(self, email: str) -> Invitation | None:
         """Invitación `sent` o `accepted` del correo, sin distinguir mayúsculas."""
         ...
@@ -160,6 +180,16 @@ class InvitationRepository(Protocol):
     async def set_delivery_status(self, invitation_id: UUID, status: str) -> None:
         """`queued`, `sent` o `failed` (caso límite de rebote)."""
         ...
+
+
+class InvitationBatchRepository(Protocol):
+    async def add(self, batch: InvitationBatch) -> InvitationBatch: ...
+
+    async def save(self, batch: InvitationBatch) -> None: ...
+
+    async def get(self, batch_id: UUID) -> InvitationBatch | None: ...
+
+    async def get_for_update(self, batch_id: UUID) -> InvitationBatch | None: ...
 
 
 class AccessLinkRepository(Protocol):
@@ -235,6 +265,10 @@ class UserRepository(Protocol):
 
     async def lock_active_admins(self) -> list[UUID]:
         """Bloquea (`FOR UPDATE`) y devuelve los administradores activos (FR-025, FR-034d)."""
+        ...
+
+    async def display_names(self, user_ids: Collection[UUID]) -> dict[UUID, str | None]:
+        """Nombre visible de cada usuario (`None` si fue suprimido o no tiene)."""
         ...
 
 

@@ -7,6 +7,7 @@ from saber_uli.identity.application.ports import (
     AuditRepository,
     ConsentRepository,
     GuestAccessReader,
+    InvitationBatchRepository,
     InvitationRepository,
     PolicyRepository,
     ProfileRepository,
@@ -23,6 +24,9 @@ from saber_uli.identity.infrastructure.repositories.audit import SqlAlchemyAudit
 from saber_uli.identity.infrastructure.repositories.consents import SqlAlchemyConsentRepository
 from saber_uli.identity.infrastructure.repositories.guest_access import (
     SqlAlchemyGuestAccessReader,
+)
+from saber_uli.identity.infrastructure.repositories.invitation_batches import (
+    SqlAlchemyInvitationBatchRepository,
 )
 from saber_uli.identity.infrastructure.repositories.invitations import (
     SqlAlchemyInvitationRepository,
@@ -72,6 +76,10 @@ class SqlAlchemyIdentityUnitOfWork(SqlAlchemyUnitOfWork, IdentityUnitOfWork):
     @property
     def invitations(self) -> InvitationRepository:
         return SqlAlchemyInvitationRepository(self.session)
+
+    @property
+    def invitation_batches(self) -> InvitationBatchRepository:
+        return SqlAlchemyInvitationBatchRepository(self.session)
 
     @property
     def access_links(self) -> AccessLinkRepository:

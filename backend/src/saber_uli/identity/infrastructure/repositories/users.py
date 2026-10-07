@@ -1,5 +1,6 @@
 """Repositorio de usuarios con SQLAlchemy (data-model §2.1 y §2.3)."""
 
+from collections.abc import Collection
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -122,3 +123,11 @@ class SqlAlchemyUserRepository:
             .with_for_update(of=UserRow)
         )
         return list(result)
+
+    async def display_names(self, user_ids: Collection[UUID]) -> dict[UUID, str | None]:
+        if not user_ids:
+            return {}
+        rows = await self._session.execute(
+            select(UserRow.id, UserRow.display_name).where(UserRow.id.in_(list(user_ids)))
+        )
+        return {row.id: row.display_name for row in rows}

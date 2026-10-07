@@ -37,7 +37,7 @@ from saber_uli.identity.application.import_programs import (
     ProgramLine,
     RejectedLine,
 )
-from saber_uli.identity.application.invitations import CreateInvitation
+from saber_uli.identity.application.invitations import InvitationService
 from saber_uli.identity.infrastructure.outbox_events import register_identity_outbox
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
 from saber_uli.shared.application.event_bus import EventBus
@@ -165,12 +165,12 @@ async def _run_invite(
         session_factory = create_session_factory(engine)
         bus = EventBus()
         register_identity_outbox(bus)
-        use_case = CreateInvitation(
+        service = InvitationService(
             uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, bus),
             clock=SystemClock(),
             institutional_domains=domains,
         )
-        await use_case.execute(email=email, invited_by=None, access_days=days, invitee_name=name)
+        await service.create(None, email=email, access_days=days, invitee_name=name)
     finally:
         await engine.dispose()
 

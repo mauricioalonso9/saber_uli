@@ -1,5 +1,6 @@
 """Invitaciones de invitados (data-model §2.7)."""
 
+from collections.abc import Collection
 from uuid import UUID
 
 from sqlalchemy import func, select, update
@@ -51,6 +52,56 @@ class SqlAlchemyInvitationRepository:
         )
         return None if row is None else _to_domain(row)
 
+    async def get(self, invitation_id: UUID) -> Invitation | None:
+        row = await self._db.get(InvitationRow, invitation_id)
+        return None if row is None else _to_domain(row)
+
+    async def search(
+        self,
+        *,
+        invited_by: UUID | None,
+        status: InvitationStatus | None,
+        q: str | None,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[Invitation], int]:
+        conditions = []
+        if invited_by is not None:
+            conditions.append(InvitationRow.invited_by == invited_by)
+        if status is not None:
+            conditions.append(InvitationRow.status == status.value)
+        if q:
+            escaped = (
+                q.strip().lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            )
+            pattern = f"%{escaped}%"
+            conditions.append(
+                func.lower(InvitationRow.email).like(pattern, escape="\\")
+                | func.lower(InvitationRow.invitee_name).like(pattern, escape="\\")
+            )
+        total = await self._db.scalar(
+            select(func.count()).select_from(InvitationRow).where(*conditions)
+        )
+        rows = await self._db.scalars(
+            select(InvitationRow)
+            .where(*conditions)
+            .order_by(InvitationRow.created_at.desc(), InvitationRow.id.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return [_to_domain(row) for row in rows], int(total or 0)
+
+    async def active_emails(self, emails: Collection[str]) -> set[str]:
+        wanted = {email.strip().lower() for email in emails}
+        if not wanted:
+            return set()
+        rows = await self._db.scalars(
+            select(func.lower(InvitationRow.email))
+            .where(func.lower(InvitationRow.email).in_(wanted))
+            .where(InvitationRow.status.in_(_ACTIVE))
+        )
+        return set(rows)
+
     async def find_active_by_email(self, email: str) -> Invitation | None:
         row = await self._db.scalar(
             select(InvitationRow)
@@ -73,6 +124,7 @@ def _copy(invitation: Invitation, row: InvitationRow) -> None:
     row.email = invitation.email
     row.invitee_name = invitation.invitee_name
     row.invited_by = invitation.invited_by
+    row.batch_id = invitation.batch_id
     row.guest_user_id = invitation.guest_user_id
     row.status = invitation.status.value
     row.access_expires_at = invitation.access_expires_at
@@ -91,6 +143,7 @@ def _to_domain(row: InvitationRow) -> Invitation:
         status=InvitationStatus(row.status),
         created_at=row.created_at,
         invitee_name=row.invitee_name,
+        batch_id=row.batch_id,
         guest_user_id=row.guest_user_id,
         link_expires_at=row.link_expires_at,
         sent_at=row.sent_at,

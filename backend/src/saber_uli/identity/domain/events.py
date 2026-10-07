@@ -30,3 +30,11 @@ class SignInLinkRequested(DomainEvent):
 
     event_type: ClassVar[str] = "identity.SignInLinkRequested"
     invitation_id: UUID
+
+
+@dataclass(frozen=True, kw_only=True)
+class InvitationResent(DomainEvent):
+    """Se reenvió una invitación sin aceptar: el worker emite un enlace nuevo (R-19)."""
+
+    event_type: ClassVar[str] = "identity.InvitationResent"
+    invitation_id: UUID

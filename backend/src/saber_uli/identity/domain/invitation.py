@@ -13,12 +13,18 @@ de la sesión (401).
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import StrEnum
 from uuid import UUID
 
+from saber_uli.identity.domain.settings import IdentitySettings
 from saber_uli.identity.domain.user import User
-from saber_uli.shared.domain.errors import ConflictError, RuleViolationError, UnauthenticatedError
+from saber_uli.shared.domain.errors import (
+    ConflictError,
+    NotFoundError,
+    RuleViolationError,
+    UnauthenticatedError,
+)
 
 
 class InvitationStatus(StrEnum):
@@ -48,6 +54,43 @@ class InvitationAlreadyActiveError(ConflictError):
     slug = "invitation-already-active"
 
 
+class InvitationAlreadyRevokedError(ConflictError):
+    slug = "invitation-already-revoked"
+
+
+class InvitationNotRenewableError(ConflictError):
+    """Pasaron más de 90 días desde el fin del acceso, o nunca se aceptó y fue revocada."""
+
+    slug = "invitation-not-renewable"
+
+
+class GuestErasedError(ConflictError):
+    """El invitado ya fue suprimido: una invitación nueva crearía otro usuario."""
+
+    slug = "guest-erased"
+
+
+class InvitationNotFoundError(NotFoundError):
+    """No existe o no es de quien consulta (un docente solo ve las suyas: escenario 5.7)."""
+
+    slug = "not-found"
+
+
+RENEWAL_WINDOW = timedelta(days=90)
+
+
+def validate_access_expiry(
+    expires_at: datetime, *, now: datetime, is_admin: bool, settings: IdentitySettings
+) -> None:
+    """FR-006a: futuro y, si no invita un administrador, dentro del plazo máximo del docente."""
+    if expires_at <= now:
+        raise AccessExpiryOutOfRangeError("El acceso debe vencer en una fecha futura.")
+    if not is_admin and expires_at > now + settings.teacher_max_access:
+        raise AccessExpiryOutOfRangeError(
+            f"El acceso puede durar como máximo {settings.teacher_max_access_days} días."
+        )
+
+
 class InstitutionalEmailNotInvitableError(RuleViolationError):
     """FR-008: la comunidad Unilibre ingresa con su cuenta, no por invitación."""
 
@@ -73,6 +116,7 @@ class Invitation:
     created_at: datetime
     id: UUID | None = None
     invitee_name: str | None = None
+    batch_id: UUID | None = None
     guest_user_id: UUID | None = None
     link_expires_at: datetime | None = None
     sent_at: datetime | None = None
@@ -88,6 +132,7 @@ class Invitation:
         access_expires_at: datetime,
         now: datetime,
         invitee_name: str | None = None,
+        batch_id: UUID | None = None,
     ) -> "Invitation":
         if access_expires_at <= now:
             raise AccessExpiryOutOfRangeError("El acceso debe vencer en una fecha futura.")
@@ -98,6 +143,7 @@ class Invitation:
             status=InvitationStatus.SENT,
             created_at=now,
             invitee_name=(invitee_name or "").strip() or None,
+            batch_id=batch_id,
             sent_at=now,
         )
 
@@ -141,6 +187,42 @@ class Invitation:
 
     def revoke(self, now: datetime) -> None:
         if self.status is InvitationStatus.REVOKED:
-            return
+            raise InvitationAlreadyRevokedError("La invitación ya estaba revocada.")
         self.status = InvitationStatus.REVOKED
         self.revoked_at = now
+
+    def resend(self, now: datetime) -> None:
+        """Solo sin aceptar ni revocar (§4.2): vuelve a `sent`; el worker emite otro enlace."""
+        if self.accepted_at is not None or self.status in (
+            InvitationStatus.ACCEPTED,
+            InvitationStatus.REVOKED,
+        ):
+            raise InvitationNotPendingError("Solo se reenvían invitaciones sin aceptar.")
+        if now >= self.access_expires_at:
+            raise AccessExpiryOutOfRangeError(
+                "El acceso de esta invitación ya venció: amplía primero su vencimiento."
+            )
+        self.status = InvitationStatus.SENT
+        self.sent_at = now
+
+    def change_expiry(self, access_expires_at: datetime, now: datetime) -> bool:
+        """Amplía, reduce o renueva el acceso (escenario 5.5). Devuelve si fue una renovación:
+        una invitación aceptada cuyo acceso terminó hace 90 días o menos vuelve a `accepted`."""
+        if self.accepted_at is None:
+            if self.status is InvitationStatus.REVOKED:
+                raise InvitationNotRenewableError(
+                    "Esta invitación fue revocada antes de aceptarse: envía una nueva."
+                )
+            self.access_expires_at = access_expires_at
+            return False
+        if self.status is InvitationStatus.ACCEPTED and self.revoked_at is None:
+            self.access_expires_at = access_expires_at
+            return False
+        if now - self.access_ends_at > RENEWAL_WINDOW:
+            raise InvitationNotRenewableError(
+                "Pasaron más de 90 días desde el fin del acceso: envía una invitación nueva."
+            )
+        self.status = InvitationStatus.ACCEPTED
+        self.revoked_at = None
+        self.access_expires_at = access_expires_at
+        return True

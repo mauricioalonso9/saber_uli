@@ -77,6 +77,7 @@ class LinkEmailHandlers:
 
     def register(self, registry: OutboxRegistry) -> None:
         registry.register("identity.InvitationCreated", self.on_invitation_created)
+        registry.register("identity.InvitationResent", self.on_invitation_created)
         registry.register("identity.SignInLinkRequested", self.on_sign_in_link_requested)
 
     async def on_invitation_created(self, message: OutboxMessage) -> None:

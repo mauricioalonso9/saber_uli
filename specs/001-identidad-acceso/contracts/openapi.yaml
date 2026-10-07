@@ -1506,8 +1506,10 @@ components:
         access_expires_at: { type: string, format: date-time }
         link_expires_at: { type: string, format: date-time }
         invited_by:
-          type: object
-          description: '`display_name` es `null` si quien invitó fue suprimido.'
+          type: [object, 'null']
+          description: |
+            `null` si la creó el sistema (comando `invite-guest`). `display_name` es `null` si
+            quien invitó fue suprimido.
           required: [id]
           properties:
             id: { type: string, format: uuid }

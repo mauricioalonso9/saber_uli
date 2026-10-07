@@ -179,6 +179,10 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
     su hash SHA-256. Cookie `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`.
     Rotación en cada uso con detección de reutilización por familia: si se presenta un token ya
     rotado, se revoca toda la familia (todas las sesiones derivadas).
+  - **Precisión (2026-10-07, T120)**: la cookie lleva `Secure` siempre que `PUBLIC_BASE_URL`
+    sea https (producción). Con http, que la configuración solo acepta en localhost, se omite:
+    WebKit (Safari) no guarda cookies `Secure` en `http://localhost` y la sesión se perdía en la
+    e2e de iPhone. Es el mismo criterio que ya usaba la cookie del flujo OIDC.
   - **Precisión (2026-10-07, T103)**: reutilizar un token rotado hace **30 segundos o menos**
     no revoca: es una carrera benigna (dos pestañas que renuevan a la vez, o la app cerrada antes
     de recibir la cookie nueva) y se emite otro token de la familia. Pasado ese margen sí se
@@ -410,7 +414,7 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 - **Decisión**: librería `limits` con almacenamiento en Redis, aplicada como dependencia de
   FastAPI:
   - `POST /api/auth/guest/link-requests`: 5 por hora por hash de correo y 20 por hora por IP.
-  - `POST /api/auth/guest/sessions`: 10 por minuto por IP.
+  - `POST /api/auth/guest/sessions`: 10 por minuto por IP (ahora 60; ver la precisión de T120).
   - `GET /api/auth/microsoft/*` y `POST /api/auth/refresh`: 30 por minuto por IP.
   - Resto de la API: 300 por minuto por usuario.
   Se responde `429` con `Retry-After`.
@@ -420,6 +424,10 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
   `POST /api/auth/refresh` 30/min **por sesión** (HMAC de la cookie, nunca la cookie) y 600/min por
   IP como tope de abuso. El *callback* no tiene límite propio: solo avanza con la cookie firmada de
   un solo uso que emite `/login`.
+- **Precisión (2026-10-07, T120)**: `POST /api/auth/guest/sessions` pasa de 10 a **60 por minuto
+  por IP**. El token tiene 256 bits, así que el límite no protege contra adivinarlo sino contra
+  abuso; 10/min bloqueaba a varios invitados detrás de la misma IP (un taller con externos, o la
+  propia e2e con dos navegadores).
 - **Dependencia nueva**: `limits`.
 - **Alternativas**: `slowapi` (envoltorio de `limits` con mantenimiento irregular); límites solo
   en Nginx (no conoce usuarios ni correos).

@@ -2,7 +2,7 @@
 
 - `POST /api/auth/guest/sessions`: consume el enlace del correo y abre la sesión (cookie
   `su_refresh`, como el ingreso institucional). Enlace inválido, usado o vencido → 400
-  `access-link-invalid`; acceso vencido o revocado → 403 con la causa. 10/min por IP.
+  `access-link-invalid`; acceso vencido o revocado → 403 con la causa. 60/min por IP.
 - `POST /api/auth/guest/link-requests`: siempre 202 con el mismo cuerpo (FR-013). 5/h por correo
   (solo su HMAC llega a Redis) y 20/h por IP.
 """
@@ -69,6 +69,7 @@ def _sessions(request: Request) -> SessionService:
     dependencies=[Depends(per_ip(GUEST_SESSION_PER_IP))],
 )
 async def create_guest_session(
+    request: Request,
     body: GuestSessionIn,
     response: Response,
     service: Annotated[GuestSignIn, Depends(_sign_in)],
@@ -80,7 +81,7 @@ async def create_guest_session(
         # En la renovación estas causas son 401; aquí la persona aún no tiene sesión: 403.
         raise ProblemException(403, error.slug, detail=error.message) from error
     response.headers["Set-Cookie"] = refresh_cookie(
-        issued, sessions.seconds_until(issued.refresh_expires_at)
+        request, issued, sessions.seconds_until(issued.refresh_expires_at)
     )
     response.headers["Cache-Control"] = "no-store"
     return SessionTokens(access_token=issued.access_token, expires_in=issued.expires_in)

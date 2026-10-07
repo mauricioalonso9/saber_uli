@@ -163,7 +163,8 @@ async def complete_microsoft_login(
     target = await _next_step(request, user, pending.get("return_to"))
     response = RedirectResponse(target, status_code=302)
     response.headers.append(
-        "Set-Cookie", refresh_cookie(issued, sessions.seconds_until(issued.refresh_expires_at))
+        "Set-Cookie",
+        refresh_cookie(request, issued, sessions.seconds_until(issued.refresh_expires_at)),
     )
     response.headers["Cache-Control"] = "no-store"
     _log.info(

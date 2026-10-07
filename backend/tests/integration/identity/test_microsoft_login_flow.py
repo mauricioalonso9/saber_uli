@@ -209,7 +209,8 @@ async def test_primer_ingreso_valido_crea_la_cuenta_y_lleva_a_la_autorizacion(
     refresh = cookies["su_refresh"]
     assert refresh.value
     assert refresh["httponly"] is True
-    assert refresh["secure"] is True
+    # PUBLIC_BASE_URL de prueba es http://localhost: sin `Secure` (WebKit no la guardaría).
+    assert refresh["secure"] == ""
     assert refresh["samesite"] == "Strict"
     assert refresh["path"] == "/api/auth"
     assert cookies["su_oidc"]["max-age"] in ("0", "-1") or cookies["su_oidc"].value in ("", "null")

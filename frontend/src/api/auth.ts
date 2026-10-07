@@ -494,7 +494,7 @@ export const createGuestSession = async (
 export const getCreateGuestSessionMutationKey = () => ["createGuestSession"] as const;
 
 export const getCreateGuestSessionMutationOptions = <
-  TError = Problem | TooManyRequestsResponse,
+  TError = Problem | ValidationErrorResponse | TooManyRequestsResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -533,14 +533,15 @@ export type CreateGuestSessionMutationResult = NonNullable<
   Awaited<ReturnType<typeof createGuestSession>>
 >;
 export type CreateGuestSessionMutationBody = CreateGuestSessionBody;
-export type CreateGuestSessionMutationError = Problem | TooManyRequestsResponse;
+export type CreateGuestSessionMutationError =
+  Problem | ValidationErrorResponse | TooManyRequestsResponse;
 export type CreateGuestSessionMutationVariables = { data: CreateGuestSessionBody };
 
 /**
  * @summary Consume un enlace de invitación o de ingreso (FR-007, FR-011)
  */
 export const useCreateGuestSession = <
-  TError = Problem | TooManyRequestsResponse,
+  TError = Problem | ValidationErrorResponse | TooManyRequestsResponse,
   TContext = unknown,
 >(
   options?: {

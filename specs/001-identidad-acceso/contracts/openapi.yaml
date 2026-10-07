@@ -878,6 +878,7 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/users/{userId}/roles:
     put:
       tags: [admin]
@@ -920,6 +921,7 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
 
   # ---------------------------------------------------------------- admin: groups
   /api/v1/admin/groups:
@@ -971,6 +973,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Group' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
     patch:
       tags: [admin]
@@ -990,6 +993,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Group' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/groups/{groupId}/members:
@@ -1011,12 +1015,14 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Group' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
           description: Algún usuario no es estudiante institucional (`not-institutional-student`)
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/groups/{groupId}/members/{userId}:
     delete:
       tags: [admin]
@@ -1028,6 +1034,7 @@ paths:
       responses:
         '204': { description: Miembro retirado }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
   /api/v1/admin/groups/{groupId}/teachers:
     post:
@@ -1048,12 +1055,14 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Group' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
           description: Algún usuario no tiene rol Docente (`not-a-teacher`)
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/admin/groups/{groupId}/teachers/{userId}:
     delete:
       tags: [admin]
@@ -1065,6 +1074,7 @@ paths:
       responses:
         '204': { description: Docente retirado }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
 
   # ---------------------------------------------------------------- admin: other

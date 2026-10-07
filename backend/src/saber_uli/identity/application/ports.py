@@ -226,6 +226,15 @@ class PersonName:
     display_name: str | None
 
 
+@dataclass(frozen=True)
+class MemberContact:
+    """Miembro de un grupo visto por el administrador (incluye el correo)."""
+
+    user_id: UUID
+    display_name: str | None
+    email: str | None
+
+
 class GroupRepository(Protocol):
     async def add(self, group: Group) -> Group: ...
 
@@ -260,6 +269,10 @@ class GroupRepository(Protocol):
     async def students(
         self, group_id: UUID, *, offset: int, limit: int
     ) -> tuple[list[PersonName], int]: ...
+
+    async def members(
+        self, group_id: UUID, *, offset: int, limit: int
+    ) -> tuple[list[MemberContact], int]: ...
 
 
 class InvitationBatchRepository(Protocol):

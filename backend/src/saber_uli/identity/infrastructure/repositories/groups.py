@@ -7,7 +7,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from saber_uli.identity.application.ports import PersonName
+from saber_uli.identity.application.ports import MemberContact, PersonName
 from saber_uli.identity.domain.group import Group
 from saber_uli.identity.infrastructure.orm import (
     GroupMemberRow,
@@ -122,6 +122,24 @@ class SqlAlchemyGroupRepository:
             .limit(limit)
         )
         people = [PersonName(user_id=row.id, display_name=row.display_name) for row in rows]
+        return people, total
+
+    async def members(
+        self, group_id: UUID, *, offset: int, limit: int
+    ) -> tuple[list[MemberContact], int]:
+        total = await self.member_count(group_id)
+        rows = await self._db.execute(
+            select(UserRow.id, UserRow.display_name, UserRow.email)
+            .join(GroupMemberRow, GroupMemberRow.user_id == UserRow.id)
+            .where(GroupMemberRow.group_id == group_id)
+            .order_by(UserRow.display_name, UserRow.id)
+            .offset(offset)
+            .limit(limit)
+        )
+        people = [
+            MemberContact(user_id=row.id, display_name=row.display_name, email=row.email)
+            for row in rows
+        ]
         return people, total
 
     async def _link(self, table: LinkTable, group_id: UUID, ids: Collection[UUID]) -> list[UUID]:

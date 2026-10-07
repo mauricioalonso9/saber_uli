@@ -48,6 +48,7 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         "adminCreateGroup",
         "adminGetGroup",
         "adminUpdateGroup",
+        "adminListGroupMembers",
         "adminAddGroupMembers",
         "adminRemoveGroupMember",
         "adminAddGroupTeachers",

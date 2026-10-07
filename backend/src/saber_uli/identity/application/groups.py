@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from saber_uli.identity.application.audit import AuditAction, AuditTarget, record_audit
-from saber_uli.identity.application.ports import PersonName
+from saber_uli.identity.application.ports import MemberContact, PersonName
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
 from saber_uli.identity.domain.group import (
     Group,
@@ -40,6 +40,13 @@ class GroupService:
     def __init__(self, *, uow_factory: Callable[[], IdentityUnitOfWork], clock: Clock) -> None:
         self._uow_factory = uow_factory
         self._clock = clock
+
+    async def members(
+        self, group_id: UUID, *, offset: int, limit: int
+    ) -> tuple[list[MemberContact], int]:
+        async with self._uow_factory() as uow:
+            await _existing(uow, group_id)
+            return await uow.groups.members(group_id, offset=offset, limit=limit)
 
     async def list(self, *, q: str | None, offset: int, limit: int) -> tuple[list[GroupView], int]:
         async with self._uow_factory() as uow:

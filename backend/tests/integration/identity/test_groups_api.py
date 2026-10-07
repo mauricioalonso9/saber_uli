@@ -144,3 +144,22 @@ async def test_un_grupo_inexistente_es_404_y_un_docente_no_administra(
 
     assert (await api_client.get(f"{GROUPS}/{missing}", headers=admin.headers)).status_code == 404
     assert (await api_client.get(GROUPS, headers=teacher.headers)).status_code == 403
+
+
+async def test_el_administrador_lista_los_miembros_con_nombre_y_correo(
+    api_client: httpx.AsyncClient, staff: StaffFactory, committed_login: CommittedLogin
+) -> None:
+    admin = await staff(Role.ADMIN)
+    group = await create(api_client, admin)
+    a, _ = await committed_login()
+    await api_client.post(
+        f"{GROUPS}/{group['id']}/members", json={"user_ids": [str(a.id)]}, headers=admin.headers
+    )
+
+    response = await api_client.get(f"{GROUPS}/{group['id']}/members", headers=admin.headers)
+
+    assert response.status_code == 200, response.text
+    assert response.json()["items"] == [
+        {"user_id": str(a.id), "display_name": a.display_name, "email": a.email}
+    ]
+    assert response.json()["total"] == 1

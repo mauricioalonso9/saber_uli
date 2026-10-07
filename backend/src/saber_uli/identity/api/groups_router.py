@@ -1,5 +1,5 @@
 """Grupos (contrato: `adminListGroups`, `adminCreateGroup`, `adminGetGroup`, `adminUpdateGroup`,
-`adminAddGroupMembers`, `adminRemoveGroupMember`, `adminAddGroupTeachers`,
+`adminListGroupMembers`, `adminAddGroupMembers`, `adminRemoveGroupMember`, `adminAddGroupTeachers`,
 `adminRemoveGroupTeacher`; FR-027). Solo `groups:manage` con sesión privilegiada.
 """
 
@@ -78,6 +78,12 @@ class GroupPatch(BaseModel):
     archived: bool | None = None
 
 
+class GroupMemberOut(BaseModel):
+    user_id: UUID
+    display_name: str | None
+    email: str | None
+
+
 class UserIdList(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -127,6 +133,21 @@ async def update_group(
 ) -> GroupOut:
     changes = body.model_dump(exclude_unset=True)
     return GroupOut.of(await service.update(admin.id, group_id, **changes))
+
+
+@router.get("/{group_id}/members", operation_id="adminListGroupMembers")
+async def list_members(
+    group_id: UUID,
+    _: Admin,
+    service: Service,
+    params: Annotated[PageParams, Depends(page_params)],
+) -> Page[GroupMemberOut]:
+    people, total = await service.members(group_id, offset=params.offset, limit=params.limit)
+    items = [
+        GroupMemberOut(user_id=p.user_id, display_name=p.display_name, email=p.email)
+        for p in people
+    ]
+    return Page.of(items, params, total)
 
 
 @router.post(

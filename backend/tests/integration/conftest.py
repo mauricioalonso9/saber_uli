@@ -311,6 +311,10 @@ async def committed_login(
     async with cleanup.begin() as conn:
         for statement in (
             "DELETE FROM identity.consents WHERE user_id = ANY(:ids)",
+            # Versiones de la política que publicaron (y las decisiones sobre ellas).
+            "DELETE FROM identity.consents WHERE policy_version_id IN"
+            " (SELECT id FROM identity.policy_versions WHERE published_by = ANY(:ids))",
+            "DELETE FROM identity.policy_versions WHERE published_by = ANY(:ids)",
             "DELETE FROM identity.audit_events WHERE actor_id = ANY(:ids)"
             " OR subject_user_id = ANY(:ids)",
             "DELETE FROM identity.invitations WHERE guest_user_id = ANY(:ids)"

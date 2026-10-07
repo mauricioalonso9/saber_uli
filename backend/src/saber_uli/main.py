@@ -22,12 +22,15 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from saber_uli.config import Settings, get_settings
 from saber_uli.identity.api.auth_router import router as auth_router
+from saber_uli.identity.api.consent_router import router as consent_router
 from saber_uli.identity.api.me_router import router as me_router
 from saber_uli.identity.api.microsoft_router import router as microsoft_router
+from saber_uli.identity.api.policy_router import router as policy_router
 from saber_uli.identity.application.access_guard import AccessGuard
 from saber_uli.identity.application.authenticate_institutional_user import (
     AuthenticateInstitutionalUser,
 )
+from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
 from saber_uli.identity.application.queries.consent_status import ConsentStatusQuery
 from saber_uli.identity.application.queries.get_me import GetMe
 from saber_uli.identity.application.sessions import SessionService
@@ -145,6 +148,8 @@ def create_app(
         uow_factory=identity_uow, clock=clock, tenant_id=settings.entra_tenant_id
     )
     app.state.get_me = GetMe(uow_factory=identity_uow, clock=clock)
+    app.state.consent_service = ConsentService(uow_factory=identity_uow, clock=clock)
+    app.state.privacy_policy_service = PrivacyPolicyService(uow_factory=identity_uow, clock=clock)
     app.state.readiness_checks = {"database": database_ready, "redis": redis_ready}
 
     install_problem_handlers(app)
@@ -154,6 +159,8 @@ def create_app(
     # Toda ruta de /api/v1 pasa por la guardia de autorización de datos (FR-014).
     v1 = [Depends(require_consent)]
     app.include_router(me_router, dependencies=v1)
+    app.include_router(consent_router, dependencies=v1)
+    app.include_router(policy_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

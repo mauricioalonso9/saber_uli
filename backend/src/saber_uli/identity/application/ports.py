@@ -6,7 +6,8 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Protocol
 from uuid import UUID
 
-from saber_uli.identity.domain.consent import ConsentRecord
+from saber_uli.identity.domain.consent import ConsentDecision, ConsentRecord
+from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
 
@@ -89,10 +90,49 @@ class AuditRepository(Protocol):
     async def add(self, entry: "AuditEntry") -> None: ...
 
 
-class ConsentReader(Protocol):
+@dataclass(frozen=True)
+class ConsentEntry:
+    """Registro guardado de una decisión, con la versión de la política (esquema `Consent`)."""
+
+    id: UUID
+    policy_version_id: UUID
+    policy_version: str
+    decision: ConsentDecision
+    channel: str
+    decided_at: datetime
+
+
+class ConsentRepository(Protocol):
+    """Autorizaciones de datos: solo inserción y lectura (data-model §2.11)."""
+
     async def latest_for_user(self, user_id: UUID) -> ConsentRecord | None: ...
 
     async def current_policy_version_id(self, *, now: datetime) -> UUID | None: ...
+
+    async def history_for_user(self, user_id: UUID) -> list[ConsentEntry]:
+        """Decisiones del usuario, de la más reciente a la más antigua."""
+        ...
+
+    async def add(self, user_id: UUID, record: ConsentRecord) -> ConsentEntry: ...
+
+
+class PolicyRepository(Protocol):
+    """Versiones de la política: solo inserción y lectura (data-model §2.10)."""
+
+    async def current(self, *, now: datetime) -> PolicyVersion | None:
+        """La de mayor `effective_from ≤ now`."""
+        ...
+
+    async def get(self, version_id: UUID) -> PolicyVersion | None: ...
+
+    async def versions(self) -> set[str]: ...
+
+    async def add(self, version: PolicyVersion) -> PolicyVersion:
+        """Guarda la versión y la devuelve con su `id`.
+
+        Lanza `PolicyVersionExistsError` si otra transacción publicó la misma versión.
+        """
+        ...
 
 
 class UserAlreadyExistsError(Exception):

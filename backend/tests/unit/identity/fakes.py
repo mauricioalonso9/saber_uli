@@ -9,9 +9,10 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from saber_uli.identity.application.audit import AuditEntry
-from saber_uli.identity.application.ports import AuditRepository, GuestAccessStatus
+from saber_uli.identity.application.ports import AuditRepository, ConsentEntry, GuestAccessStatus
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
 from saber_uli.identity.domain.consent import ConsentRecord
+from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
 from saber_uli.shared.application.event_bus import EventBus
@@ -94,6 +95,26 @@ class FakeConsents:
     async def current_policy_version_id(self, *, now: datetime) -> UUID | None:
         return None
 
+    async def history_for_user(self, user_id: UUID) -> list[ConsentEntry]:
+        return []
+
+    async def add(self, user_id: UUID, record: ConsentRecord) -> ConsentEntry:
+        raise NotImplementedError
+
+
+class FakePolicies:
+    async def current(self, *, now: datetime) -> PolicyVersion | None:
+        return None
+
+    async def get(self, version_id: UUID) -> PolicyVersion | None:
+        return None
+
+    async def versions(self) -> set[str]:
+        return set()
+
+    async def add(self, version: PolicyVersion) -> PolicyVersion:
+        raise NotImplementedError
+
 
 class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     """Comparte los repositorios entre aperturas (como una base de datos) y cuenta los commits."""
@@ -105,6 +126,7 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
         self._sessions = FakeSessions()
         self._guest_access = FakeGuestAccess()
         self._consents = FakeConsents()
+        self._policies = FakePolicies()
         self.commits = 0
 
     def __call__(self) -> "FakeIdentityUnitOfWork":
@@ -125,6 +147,10 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     @property
     def consents(self) -> FakeConsents:
         return self._consents
+
+    @property
+    def policies(self) -> FakePolicies:
+        return self._policies
 
     @property
     def audit(self) -> FakeAudit:

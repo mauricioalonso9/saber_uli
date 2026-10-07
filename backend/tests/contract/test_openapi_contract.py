@@ -15,6 +15,8 @@ from schemathesis.specs.openapi.checks import (
     negative_data_rejection,
     positive_data_acceptance,
 )
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 from saber_uli.identity.domain.roles import Role
 from saber_uli.identity.infrastructure.entra_id import (
@@ -70,8 +72,20 @@ def contract_schema(migrated_database: dict[str, str], redis_url: str, redis_cli
 
 
 @pytest.fixture
-async def contract_headers(committed_login: CommittedLogin) -> dict[str, str]:
-    _, token = await committed_login(Role.ADMIN, priv=True)
+async def contract_headers(
+    committed_login: CommittedLogin, app_engine: AsyncEngine
+) -> dict[str, str]:
+    admin, token = await committed_login(Role.ADMIN, priv=True)
+    # Con la autorización de datos vigente, para llegar más allá de la guardia de FR-014.
+    async with app_engine.begin() as conn:
+        await conn.execute(
+            text(
+                """INSERT INTO identity.consents (user_id, policy_version_id, decision, channel)
+                   SELECT :u, id, 'accepted', 'web_pwa' FROM identity.policy_versions
+                   WHERE effective_from <= now() ORDER BY effective_from DESC LIMIT 1"""
+            ),
+            {"u": admin.id},
+        )
     return {"Authorization": f"Bearer {token}"}
 
 

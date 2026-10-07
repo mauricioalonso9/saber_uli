@@ -15,5 +15,12 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         "startMicrosoftLogin",
         "completeMicrosoftLogin",
         "getMe",
+        # US2 (T090)
+        "listMyConsents",
+        "decideConsent",
+        "revokeConsent",
+        "getCurrentPolicy",
+        "getPolicyVersion",
+        "publishPolicyVersion",
     }
 )

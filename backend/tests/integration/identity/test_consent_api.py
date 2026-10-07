@@ -293,20 +293,30 @@ async def test_revocar_cierra_las_sesiones_y_la_siguiente_peticion_responde_401(
 # ------------------------------------------------------------------- publicar
 
 
+async def staff_login(
+    client: httpx.AsyncClient, committed_login: CommittedLogin, role: Role, *, priv: bool
+) -> tuple[Any, str]:
+    """Las rutas de administración también exigen autorización vigente (FR-014)."""
+    user, token = await committed_login(role, priv=priv)
+    assert (await decide(client, token, "accepted")).status_code == 201
+    return user, token
+
+
 async def test_publicar_exige_el_permiso(
     api_client: httpx.AsyncClient, committed_login: CommittedLogin, published: list[UUID]
 ) -> None:
-    _, token = await committed_login(Role.TEACHER, priv=True)
+    _, token = await staff_login(api_client, committed_login, Role.TEACHER, priv=True)
 
     response = await publish(api_client, token, published)
 
     assert response.status_code == 403
+    assert problem_type(response) == "forbidden"
 
 
 async def test_publicar_exige_sesion_privilegiada(
     api_client: httpx.AsyncClient, committed_login: CommittedLogin, published: list[UUID]
 ) -> None:
-    _, token = await committed_login(Role.ADMIN)
+    _, token = await staff_login(api_client, committed_login, Role.ADMIN, priv=False)
 
     response = await publish(api_client, token, published)
 
@@ -320,7 +330,7 @@ async def test_publicar_una_version_exige_a_todos_volver_a_autorizar(
     published: list[UUID],
     app_engine: AsyncEngine,
 ) -> None:
-    admin, admin_token = await committed_login(Role.ADMIN, priv=True)
+    admin, admin_token = await staff_login(api_client, committed_login, Role.ADMIN, priv=True)
     _, student_token = await committed_login()
     await decide(api_client, student_token, "accepted")
     assert await consent_required(api_client, student_token) is False
@@ -359,7 +369,7 @@ async def test_publicar_una_version_exige_a_todos_volver_a_autorizar(
 async def test_una_version_repetida_responde_409(
     api_client: httpx.AsyncClient, committed_login: CommittedLogin, published: list[UUID]
 ) -> None:
-    _, token = await committed_login(Role.ADMIN, priv=True)
+    _, token = await staff_login(api_client, committed_login, Role.ADMIN, priv=True)
 
     response = await publish(api_client, token, published, version="1.0")
 
@@ -378,7 +388,7 @@ async def test_datos_invalidos_responden_422(
     published: list[UUID],
     overrides: dict[str, Any],
 ) -> None:
-    _, token = await committed_login(Role.ADMIN, priv=True)
+    _, token = await staff_login(api_client, committed_login, Role.ADMIN, priv=True)
 
     response = await publish(api_client, token, published, **overrides)
 

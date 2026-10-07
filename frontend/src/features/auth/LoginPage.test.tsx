@@ -114,7 +114,7 @@ describe("página de ingreso", () => {
     renderLogin();
 
     const link = await screen.findByRole("link", { name: /soy invitado/i });
-    expect(link).toHaveAttribute("href", "/acceso");
+    expect(link).toHaveAttribute("href", "/ingresar/invitado");
   });
 });
 

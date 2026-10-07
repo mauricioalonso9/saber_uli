@@ -34,6 +34,8 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "invalid-consent-decision": "Elige «Acepto» o «No acepto».",
   "policy-version-exists": "Esa versión de la política ya fue publicada. Usa un número nuevo.",
   "invalid-policy-version": "Revisa el número de versión, el título y el texto de la política.",
+  "effective-from-too-early":
+    "La fecha de vigencia debe ser posterior a la de la última versión publicada.",
   forbidden: "No tienes permiso para usar esta función.",
   "not-found": "No encontramos lo que buscas.",
   // Validación y conflictos

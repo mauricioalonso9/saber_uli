@@ -152,7 +152,7 @@ describe("publicar una versión de la política", () => {
     expect(published).toHaveLength(1);
     const [body] = published;
     expect(body).toMatchObject({ version: "2.0", title: "Política 2.0", body_markdown: BODY });
-    expect(body?.effective_from).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00-05:00$/);
+    expect(body?.effective_from).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-05:00$/);
   });
 
   it.each([

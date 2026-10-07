@@ -156,6 +156,7 @@ class PrivacyPolicyService:
                     effective_from=effective_from,
                     published_by=actor_id,
                     existing_versions=await uow.policies.versions(),
+                    latest_effective_from=await uow.policies.latest_effective_from(),
                 )
             )
             await record_audit(

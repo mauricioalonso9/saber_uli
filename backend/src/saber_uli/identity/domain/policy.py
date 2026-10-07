@@ -26,6 +26,10 @@ class PolicyVersionExistsError(ConflictError):
     slug = "policy-version-exists"
 
 
+class EffectiveFromTooEarlyError(RuleViolationError):
+    slug = "effective-from-too-early"
+
+
 @dataclass(frozen=True)
 class PolicyVersion:
     id: UUID | None
@@ -45,6 +49,7 @@ class PolicyVersion:
         effective_from: datetime,
         published_by: UUID,
         existing_versions: Collection[str],
+        latest_effective_from: datetime | None,
     ) -> "PolicyVersion":
         if not VERSION_PATTERN.fullmatch(version):
             raise InvalidPolicyVersionError(
@@ -60,6 +65,12 @@ class PolicyVersion:
             )
         if version in existing_versions:
             raise PolicyVersionExistsError(f"La versión {version} ya fue publicada.")
+        # La vigente es la de mayor `effective_from`: una fecha igual la volvería ambigua y una
+        # anterior haría que la versión nueva nunca rigiera.
+        if latest_effective_from is not None and effective_from <= latest_effective_from:
+            raise EffectiveFromTooEarlyError(
+                "La fecha de vigencia debe ser posterior a la de la última versión publicada."
+            )
         return cls(
             id=None,
             version=version,

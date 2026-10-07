@@ -17,6 +17,7 @@ from saber_uli.identity.domain.consent import (
     revoke_consent,
 )
 from saber_uli.identity.domain.policy import (
+    EffectiveFromTooEarlyError,
     InvalidPolicyVersionError,
     PolicyVersion,
     PolicyVersionExistsError,
@@ -126,6 +127,7 @@ def publish(**overrides: object) -> PolicyVersion:
         "effective_from": T0 + timedelta(days=1),
         "published_by": ADMIN,
         "existing_versions": {"1.0"},
+        "latest_effective_from": T0,
     }
     values.update(overrides)
     return PolicyVersion.publish(**values)  # type: ignore[arg-type]
@@ -167,3 +169,15 @@ def test_la_version_debe_ser_unica() -> None:
     with pytest.raises(PolicyVersionExistsError) as info:
         publish(version="1.0")
     assert isinstance(info.value, ConflictError)
+
+
+@pytest.mark.parametrize("offset", [timedelta(0), -timedelta(seconds=1)])
+def test_la_vigencia_debe_ser_posterior_a_la_de_la_ultima_version(offset: timedelta) -> None:
+    # Con la misma fecha la versión vigente sería ambigua; con una anterior, nunca regiría.
+    with pytest.raises(EffectiveFromTooEarlyError) as info:
+        publish(effective_from=T0 + offset)
+    assert isinstance(info.value, RuleViolationError)
+
+
+def test_la_primera_version_no_tiene_limite_de_vigencia() -> None:
+    assert publish(latest_effective_from=None, effective_from=T0).effective_from == T0

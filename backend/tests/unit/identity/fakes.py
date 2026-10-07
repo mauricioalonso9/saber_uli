@@ -112,6 +112,9 @@ class FakePolicies:
     async def versions(self) -> set[str]:
         return set()
 
+    async def latest_effective_from(self) -> datetime | None:
+        return None
+
     async def add(self, version: PolicyVersion) -> PolicyVersion:
         raise NotImplementedError
 

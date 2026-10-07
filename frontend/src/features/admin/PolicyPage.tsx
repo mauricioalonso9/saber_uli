@@ -25,7 +25,13 @@ const BOGOTA_OFFSET = "-05:00";
 
 function nowInBogota(): string {
   const bogota = new Date(Date.now() - 5 * 60 * 60 * 1000);
-  return bogota.toISOString().slice(0, 16); // AAAA-MM-DDTHH:MM para datetime-local
+  // AAAA-MM-DDTHH:MM:SS para datetime-local: con segundos, para que dos versiones publicadas en
+  // el mismo minuto no compartan la fecha de vigencia.
+  return bogota.toISOString().slice(0, 19);
+}
+
+function withSeconds(value: string): string {
+  return value.length === 16 ? `${value}:00` : value;
 }
 
 function useSchema() {
@@ -43,7 +49,7 @@ function useSchema() {
       .max(BODY_MAX, t("policyAdmin.errors.bodyMax", { max: BODY_MAX.toLocaleString("es-CO") })),
     effective_from: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, t("policyAdmin.errors.effectiveFrom")),
+      .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/, t("policyAdmin.errors.effectiveFrom")),
   });
 }
 
@@ -77,7 +83,7 @@ export function PolicyPage() {
     setDone(null);
     try {
       const version = await publish.mutateAsync({
-        data: { ...values, effective_from: `${values.effective_from}:00${BOGOTA_OFFSET}` },
+        data: { ...values, effective_from: withSeconds(values.effective_from) + BOGOTA_OFFSET },
       });
       setDone({ version: version.version, from: formatDateTime(version.effective_from) });
       form.reset({ ...form.getValues(), version: "", body_markdown: "" });
@@ -144,6 +150,7 @@ export function PolicyPage() {
             <Input
               id={ids.from}
               type="datetime-local"
+              step={1}
               aria-invalid={errors.effective_from ? true : undefined}
               aria-describedby={describedBy(ids.from, errors.effective_from?.message)}
               {...form.register("effective_from")}

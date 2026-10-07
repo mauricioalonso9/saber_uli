@@ -127,6 +127,10 @@ class PolicyRepository(Protocol):
 
     async def versions(self) -> set[str]: ...
 
+    async def latest_effective_from(self) -> datetime | None:
+        """Mayor `effective_from` entre todas las versiones, incluidas las programadas."""
+        ...
+
     async def add(self, version: PolicyVersion) -> PolicyVersion:
         """Guarda la versión y la devuelve con su `id`.
 

@@ -39,7 +39,7 @@ class SqlAlchemyConsentRepository:
         version_id: UUID | None = await self._db.scalar(
             select(PolicyVersionRow.id)
             .where(PolicyVersionRow.effective_from <= now)
-            .order_by(PolicyVersionRow.effective_from.desc())
+            .order_by(PolicyVersionRow.effective_from.desc(), PolicyVersionRow.created_at.desc())
             .limit(1)
         )
         return version_id

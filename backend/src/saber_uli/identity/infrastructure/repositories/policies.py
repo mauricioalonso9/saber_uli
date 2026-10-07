@@ -7,7 +7,7 @@ from dataclasses import replace
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,7 +23,7 @@ class SqlAlchemyPolicyRepository:
         row = await self._db.scalar(
             select(PolicyVersionRow)
             .where(PolicyVersionRow.effective_from <= now)
-            .order_by(PolicyVersionRow.effective_from.desc())
+            .order_by(PolicyVersionRow.effective_from.desc(), PolicyVersionRow.created_at.desc())
             .limit(1)
         )
         return None if row is None else _to_domain(row)
@@ -34,6 +34,12 @@ class SqlAlchemyPolicyRepository:
 
     async def versions(self) -> set[str]:
         return set(await self._db.scalars(select(PolicyVersionRow.version)))
+
+    async def latest_effective_from(self) -> datetime | None:
+        latest: datetime | None = await self._db.scalar(
+            select(func.max(PolicyVersionRow.effective_from))
+        )
+        return latest
 
     async def add(self, version: PolicyVersion) -> PolicyVersion:
         row = PolicyVersionRow(

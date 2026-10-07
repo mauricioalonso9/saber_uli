@@ -377,6 +377,18 @@ async def test_una_version_repetida_responde_409(
     assert problem_type(response) == "policy-version-exists"
 
 
+async def test_una_vigencia_no_posterior_a_la_ultima_version_responde_422(
+    api_client: httpx.AsyncClient, committed_login: CommittedLogin, published: list[UUID]
+) -> None:
+    _, token = await staff_login(api_client, committed_login, Role.ADMIN, priv=True)
+    policy = await current_policy(api_client)
+
+    response = await publish(api_client, token, published, effective_from=policy["effective_from"])
+
+    assert response.status_code == 422
+    assert problem_type(response) == "effective-from-too-early"
+
+
 @pytest.mark.parametrize(
     "overrides",
     [{"version": "v2"}, {"body_markdown": "corto"}, {"title": "t" * 201}],

@@ -89,11 +89,41 @@ class HeartbeatScheduler(PersistentScheduler):
 # --- Outbox ------------------------------------------------------------------------------------
 
 
-def outbox_registry() -> Any:
+def outbox_registry(session_factory: Any) -> Any:
     """Manejadores del outbox por tipo de evento. Cada historia agrega los suyos (US4, US7…)."""
+    from saber_uli.config import get_settings
+    from saber_uli.identity.infrastructure.handlers.link_emails import LinkEmailHandlers
+    from saber_uli.identity.infrastructure.link_tokens import LinkTokenFactory
+    from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
+    from saber_uli.notifications.application.public import EmailService
+    from saber_uli.notifications.infrastructure.smtp import SmtpEmailSender
+    from saber_uli.notifications.infrastructure.templates import JinjaTemplateRenderer
+    from saber_uli.shared.application.event_bus import EventBus
     from saber_uli.shared.infrastructure.outbox import OutboxRegistry
 
-    return OutboxRegistry()
+    settings = get_settings()
+    bus = EventBus()
+    registry = OutboxRegistry()
+    email = EmailService(
+        renderer=JinjaTemplateRenderer(public_base_url=settings.public_base_url),
+        sender=SmtpEmailSender(
+            host=settings.smtp_host,
+            port=settings.smtp_port,
+            sender=settings.smtp_from,
+            user=settings.smtp_user,
+            password=(
+                settings.smtp_password.get_secret_value() if settings.smtp_password else None
+            ),
+            starttls=settings.smtp_starttls,
+        ),
+    )
+    LinkEmailHandlers(
+        uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, bus),
+        email=email,
+        clock=SystemClock(),
+        tokens=LinkTokenFactory(),
+    ).register(registry)
+    return registry
 
 
 async def _with_dispatcher(action: str) -> int:
@@ -107,8 +137,9 @@ async def _with_dispatcher(action: str) -> int:
 
     engine = create_engine(get_settings().database_url.get_secret_value())
     try:
+        session_factory = create_session_factory(engine)
         dispatcher = OutboxDispatcher(
-            create_session_factory(engine), outbox_registry(), clock=SystemClock()
+            session_factory, outbox_registry(session_factory), clock=SystemClock()
         )
         if action == "purge":
             return await dispatcher.purge_processed()

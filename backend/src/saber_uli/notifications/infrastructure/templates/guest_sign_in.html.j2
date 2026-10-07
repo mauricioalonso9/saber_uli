@@ -1,0 +1,10 @@
+{% extends "base.html.j2" %}
+{% block title %}Tu enlace para ingresar a Saber Uli{% endblock %}
+{% block content %}
+<h1 style="font-size:20px;margin:0 0 16px;">{% if name %}Hola, {{ name }}.{% else %}Hola.{% endif %}</h1>
+<p style="margin:0 0 12px;">Pediste un enlace para ingresar a Saber Uli. Sirve una sola vez y vence en {{ link_minutes }} minutos.</p>
+<p style="margin:24px 0 0;">
+  <a href="{{ link_path | absolute_url }}" style="display:inline-block;padding:12px 20px;background:#15803d;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">Ingresar</a>
+</p>
+<p style="margin:24px 0 0;font-size:14px;color:#4b5563;">Tu acceso como invitado dura hasta el {{ access_until }}. Si no pediste este enlace, ignora este correo.</p>
+{% endblock %}

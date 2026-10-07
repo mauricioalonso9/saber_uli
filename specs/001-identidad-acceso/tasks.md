@@ -1148,43 +1148,107 @@ ingreso nuevos; su acceso vence o se revoca de forma efectiva.
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T105 [P] [US4] Prueba: acceso del invitado en `backend/tests/unit/identity/test_invitation_access.py` (aceptar crea un usuario `guest` solo con rol `guest` y pasa la invitación a `accepted`; acceso vigente si `accepted`, sin `revoked_at` y `access_expires_at` futuro; fin de acceso = mínimo entre revocación y vencimiento; vencido → `guest-access-expired`; revocado → `guest-access-revoked`) → Qwen
+- [x] T105 [P] [US4] Prueba: acceso del invitado en `backend/tests/unit/identity/test_invitation_access.py` (aceptar crea un usuario `guest` solo con rol `guest` y pasa la invitación a `accepted`; acceso vigente si `accepted`, sin `revoked_at` y `access_expires_at` futuro; fin de acceso = mínimo entre revocación y vencimiento; vencido → `guest-access-expired`; revocado → `guest-access-revoked`) → Qwen
   - Terminado: la prueba falla.
-- [ ] T106 [P] [US4] Prueba: enlaces de acceso en `backend/tests/unit/identity/test_access_links.py` (token de 256 bits; se guarda solo su SHA-256; un solo uso; vigencia `invitation` 7 días y `sign_in` 15 minutos tomadas de los parámetros; emitir uno nuevo invalida los anteriores sin usar del mismo propósito; research R-18 y R-19) → Opus
+  - Estado: implementada por Opus (2026-10-07). 17 casos sobre `domain/invitation.py`.
+- [x] T106 [P] [US4] Prueba: enlaces de acceso en `backend/tests/unit/identity/test_access_links.py` (token de 256 bits; se guarda solo su SHA-256; un solo uso; vigencia `invitation` 7 días y `sign_in` 15 minutos tomadas de los parámetros; emitir uno nuevo invalida los anteriores sin usar del mismo propósito; research R-18 y R-19) → Opus
   - Terminado: la prueba falla.
-- [ ] T107 [P] [US4] Prueba: `POST /api/auth/guest/sessions` en `backend/tests/integration/identity/test_guest_session_api.py` (token válido de invitación → crea invitado, abre sesión y fija la cookie; token usado o vencido → 400 `access-link-invalid`; acceso vencido → 403 `guest-access-expired`; revocado → 403 `guest-access-revoked`; 60/min por IP (precisión de R-31); escenarios 4.1, 4.3 y 4.4) → Opus
+  - Estado: implementada por Opus (2026-10-07). 11 casos: entropía y formato del token, solo
+    hash, vigencias desde los parámetros, un solo uso y reemplazo de enlaces sin usar.
+- [x] T107 [P] [US4] Prueba: `POST /api/auth/guest/sessions` en `backend/tests/integration/identity/test_guest_session_api.py` (token válido de invitación → crea invitado, abre sesión y fija la cookie; token usado o vencido → 400 `access-link-invalid`; acceso vencido → 403 `guest-access-expired`; revocado → 403 `guest-access-revoked`; 60/min por IP (precisión de R-31); escenarios 4.1, 4.3 y 4.4) → Opus
   - Terminado: la prueba falla.
-- [ ] T108 [P] [US4] Prueba: `POST /api/auth/guest/link-requests` en `backend/tests/integration/identity/test_sign_in_link_request.py` (siempre 202 con el mismo cuerpo exista o no el correo (FR-013); solo un invitado vigente genera `identity.SignInLinkRequested`; el payload del outbox no contiene correo ni token; límites 5/h por hash de correo y 20/h por IP) → Opus
+  - Estado: implementada por Opus (2026-10-07). 10 casos con la fixture `guests`
+    (`tests/integration/identity/guests.py`): enlace válido crea al invitado y abre la sesión
+    (`guest_link`), enlace usado, vencido o desconocido → 400, acceso vencido o revocado → 403,
+    enlace de ingreso con la cuenta existente y límite por IP (60/min tras la precisión de R-31).
+- [x] T108 [P] [US4] Prueba: `POST /api/auth/guest/link-requests` en `backend/tests/integration/identity/test_sign_in_link_request.py` (siempre 202 con el mismo cuerpo exista o no el correo (FR-013); solo un invitado vigente genera `identity.SignInLinkRequested`; el payload del outbox no contiene correo ni token; límites 5/h por hash de correo y 20/h por IP) → Opus
   - Terminado: la prueba falla.
-- [ ] T109 [P] [US4] Prueba: manejador del worker en `backend/tests/integration/identity/test_sign_in_link_handler.py` (al procesar `SignInLinkRequested` emite el enlace, envía el correo a Mailpit con URL `<PUBLIC_BASE_URL>/acceso#t=<token>`, y el token en claro no aparece en base de datos, outbox, Redis ni logs) → Opus
+  - Estado: implementada por Opus (2026-10-07). 8 casos: evento solo para invitados vigentes
+    (no pendientes, vencidos ni revocados), cuerpo idéntico, payload sin correo ni token y los dos
+    límites con IP y correo controlados.
+- [x] T109 [P] [US4] Prueba: manejador del worker en `backend/tests/integration/identity/test_sign_in_link_handler.py` (al procesar `SignInLinkRequested` emite el enlace, envía el correo a Mailpit con URL `<PUBLIC_BASE_URL>/acceso#t=<token>`, y el token en claro no aparece en base de datos, outbox, Redis ni logs) → Opus
   - Terminado: la prueba falla.
-- [ ] T110 [P] [US4] Prueba: fachada para otros contextos en `backend/tests/unit/identity/test_public_facade.py` (`is_institutional(user_id)` y `is_guest(user_id)` para excluir invitados de ligas y analítica en specs futuras, FR-012) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 4 casos con Mailpit real (fixture `mailpit`
+    compartida en `tests/integration/conftest.py`): enlace de ingreso y de invitación, reemplazo
+    del enlace anterior y nada enviado si el acceso cambió entre la solicitud y el envío; el token
+    no aparece en `access_links`, outbox, Redis ni logs.
+- [x] T110 [P] [US4] Prueba: fachada para otros contextos en `backend/tests/unit/identity/test_public_facade.py` (`is_institutional(user_id)` y `is_guest(user_id)` para excluir invitados de ligas y analítica en specs futuras, FR-012) → Qwen
   - Terminado: la prueba falla.
-- [ ] T111 [P] [US4] Prueba: comando `saber-uli identity invite-guest --email --days` en `backend/tests/integration/identity/test_cli_invite_guest.py` (crea invitación con actor `system`, rechaza dominios institucionales, encola `InvitationCreated`) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 2 casos con los dobles en memoria.
+- [x] T111 [P] [US4] Prueba: comando `saber-uli identity invite-guest --email --days` en `backend/tests/integration/identity/test_cli_invite_guest.py` (crea invitación con actor `system`, rechaza dominios institucionales, encola `InvitationCreated`) → Qwen
   - Terminado: la prueba falla.
-- [ ] T112 [P] [US4] Pruebas de componente `frontend/src/features/auth/GuestAccessPage.test.tsx` (lee el token del fragmento, lo borra del historial, solo envía al pulsar "Ingresar", mensajes por causa) y `frontend/src/features/auth/GuestLinkRequestPage.test.tsx` (mismo mensaje exista o no el correo) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 5 casos por subproceso: actor sistema, auditoría
+    y evento en el outbox; plazo por defecto; dominio institucional (con subdominios) rechazado;
+    invitación vigente duplicada; datos de uso inválidos.
+- [x] T112 [P] [US4] Pruebas de componente `frontend/src/features/auth/GuestAccessPage.test.tsx` (lee el token del fragmento, lo borra del historial, solo envía al pulsar "Ingresar", mensajes por causa) y `frontend/src/features/auth/GuestLinkRequestPage.test.tsx` (mismo mensaje exista o no el correo) → Qwen
   - Terminado: las pruebas fallan.
+  - Estado: implementada por Opus (2026-10-07). 10 casos entre las dos páginas. El enlace «Soy
+    invitado» de `/ingresar` pasa a `/ingresar/invitado` (se ajustó la prueba de T075).
 
 ### Implementation for User Story 4
 
-- [ ] T113 [US4] Implementar `backend/src/saber_uli/identity/domain/invitation.py` (estado `sent → accepted` y reglas de acceso) para que pase T105 → Qwen
+- [x] T113 [US4] Implementar `backend/src/saber_uli/identity/domain/invitation.py` (estado `sent → accepted` y reglas de acceso) para que pase T105 → Qwen
   - Terminado: T105 en verde.
-- [ ] T114 [US4] Implementar `backend/src/saber_uli/identity/domain/access_link.py` y `backend/src/saber_uli/identity/infrastructure/link_tokens.py` para que pase T106 → Opus
+  - Estado: implementada por Opus (2026-10-07). Los errores `guest-access-expired` y
+    `guest-access-revoked` pasan al dominio; la guardia y la renovación los reutilizan.
+- [x] T114 [US4] Implementar `backend/src/saber_uli/identity/domain/access_link.py` y `backend/src/saber_uli/identity/infrastructure/link_tokens.py` para que pase T106 → Opus
   - Terminado: T106 en verde.
-- [ ] T115 [US4] Implementar `backend/src/saber_uli/identity/application/guest_sessions.py` y `backend/src/saber_uli/identity/api/guest_router.py` (sesiones y solicitudes de enlace) para que pasen T107 y T108; agregar `createGuestSession` y `requestGuestSignInLink` a `implemented_operations.py` → Opus
+  - Estado: implementada por Opus (2026-10-07). `secrets.token_urlsafe(32)` (43 caracteres) y
+    SHA-256; `LinkTokenFactory` como adaptador del puerto `LinkTokenGenerator`.
+- [x] T115 [US4] Implementar `backend/src/saber_uli/identity/application/guest_sessions.py` y `backend/src/saber_uli/identity/api/guest_router.py` (sesiones y solicitudes de enlace) para que pasen T107 y T108; agregar `createGuestSession` y `requestGuestSignInLink` a `implemented_operations.py` → Opus
   - Terminado: T107, T108 y la prueba de contrato en verde.
-- [ ] T116 [US4] Implementar `backend/src/saber_uli/identity/infrastructure/handlers/link_emails.py` (manejadores de `SignInLinkRequested` e `InvitationCreated` que emiten el enlace y llaman a `notifications.application.public.send_email`) y las plantillas `backend/src/saber_uli/notifications/infrastructure/templates/{guest_invitation,guest_sign_in}.{html,txt}.j2` para que pase T109 → Opus
+  - Estado: implementada por Opus (2026-10-07). `GuestSignIn` (enlace bloqueado con `FOR UPDATE`,
+    acepta y crea al invitado o reutiliza su cuenta; si el acceso venció o fue revocado, nada se
+    consume) y `RequestSignInLink`; `guest_router` (400 vía `STATUS_BY_SLUG`, 403 en este
+    ingreso aunque en la renovación la causa sea 401). Eventos por el outbox con
+    `register_identity_outbox`. Contrato en verde con 18 operaciones; se agregó el 422 de
+    `createGuestSession` y su aceptación se excluye de `positive_data_acceptance` (un token bien
+    formado pero desconocido es un 400 correcto).
+- [x] T116 [US4] Implementar `backend/src/saber_uli/identity/infrastructure/handlers/link_emails.py` (manejadores de `SignInLinkRequested` e `InvitationCreated` que emiten el enlace y llaman a `notifications.application.public.send_email`) y las plantillas `backend/src/saber_uli/notifications/infrastructure/templates/{guest_invitation,guest_sign_in}.{html,txt}.j2` para que pase T109 → Opus
   - Terminado: T109 en verde.
-- [ ] T117 [P] [US4] Implementar `backend/src/saber_uli/identity/application/public.py` (fachada pública) para que pase T110 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `LinkEmailHandlers` registrados en el worker con
+    `EmailService` armado desde la configuración SMTP; plantillas `guest_invitation` y
+    `guest_sign_in` (HTML y texto). Si el envío falla, `last_delivery_status = failed` y el
+    despachador reintenta con un enlace nuevo.
+- [x] T117 [P] [US4] Implementar `backend/src/saber_uli/identity/application/public.py` (fachada pública) para que pase T110 → Qwen
   - Terminado: T110 en verde; `lint-imports` pasa.
-- [ ] T118 [P] [US4] Implementar el comando `invite-guest` en `backend/src/saber_uli/cli.py` y `backend/src/saber_uli/identity/application/invitations.py` (creación mínima) para que pase T111 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `UserDirectory` en la fachada pública e
+    `IdentityDirectory` en `application/directory.py`; `lint-imports` pasa.
+- [x] T118 [P] [US4] Implementar el comando `invite-guest` en `backend/src/saber_uli/cli.py` y `backend/src/saber_uli/identity/application/invitations.py` (creación mínima) para que pase T111 → Qwen
   - Terminado: T111 en verde.
-- [ ] T119 [US4] Implementar `frontend/src/features/auth/GuestAccessPage.tsx` (`/acceso`) y `frontend/src/features/auth/GuestLinkRequestPage.tsx` (`/ingresar/invitado`) para que pase T112 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `CreateInvitation` y el subcomando con salida 0,
+    1 o 2. Migración 0006: `invitations.invited_by` admite NULL = sistema (data-model §2.7).
+- [x] T119 [US4] Implementar `frontend/src/features/auth/GuestAccessPage.tsx` (`/acceso`) y `frontend/src/features/auth/GuestLinkRequestPage.tsx` (`/ingresar/invitado`) para que pase T112 → Qwen
   - Terminado: T112 en verde.
-- [ ] T120 [US4] Prueba e2e `frontend/tests/e2e/us4-guest-access.spec.ts` (V5 y V6: invitación por CLI, correo en Mailpit, ingreso sin contraseña en menos de 2 minutos (SC-007), perfil de invitado, enlace reutilizado rechazado, nuevo enlace por correo, acceso vencido rechazado con fecha simulada) → Qwen
+  - Estado: implementada por Opus (2026-10-07). `GuestAccessPage` (`/acceso`) y
+    `GuestLinkRequestPage` (`/ingresar/invitado`).
+- [x] T120 [US4] Prueba e2e `frontend/tests/e2e/us4-guest-access.spec.ts` (V5 y V6: invitación por CLI, correo en Mailpit, ingreso sin contraseña en menos de 2 minutos (SC-007), perfil de invitado, enlace reutilizado rechazado, nuevo enlace por correo, acceso vencido rechazado con fecha simulada) → Qwen
   - Terminado: pasa contra el stack `e2e`.
-- [ ] T121 [US4] Revisión de US4 (T105–T120) en `specs/001-identidad-acceso/tasks.md`: manejo de tokens, enumeración de correos, límites y FR-007, FR-011 a FR-013 → Opus
+  - Estado: implementada por Opus (2026-10-07). V5 (invitación por CLI dentro del contenedor
+    `api`, correo en Mailpit, ingreso hasta `/inicio` en menos de 2 min, restricciones, enlace
+    reutilizado rechazado, enlace nuevo por correo) y V6 (acceso vencido con fecha simulada). Corre
+    también en iPhone (no usa OIDC). En verde 3 corridas completas seguidas.
+  - Hallazgos corregidos: la cookie `su_refresh` con `Secure` no se guardaba en WebKit sobre
+    `http://localhost` (commit bb23210, precisión de R-14) y 10 ingresos por minuto por IP no
+    alcanzaban para varios invitados tras la misma IP (commit e574fb0, precisión de R-31).
+- [x] T121 [US4] Revisión de US4 (T105–T120) en `specs/001-identidad-acceso/tasks.md`: manejo de tokens, enumeración de correos, límites y FR-007, FR-011 a FR-013 → Opus
   - Terminado: tareas aprobadas y marcadas.
+  - Revisión de Opus (2026-10-07): T105–T120 aprobadas.
+    - Tokens: 256 bits, solo SHA-256 en la base, un solo uso con bloqueo de fila, vigencias de
+      los parámetros; los genera el worker (el outbox lleva solo el id). El enlace usa el
+      fragmento (no llega al servidor ni a los registros del proxy), la página lo borra del
+      historial y solo lo envía al pulsar «Ingresar» (los escáneres de correo no lo gastan).
+    - Enumeración de correos (FR-013): `link-requests` responde siempre 202 con el mismo cuerpo.
+      Queda una diferencia de tiempo mínima (insertar el evento en el outbox); con 5/h por correo
+      y 20/h por IP no es aprovechable. Los 400/403 de `guest/sessions` exigen un token válido.
+    - Límites: R-31 con la precisión de 60/min por IP al consumir enlaces.
+    - FR-007 (enlaces de un solo uso y corta duración, sin contraseña), FR-011 (vencido o revocado
+      no entra ni renueva) y FR-013 cubiertos por T105–T109 y T120. FR-012 queda listo en la
+      fachada para ligas y analítica (specs futuras).
+    - Riesgo aceptado: el outbox entrega al menos una vez; si se repite un evento ya procesado,
+      el invitado recibe un segundo correo y solo vale el último enlace.
+    - Nota: los commits de T118, T116 y T115 se hicieron en ese orden y los dos primeros no
+      compilan por separado (dependen de puertos que llegaron con T115).
 
 **Checkpoint**: invitados entran y salen de forma segura.
 

@@ -11,7 +11,10 @@ export async function decide(page: Page, option: "Acepto" | "No acepto"): Promis
   await page.getByRole("button", { name: "Confirmar mi decisión" }).click();
 }
 
-/** Ingresa, acepta la política vigente y da por completado el perfil (US3 aún no existe). */
+/**
+ * Ingresa, acepta la política vigente y da por completado el perfil directamente en la base
+ * (el formulario de perfil lo prueba `us3-first-login.spec.ts`).
+ */
 export async function onboardedUser(page: Page, user: MockUser = newMockUser()): Promise<MockUser> {
   await signInWithMicrosoft(page, user);
   await decide(page, "Acepto");

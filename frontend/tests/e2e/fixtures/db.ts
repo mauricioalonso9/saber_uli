@@ -1,7 +1,8 @@
 /**
- * Preparación de datos directamente en PostgreSQL del stack e2e, para pasos que aún no tienen
- * interfaz: asignar el primer administrador (`grant-admin` llega con US6, T147) y dar por
- * completado el perfil (US3). Ejecuta `psql` dentro del contenedor `db` como `postgres`; los
+ * Preparación de datos directamente en PostgreSQL del stack e2e: asignar el primer
+ * administrador (`grant-admin` llega con US6, T147), dar por completado el perfil cuando la
+ * prueba no trata de él y asegurar un programa en el catálogo. Ejecuta `psql` dentro del
+ * contenedor `db` como `postgres`; los
  * valores viajan como variables de psql (`:'email'`), nunca concatenados en el SQL.
  *
  * El contenedor se busca por las etiquetas de Compose del proyecto `saber-uli` (`name:` de
@@ -60,5 +61,15 @@ export function completeOnboarding(email: string): void {
     `UPDATE identity.users SET onboarding_completed_at = now()
      WHERE lower(email) = lower(:'email');`,
     { email },
+  );
+}
+
+/** Crea un programa activo si no existe (el catálogo se carga con `import-programs`). */
+export function ensureProgram(code: string, name: string, campus: string): void {
+  psql(
+    `INSERT INTO identity.programs (code, name, campus, active)
+     VALUES (:'code', :'name', :'campus', true)
+     ON CONFLICT (code) DO UPDATE SET active = true;`,
+    { code, name, campus },
   );
 }

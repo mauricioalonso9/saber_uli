@@ -72,6 +72,18 @@ describe("listado de invitaciones", () => {
     await vi.waitFor(() => expect(queries.at(-1)?.get("status")).toBe("revoked"));
   });
 
+  it("busca por correo o nombre e indica cuántas hay", async () => {
+    mockList();
+    renderInvitations("teacher");
+    const user = userEvent.setup();
+
+    await user.type(await screen.findByRole("searchbox", { name: /buscar/i }), "laura");
+    await user.click(screen.getByRole("button", { name: "Buscar" }));
+
+    await vi.waitFor(() => expect(queries.at(-1)?.get("q")).toBe("laura"));
+    expect(screen.getByText(/2 invitaciones/i)).toBeInTheDocument();
+  });
+
   it("el docente no tiene el filtro por quién invitó", async () => {
     mockList();
     renderInvitations("teacher");

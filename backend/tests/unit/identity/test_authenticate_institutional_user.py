@@ -12,8 +12,9 @@ from saber_uli.identity.application.authenticate_institutional_user import (
     InstitutionalClaims,
     TenantNotAllowedError,
 )
+from saber_uli.identity.application.ports import UserAlreadyExistsError
 from saber_uli.identity.domain.roles import Role
-from saber_uli.identity.domain.user import UserKind, UserStatus
+from saber_uli.identity.domain.user import InstitutionalIdentity, User, UserKind, UserStatus
 from saber_uli.shared.domain.clock import FixedClock
 from tests.unit.identity.fakes import FakeIdentityUnitOfWork
 
@@ -127,3 +128,32 @@ async def test_sin_nombre_usa_el_correo_como_nombre_visible(
     result = await authenticate.execute(claims(name=None))
 
     assert result.user.display_name == "ana.perez@unilibre.edu.co"
+
+
+async def test_dos_primeros_ingresos_simultaneos_no_fallan(
+    authenticate: AuthenticateInstitutionalUser, uow: FakeIdentityUnitOfWork
+) -> None:
+    # Otra pestaña crea la cuenta justo antes: la inserción choca con la restricción única.
+    original_add = uow.users.add
+    raced = False
+
+    async def racing_add(user: User) -> User:
+        nonlocal raced
+        if not raced:
+            raced = True
+            other = User.new_institutional(
+                InstitutionalIdentity(tenant_id=TENANT, object_id=OID),
+                email="ana.perez@unilibre.edu.co",
+                display_name="Ana Pérez",
+                now=T0,
+            )
+            await original_add(other)
+            raise UserAlreadyExistsError
+        return await original_add(user)
+
+    uow.users.add = racing_add  # type: ignore[method-assign]
+
+    result = await authenticate.execute(claims())
+
+    assert result.created is False
+    assert len(uow.users.rows) == 1

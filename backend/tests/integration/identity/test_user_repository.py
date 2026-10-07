@@ -11,6 +11,7 @@ from sqlalchemy import Connection, NullPool, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
+from saber_uli.identity.application.ports import UserAlreadyExistsError
 from saber_uli.identity.domain.roles import Role
 from saber_uli.identity.domain.user import InstitutionalIdentity, User, UserStatus
 from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
@@ -197,3 +198,12 @@ async def test_el_orm_coincide_con_el_esquema_migrado(migrated_database: dict[st
     await engine.dispose()
 
     assert diffs == []
+
+
+async def test_la_identidad_institucional_duplicada_se_traduce(
+    repo: SqlAlchemyUserRepository,
+) -> None:
+    await repo.add(institutional(1))
+
+    with pytest.raises(UserAlreadyExistsError):
+        await repo.add(institutional(1, email="otra@unilibre.edu.co"))

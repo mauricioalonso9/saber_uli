@@ -43,6 +43,8 @@ _CATEGORY_STATUS: Mapping[type[DomainError], int] = {
 STATUS_BY_SLUG: dict[str, int] = {
     # Enlace de invitado inválido, usado o vencido (contrato: `createGuestSession`).
     "access-link-invalid": 400,
+    # Lote de invitaciones con más de 500 filas (contrato: `validateInvitationBatch`).
+    "batch-too-large": 413,
 }
 
 _TITLES: Mapping[int, str] = {

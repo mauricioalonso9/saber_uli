@@ -149,4 +149,5 @@ def _to_domain(row: InvitationRow) -> Invitation:
         sent_at=row.sent_at,
         accepted_at=row.accepted_at,
         revoked_at=row.revoked_at,
+        last_delivery_status=row.last_delivery_status,
     )

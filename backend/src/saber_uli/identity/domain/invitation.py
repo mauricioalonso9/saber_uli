@@ -122,6 +122,8 @@ class Invitation:
     sent_at: datetime | None = None
     accepted_at: datetime | None = None
     revoked_at: datetime | None = None
+    # Resultado del último envío del correo (`queued`, `sent`, `failed`); lo fija el worker.
+    last_delivery_status: str | None = None
 
     @classmethod
     def create(

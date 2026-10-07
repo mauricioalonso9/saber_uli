@@ -24,6 +24,7 @@ from saber_uli.config import Settings, get_settings
 from saber_uli.identity.api.auth_router import router as auth_router
 from saber_uli.identity.api.consent_router import router as consent_router
 from saber_uli.identity.api.guest_router import router as guest_router
+from saber_uli.identity.api.invitations_router import router as invitations_router
 from saber_uli.identity.api.me_router import router as me_router
 from saber_uli.identity.api.microsoft_router import router as microsoft_router
 from saber_uli.identity.api.policy_router import router as policy_router
@@ -34,6 +35,8 @@ from saber_uli.identity.application.authenticate_institutional_user import (
 )
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
+from saber_uli.identity.application.invitation_batches import InvitationBatchService
+from saber_uli.identity.application.invitations import InvitationService
 from saber_uli.identity.application.profile import ProfileService, ProgramCatalog
 from saber_uli.identity.application.queries.consent_status import ConsentStatusQuery
 from saber_uli.identity.application.queries.get_me import GetMe
@@ -151,6 +154,16 @@ def create_app(
         sessions=app.state.session_service,
     )
     app.state.request_sign_in_link = RequestSignInLink(uow_factory=identity_uow, clock=clock)
+    app.state.invitation_service = InvitationService(
+        uow_factory=identity_uow,
+        clock=clock,
+        institutional_domains=settings.institutional_email_domains,
+    )
+    app.state.invitation_batch_service = InvitationBatchService(
+        uow_factory=identity_uow,
+        clock=clock,
+        institutional_domains=settings.institutional_email_domains,
+    )
     app.state.entra_client = EntraIdClient(
         authority=settings.entra_authority,
         tenant_id=settings.entra_tenant_id,
@@ -179,6 +192,7 @@ def create_app(
     app.include_router(consent_router, dependencies=v1)
     app.include_router(policy_router, dependencies=v1)
     app.include_router(profile_router, dependencies=v1)
+    app.include_router(invitations_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

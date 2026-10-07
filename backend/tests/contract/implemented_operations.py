@@ -29,5 +29,15 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         # US4 (T115)
         "createGuestSession",
         "requestGuestSignInLink",
+        # US5 (T130)
+        "listInvitations",
+        "createInvitation",
+        "getInvitation",
+        "updateInvitationExpiry",
+        "resendInvitation",
+        "revokeInvitation",
+        "validateInvitationBatch",
+        "getInvitationBatch",
+        "confirmInvitationBatch",
     }
 )

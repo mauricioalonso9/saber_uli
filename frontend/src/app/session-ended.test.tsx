@@ -3,6 +3,8 @@
  * renovación responde que el acceso del invitado fue revocado o venció, o que la cuenta está
  * desactivada o eliminada, la app vuelve a `/ingresar` y explica la causa en la siguiente acción.
  */
+import "fake-indexeddb/auto";
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
@@ -11,6 +13,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import type { Me } from "@/api/model";
 import { App } from "@/app/App";
+import type { SessionState } from "@/app/guards";
 import { createAppRouter } from "@/app/router";
 import { createSessionLoader } from "@/features/auth/session-loader";
 import { useSessionStore } from "@/features/auth/session-store";
@@ -53,17 +56,20 @@ describe("fin de la sesión por una causa definitiva", () => {
     ["account-disabled", /desactivada/i],
   ])("con %s vuelve a /ingresar y lo explica", async (slug, message) => {
     useSessionStore.getState().setSession("token-viejo", 600);
+    // Como `loadSession`: tras una renovación rechazada, la sesión es anónima.
+    let session: SessionState = { kind: "authenticated", me: GUEST };
     server.use(
       // La API rechaza el token (época nueva) y la renovación da la causa.
       http.get("/api/v1/me/profile", () => problem(slug)),
       http.get("/api/v1/programs", () => problem(slug)),
-      http.post("/api/auth/refresh", () => problem(slug)),
+      http.post("/api/auth/refresh", () => {
+        session = { kind: "anonymous" };
+        return problem(slug);
+      }),
     );
     const router = createAppRouter({
       initialPath: "/inicio",
-      getSession: createSessionLoader(() =>
-        Promise.resolve({ kind: "authenticated" as const, me: GUEST }),
-      ),
+      getSession: createSessionLoader(() => Promise.resolve(session)),
     });
     render(<App router={router} />);
     const user = userEvent.setup();

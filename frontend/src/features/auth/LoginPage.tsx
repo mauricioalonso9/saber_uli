@@ -15,6 +15,8 @@ const KNOWN_ERRORS = new Set([
   "login_failed",
   "account_disabled",
   "account_deleted",
+  "guest_access_revoked",
+  "guest_access_expired",
 ]);
 
 /** Ingreso con la cuenta institucional (FR-001) y alternativa para invitados (SC-008). */

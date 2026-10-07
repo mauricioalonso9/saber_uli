@@ -88,6 +88,19 @@ async function send(url: string, options: RequestInit, token: string | null): Pr
 
 let refreshInFlight: Promise<string> | null = null;
 
+type SessionEndedListener = (slug: string) => void;
+const sessionEndedListeners = new Set<SessionEndedListener>();
+
+/**
+ * Avisa cuando la renovación responde 401: la sesión terminó (por ejemplo, se revocó el acceso
+ * del invitado). La app decide si lleva a `/ingresar` explicando la causa. Devuelve la función
+ * para dejar de escuchar.
+ */
+export function onSessionEnded(listener: SessionEndedListener): () => void {
+  sessionEndedListeners.add(listener);
+  return () => sessionEndedListeners.delete(listener);
+}
+
 /**
  * Renueva el token de acceso con la cookie `su_refresh` y lo guarda en memoria. Si falla, borra
  * la sesión y lanza el `ApiProblem` con la causa (`session-expired`, `account-disabled`, …).
@@ -99,7 +112,10 @@ export function refreshAccessToken(): Promise<string> {
       const response = await send(REFRESH_URL, { method: "POST" }, null);
       if (!response.ok) {
         const problem = await toProblem(response);
-        if (response.status === 401) useSessionStore.getState().clear();
+        if (response.status === 401) {
+          useSessionStore.getState().clear();
+          for (const listener of sessionEndedListeners) listener(problem.slug);
+        }
         throw problem;
       }
       const tokens = (await response.json()) as SessionTokens;

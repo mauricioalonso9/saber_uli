@@ -37,7 +37,9 @@
       "login_failed": "No pudimos completar el ingreso. Vuelve a intentarlo.",
       "account_disabled": "Tu cuenta está desactivada. Comunícate con la administración de Saber Uli.",
       "account_deleted": "Esta cuenta fue eliminada.",
-      "unknown": "No pudimos completar el ingreso. Vuelve a intentarlo."
+      "unknown": "No pudimos completar el ingreso. Vuelve a intentarlo.",
+      "guest_access_revoked": "Tu acceso como invitado fue retirado y tu sesión se cerró. Si crees que es un error, comunícate con quien te invitó.",
+      "guest_access_expired": "Tu acceso como invitado venció y tu sesión se cerró. Pide a quien te invitó que lo renueve."
     }
   },
   "guestAccess": {

@@ -11,7 +11,8 @@
   },
   "nav": {
     "home": "Inicio",
-    "consent": "Mi autorización de datos"
+    "consent": "Mi autorización de datos",
+    "account": "Mi cuenta"
   },
   "home": {
     "title": "Inicio",
@@ -59,7 +60,36 @@
     }
   },
   "profile": {
-    "title": "Completa tu perfil"
+    "title": "Completa tu perfil",
+    "intro": "Solo cuatro datos para ajustar tu práctica. Podrás cambiarlos cuando quieras en «Mi cuenta».",
+    "introGuest": "Dinos cómo llamarte y cuánto quieres practicar. Podrás cambiarlo cuando quieras en «Mi cuenta».",
+    "loading": "Cargando tu perfil…",
+    "program": "Programa académico",
+    "chooseProgram": "Elige tu programa",
+    "semester": "Semestre",
+    "chooseSemester": "Elige tu semestre",
+    "examDate": "Fecha estimada de tu prueba Saber Pro",
+    "examDateOptional": "Fecha estimada de tu prueba Saber Pro (opcional)",
+    "dailyGoal": "Meta diaria",
+    "goals": {
+      "casual": "Casual",
+      "regular": "Regular",
+      "intense": "Intensa"
+    },
+    "guestName": "Tu nombre",
+    "saveAndContinue": "Guardar y continuar",
+    "directory": {
+      "title": "Datos de tu cuenta Unilibre",
+      "name": "Nombre",
+      "email": "Correo",
+      "note": "Vienen del directorio de la Universidad Libre y no se cambian en Saber Uli."
+    },
+    "errors": {
+      "program": "Elige tu programa académico.",
+      "semester": "Elige tu semestre.",
+      "examDate": "Indica la fecha estimada de tu prueba Saber Pro.",
+      "guestName": "Tu nombre debe tener entre 2 y 120 caracteres."
+    }
   },
   "offline": {
     "title": "Sin conexión"
@@ -126,5 +156,11 @@
       "bodyMax": "El texto admite hasta {{max}} caracteres.",
       "effectiveFrom": "Indica la fecha y la hora de vigencia."
     }
+  },
+  "account": {
+    "title": "Mi cuenta",
+    "profile": "Tu perfil",
+    "save": "Guardar cambios",
+    "saved": "Guardamos tus cambios."
   }
 }

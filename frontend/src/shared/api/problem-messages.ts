@@ -43,6 +43,8 @@ const MESSAGES: Readonly<Record<string, string>> = {
   conflict:
     "No se pudo completar porque los datos cambiaron. Actualiza la página e intenta de nuevo.",
   // Perfil
+  "invalid-profile": "Revisa los datos de tu perfil e intenta de nuevo.",
+  "program-not-available": "El programa elegido no está disponible. Elige otro de la lista.",
   "student-role-required": "Esta opción es solo para estudiantes.",
   "not-institutional-student": "Esta opción es solo para estudiantes con cuenta institucional.",
   // Invitaciones

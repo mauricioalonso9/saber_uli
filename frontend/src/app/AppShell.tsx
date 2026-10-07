@@ -68,10 +68,10 @@ export function AppShell() {
           {session?.kind === "authenticated" && !session.me.onboarding.consent_required ? (
             <li>
               <Link
-                to="/mi-cuenta/autorizacion"
+                to="/mi-cuenta"
                 className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
               >
-                {t("nav.consent")}
+                {t("nav.account")}
               </Link>
             </li>
           ) : null}

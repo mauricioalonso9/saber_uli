@@ -71,6 +71,21 @@ docker compose run --rm -v ${PWD}\programas.csv:/tmp/programas.csv api `
   saber-uli identity import-programs --csv /tmp/programas.csv
 ```
 
+Ejemplo de archivo (sirve el «CSV UTF-8» de Excel; el código va en mayúsculas, números o
+guiones, de 2 a 20 caracteres):
+
+```text
+codigo,nombre,seccional
+DER-BOG,Derecho,Bogotá
+CON-CAL,Contaduría Pública,Cali
+```
+
+El comando informa cuántos programas creó, actualizó y dejó sin cambios, y lista las filas
+rechazadas con su número y el motivo. Código de salida: `0` todo cargado; `1` hubo filas
+rechazadas (las válidas sí se cargaron) o falló la base de datos; `2` el archivo no existe, no
+está en UTF-8 o el encabezado no es `codigo,nombre,seccional` (no se cargó nada). Los programas
+existentes conservan su estado activo o inactivo.
+
 Después también se pueden gestionar desde `/admin/programas`.
 
 ---

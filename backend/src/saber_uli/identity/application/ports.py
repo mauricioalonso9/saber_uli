@@ -6,11 +6,14 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Protocol
 from uuid import UUID
 
+from saber_uli.identity.domain.access_link import AccessLink, LinkPurpose
 from saber_uli.identity.domain.consent import ConsentDecision, ConsentRecord
+from saber_uli.identity.domain.invitation import Invitation
 from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.profile import Profile
 from saber_uli.identity.domain.program import Program
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
+from saber_uli.identity.domain.settings import IdentitySettings
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
 
 if TYPE_CHECKING:
@@ -138,6 +141,49 @@ class ProgramRepository(Protocol):
     async def add(self, program: Program) -> Program: ...
 
     async def save(self, program: Program) -> None: ...
+
+
+class InvitationRepository(Protocol):
+    async def add(self, invitation: Invitation) -> Invitation:
+        """Guarda y asigna el `id`. Lanza `InvitationAlreadyActiveError` si el correo ya tiene
+        una invitación vigente (`sent` o `accepted`)."""
+        ...
+
+    async def save(self, invitation: Invitation) -> None: ...
+
+    async def get_for_update(self, invitation_id: UUID) -> Invitation | None: ...
+
+    async def find_active_by_email(self, email: str) -> Invitation | None:
+        """Invitación `sent` o `accepted` del correo, sin distinguir mayúsculas."""
+        ...
+
+    async def set_delivery_status(self, invitation_id: UUID, status: str) -> None:
+        """`queued`, `sent` o `failed` (caso límite de rebote)."""
+        ...
+
+
+class AccessLinkRepository(Protocol):
+    async def add(self, link: AccessLink) -> AccessLink: ...
+
+    async def save(self, link: AccessLink) -> None: ...
+
+    async def get_by_hash_for_update(self, token_hash: bytes) -> AccessLink | None:
+        """Enlace bloqueado hasta el fin de la transacción (un solo uso aunque lleguen dos)."""
+        ...
+
+    async def unused_for(self, invitation_id: UUID, purpose: LinkPurpose) -> list[AccessLink]: ...
+
+
+class SettingsReader(Protocol):
+    async def load(self) -> IdentitySettings: ...
+
+
+class LinkTokenGenerator(Protocol):
+    def new(self) -> tuple[str, bytes]:
+        """Token en claro (solo para el correo) y su hash."""
+        ...
+
+    def hash(self, plaintext: str) -> bytes: ...
 
 
 class PolicyRepository(Protocol):

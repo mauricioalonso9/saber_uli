@@ -14,3 +14,19 @@ class UserAccessChanged(DomainEvent):
 
     event_type: ClassVar[str] = "identity.UserAccessChanged"
     user_id: UUID
+
+
+@dataclass(frozen=True, kw_only=True)
+class InvitationCreated(DomainEvent):
+    """Se creó (o reenvió) una invitación: el worker emite el enlace y envía el correo (R-19)."""
+
+    event_type: ClassVar[str] = "identity.InvitationCreated"
+    invitation_id: UUID
+
+
+@dataclass(frozen=True, kw_only=True)
+class SignInLinkRequested(DomainEvent):
+    """Un invitado vigente pidió un enlace de ingreso (FR-013). Sin correo ni token (R-19)."""
+
+    event_type: ClassVar[str] = "identity.SignInLinkRequested"
+    invitation_id: UUID

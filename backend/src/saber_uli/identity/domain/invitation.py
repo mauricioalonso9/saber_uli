@@ -11,6 +11,7 @@ vencimiento. Los errores de acceso los comparten el ingreso con el enlace (403) 
 de la sesión (401).
 """
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -41,6 +42,26 @@ class AccessExpiryOutOfRangeError(RuleViolationError):
 
 class InvitationNotPendingError(ConflictError):
     slug = "invitation-not-pending"
+
+
+class InvitationAlreadyActiveError(ConflictError):
+    slug = "invitation-already-active"
+
+
+class InstitutionalEmailNotInvitableError(RuleViolationError):
+    """FR-008: la comunidad Unilibre ingresa con su cuenta, no por invitación."""
+
+    slug = "institutional-email-not-invitable"
+
+
+def is_institutional_email(email: str, domains: Iterable[str]) -> bool:
+    """El dominio del correo es uno institucional o un subdominio suyo (R-20)."""
+    domain = email.rsplit("@", 1)[-1].strip().lower()
+    return any(
+        domain == allowed or domain.endswith(f".{allowed}")
+        for allowed in (d.strip().lower() for d in domains)
+        if allowed
+    )
 
 
 @dataclass(eq=False)

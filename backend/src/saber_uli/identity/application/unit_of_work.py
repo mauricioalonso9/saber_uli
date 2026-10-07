@@ -3,13 +3,16 @@
 from abc import abstractmethod
 
 from saber_uli.identity.application.ports import (
+    AccessLinkRepository,
     AuditRepository,
     ConsentRepository,
     GuestAccessReader,
+    InvitationRepository,
     PolicyRepository,
     ProfileRepository,
     ProgramRepository,
     SessionRepository,
+    SettingsReader,
     UserRepository,
 )
 from saber_uli.shared.application.unit_of_work import UnitOfWork
@@ -43,6 +46,18 @@ class IdentityUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def programs(self) -> ProgramRepository: ...
+
+    @property
+    @abstractmethod
+    def invitations(self) -> InvitationRepository: ...
+
+    @property
+    @abstractmethod
+    def access_links(self) -> AccessLinkRepository: ...
+
+    @property
+    @abstractmethod
+    def settings(self) -> SettingsReader: ...
 
     @property
     @abstractmethod

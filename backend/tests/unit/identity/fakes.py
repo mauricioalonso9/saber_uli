@@ -11,11 +11,14 @@ from uuid import UUID, uuid4
 from saber_uli.identity.application.audit import AuditEntry
 from saber_uli.identity.application.ports import AuditRepository, ConsentEntry, GuestAccessStatus
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
+from saber_uli.identity.domain.access_link import AccessLink, LinkPurpose
 from saber_uli.identity.domain.consent import ConsentRecord
+from saber_uli.identity.domain.invitation import Invitation, InvitationStatus
 from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.profile import Profile
 from saber_uli.identity.domain.program import Program
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
+from saber_uli.identity.domain.settings import IdentitySettings
 from saber_uli.identity.domain.user import InstitutionalIdentity, User
 from saber_uli.shared.application.event_bus import EventBus
 
@@ -155,6 +158,71 @@ class FakePrograms:
         self.rows[program.id] = program
 
 
+class FakeInvitations:
+    def __init__(self) -> None:
+        self.rows: dict[UUID, Invitation] = {}
+
+    async def add(self, invitation: Invitation) -> Invitation:
+        invitation.id = uuid4()
+        self.rows[invitation.id] = invitation
+        return invitation
+
+    async def save(self, invitation: Invitation) -> None:
+        assert invitation.id is not None
+        self.rows[invitation.id] = invitation
+
+    async def get_for_update(self, invitation_id: UUID) -> Invitation | None:
+        return self.rows.get(invitation_id)
+
+    async def find_active_by_email(self, email: str) -> Invitation | None:
+        wanted = email.strip().lower()
+        return next(
+            (
+                i
+                for i in self.rows.values()
+                if (i.email or "").lower() == wanted
+                and i.status in (InvitationStatus.SENT, InvitationStatus.ACCEPTED)
+            ),
+            None,
+        )
+
+    async def set_delivery_status(self, invitation_id: UUID, status: str) -> None:
+        return None
+
+
+class FakeAccessLinks:
+    def __init__(self) -> None:
+        self.rows: list[AccessLink] = []
+
+    async def add(self, link: AccessLink) -> AccessLink:
+        link.id = uuid4()
+        self.rows.append(link)
+        return link
+
+    async def save(self, link: AccessLink) -> None:
+        return None
+
+    async def get_by_hash_for_update(self, token_hash: bytes) -> AccessLink | None:
+        return next((link for link in self.rows if link.token_hash == token_hash), None)
+
+    async def unused_for(self, invitation_id: UUID, purpose: LinkPurpose) -> list[AccessLink]:
+        return [
+            link
+            for link in self.rows
+            if link.invitation_id == invitation_id
+            and link.purpose is purpose
+            and link.used_at is None
+        ]
+
+
+class FakeSettings:
+    def __init__(self) -> None:
+        self.current = IdentitySettings()
+
+    async def load(self) -> IdentitySettings:
+        return self.current
+
+
 class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     """Comparte los repositorios entre aperturas (como una base de datos) y cuenta los commits."""
 
@@ -168,6 +236,9 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
         self._policies = FakePolicies()
         self._profiles = FakeProfiles()
         self._programs = FakePrograms()
+        self._invitations = FakeInvitations()
+        self._access_links = FakeAccessLinks()
+        self._settings = FakeSettings()
         self.commits = 0
 
     def __call__(self) -> "FakeIdentityUnitOfWork":
@@ -200,6 +271,18 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     @property
     def programs(self) -> FakePrograms:
         return self._programs
+
+    @property
+    def invitations(self) -> FakeInvitations:
+        return self._invitations
+
+    @property
+    def access_links(self) -> FakeAccessLinks:
+        return self._access_links
+
+    @property
+    def settings(self) -> FakeSettings:
+        return self._settings
 
     @property
     def audit(self) -> FakeAudit:

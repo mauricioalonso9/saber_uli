@@ -221,7 +221,7 @@ class InvitationRow(Base):
     id: Mapped[UUID] = _pk()
     email: Mapped[str | None] = mapped_column(CITEXT)
     invitee_name: Mapped[str | None] = mapped_column(Text)
-    invited_by: Mapped[UUID] = mapped_column(Uuid, _fk("users.id"))
+    invited_by: Mapped[UUID | None] = mapped_column(Uuid, _fk("users.id"))  # NULL = sistema
     batch_id: Mapped[UUID | None] = mapped_column(
         Uuid, _fk("invitation_batches.id", ondelete="SET NULL")
     )

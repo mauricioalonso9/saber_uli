@@ -40,7 +40,10 @@ _CATEGORY_STATUS: Mapping[type[DomainError], int] = {
 }
 
 # Excepciones puntuales por slug (por ejemplo, T123: "batch-too-large" → 413).
-STATUS_BY_SLUG: dict[str, int] = {}
+STATUS_BY_SLUG: dict[str, int] = {
+    # Enlace de invitado inválido, usado o vencido (contrato: `createGuestSession`).
+    "access-link-invalid": 400,
+}
 
 _TITLES: Mapping[int, str] = {
     400: "Solicitud inválida",

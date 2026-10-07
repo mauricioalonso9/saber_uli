@@ -30,8 +30,9 @@ from tests.integration.conftest import REPO, CommittedLogin, settings_for
 
 CONTRACT = REPO / "specs" / "001-identidad-acceso" / "contracts" / "openapi.yaml"
 REDIRECT_ONLY = {"GET /api/auth/microsoft/login", "GET /api/auth/microsoft/callback"}
-# Operaciones con reglas entre campos (institucional frente a invitado en `ProfileUpdate`).
-CROSS_FIELD_RULES = {"PUT /api/v1/me/profile"}
+# Operaciones cuya aceptación no depende solo del esquema: reglas entre campos (institucional
+# frente a invitado en `ProfileUpdate`) o datos que deben existir (el token de un enlace).
+ACCEPTANCE_BEYOND_SCHEMA = {"PUT /api/v1/me/profile", "POST /api/auth/guest/sessions"}
 
 
 class Unlimited:
@@ -116,9 +117,9 @@ def test_contrato(case: Any, contract_headers: dict[str, str]) -> None:
     excluded: list[Any] = []
     if case.operation.label in REDIRECT_ONLY:
         excluded = [positive_data_acceptance, negative_data_rejection]
-    elif case.operation.label in CROSS_FIELD_RULES:
-        # Datos válidos campo por campo pueden violar reglas entre campos que el contrato solo
-        # describe en texto; el 422 es correcto. El resto de comprobaciones sí aplica.
+    elif case.operation.label in ACCEPTANCE_BEYOND_SCHEMA:
+        # Datos válidos según el esquema pueden rechazarse con razón (422 por reglas entre campos,
+        # 400 por un enlace que no existe). El resto de comprobaciones sí aplica.
         excluded = [positive_data_acceptance]
     case.call_and_validate(
         headers=contract_headers, allow_redirects=False, excluded_checks=excluded

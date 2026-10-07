@@ -23,6 +23,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from saber_uli.config import Settings, get_settings
 from saber_uli.identity.api.auth_router import router as auth_router
 from saber_uli.identity.api.consent_router import router as consent_router
+from saber_uli.identity.api.guest_router import router as guest_router
 from saber_uli.identity.api.me_router import router as me_router
 from saber_uli.identity.api.microsoft_router import router as microsoft_router
 from saber_uli.identity.api.policy_router import router as policy_router
@@ -32,6 +33,7 @@ from saber_uli.identity.application.authenticate_institutional_user import (
     AuthenticateInstitutionalUser,
 )
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
+from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
 from saber_uli.identity.application.profile import ProfileService, ProgramCatalog
 from saber_uli.identity.application.queries.consent_status import ConsentStatusQuery
 from saber_uli.identity.application.queries.get_me import GetMe
@@ -39,6 +41,8 @@ from saber_uli.identity.application.sessions import SessionService
 from saber_uli.identity.domain.events import UserAccessChanged
 from saber_uli.identity.infrastructure.entra_id import EntraIdClient
 from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
+from saber_uli.identity.infrastructure.link_tokens import LinkTokenFactory
+from saber_uli.identity.infrastructure.outbox_events import register_identity_outbox
 from saber_uli.identity.infrastructure.session_revocations import RedisSessionRevocations
 from saber_uli.identity.infrastructure.tokens import AccessTokenCodec, RefreshTokenFactory
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
@@ -92,6 +96,7 @@ def create_app(
         await epochs.invalidate(event.user_id)
 
     bus.subscribe(UserAccessChanged, invalidate_epoch, phase="after_commit")
+    register_identity_outbox(bus)
 
     async def database_ready() -> None:
         async with engine.connect() as conn:
@@ -139,6 +144,13 @@ def create_app(
         refresh_tokens=RefreshTokenFactory(),
         revocations=revocations,
     )
+    app.state.guest_sign_in = GuestSignIn(
+        uow_factory=identity_uow,
+        clock=clock,
+        tokens=LinkTokenFactory(),
+        sessions=app.state.session_service,
+    )
+    app.state.request_sign_in_link = RequestSignInLink(uow_factory=identity_uow, clock=clock)
     app.state.entra_client = EntraIdClient(
         authority=settings.entra_authority,
         tenant_id=settings.entra_tenant_id,
@@ -160,6 +172,7 @@ def create_app(
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(microsoft_router)
+    app.include_router(guest_router)
     # Toda ruta de /api/v1 pasa por la guardia de autorización de datos (FR-014).
     v1 = [Depends(require_consent)]
     app.include_router(me_router, dependencies=v1)

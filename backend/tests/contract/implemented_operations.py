@@ -26,5 +26,8 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         "listActivePrograms",
         "getMyProfile",
         "updateMyProfile",
+        # US4 (T115)
+        "createGuestSession",
+        "requestGuestSignInLink",
     }
 )

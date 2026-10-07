@@ -3,25 +3,35 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from saber_uli.identity.application.ports import (
+    AccessLinkRepository,
     AuditRepository,
     ConsentRepository,
     GuestAccessReader,
+    InvitationRepository,
     PolicyRepository,
     ProfileRepository,
     ProgramRepository,
     SessionRepository,
+    SettingsReader,
     UserRepository,
 )
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
+from saber_uli.identity.infrastructure.repositories.access_links import (
+    SqlAlchemyAccessLinkRepository,
+)
 from saber_uli.identity.infrastructure.repositories.audit import SqlAlchemyAuditRepository
 from saber_uli.identity.infrastructure.repositories.consents import SqlAlchemyConsentRepository
 from saber_uli.identity.infrastructure.repositories.guest_access import (
     SqlAlchemyGuestAccessReader,
 )
+from saber_uli.identity.infrastructure.repositories.invitations import (
+    SqlAlchemyInvitationRepository,
+)
 from saber_uli.identity.infrastructure.repositories.policies import SqlAlchemyPolicyRepository
 from saber_uli.identity.infrastructure.repositories.profiles import SqlAlchemyProfileRepository
 from saber_uli.identity.infrastructure.repositories.programs import SqlAlchemyProgramRepository
 from saber_uli.identity.infrastructure.repositories.sessions import SqlAlchemySessionRepository
+from saber_uli.identity.infrastructure.repositories.settings import SqlAlchemySettingsRepository
 from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.infrastructure.db import SqlAlchemyUnitOfWork
@@ -58,6 +68,18 @@ class SqlAlchemyIdentityUnitOfWork(SqlAlchemyUnitOfWork, IdentityUnitOfWork):
     @property
     def programs(self) -> ProgramRepository:
         return SqlAlchemyProgramRepository(self.session)
+
+    @property
+    def invitations(self) -> InvitationRepository:
+        return SqlAlchemyInvitationRepository(self.session)
+
+    @property
+    def access_links(self) -> AccessLinkRepository:
+        return SqlAlchemyAccessLinkRepository(self.session)
+
+    @property
+    def settings(self) -> SettingsReader:
+        return SqlAlchemySettingsRepository(self.session)
 
     @property
     def audit(self) -> AuditRepository:

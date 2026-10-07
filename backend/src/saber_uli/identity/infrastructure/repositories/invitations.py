@@ -13,6 +13,7 @@ from saber_uli.identity.domain.invitation import (
     InvitationStatus,
 )
 from saber_uli.identity.infrastructure.orm import InvitationRow
+from saber_uli.shared.infrastructure.db import LIKE_ESCAPE, contains_pattern
 
 _ACTIVE = (InvitationStatus.SENT.value, InvitationStatus.ACCEPTED.value)
 
@@ -71,13 +72,10 @@ class SqlAlchemyInvitationRepository:
         if status is not None:
             conditions.append(InvitationRow.status == status.value)
         if q:
-            escaped = (
-                q.strip().lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-            )
-            pattern = f"%{escaped}%"
+            pattern = contains_pattern(q)
             conditions.append(
-                func.lower(InvitationRow.email).like(pattern, escape="\\")
-                | func.lower(InvitationRow.invitee_name).like(pattern, escape="\\")
+                func.lower(InvitationRow.email).like(pattern, escape=LIKE_ESCAPE)
+                | func.lower(InvitationRow.invitee_name).like(pattern, escape=LIKE_ESCAPE)
             )
         total = await self._db.scalar(
             select(func.count()).select_from(InvitationRow).where(*conditions)

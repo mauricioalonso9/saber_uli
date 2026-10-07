@@ -47,6 +47,10 @@ class StudentRoleRequiredError(ConflictError):
     slug = "student-role-required"
 
 
+class DirectorRequiresProgramsError(ConflictError):
+    slug = "director-requires-programs"
+
+
 @dataclass(frozen=True)
 class InstitutionalIdentity:
     tenant_id: UUID
@@ -67,6 +71,8 @@ class User:
     last_login_at: datetime | None = None
     retention_notice_sent_at: datetime | None = None
     onboarding_completed_at: datetime | None = None
+    # Programas que dirige (FR-026); solo con el rol Director de programa (data-model §2.4).
+    director_program_ids: set[UUID] = field(default_factory=set)
 
     # --- Creación -------------------------------------------------------------------------
 
@@ -183,6 +189,38 @@ class User:
                 "Un invitado no puede tener otros roles ni un institucional el rol Invitado."
             )
         self.roles.add(role)
+
+    def set_roles(
+        self, roles: set[Role], *, director_program_ids: set[UUID]
+    ) -> tuple[set[Role], set[Role]]:
+        """Define todos los roles (FR-023 a FR-026) y devuelve (asignados, retirados).
+
+        Retirar un rol cierra las sesiones (`auth_epoch` + 1): los tokens ya emitidos llevan los
+        roles anteriores. La regla del último administrador (FR-025) la aplica la aplicación,
+        que bloquea a los administradores activos.
+        """
+        self._require(UserStatus.ACTIVE, UserStatus.DISABLED)
+        if self.kind is UserKind.GUEST:
+            if roles != {Role.GUEST}:
+                raise GuestRoleExclusiveError("Un invitado solo tiene el rol Invitado.")
+        else:
+            if Role.GUEST in roles:
+                raise GuestRoleExclusiveError("Una cuenta institucional no puede ser Invitado.")
+            if Role.STUDENT not in roles:
+                raise StudentRoleRequiredError(
+                    "Una cuenta institucional conserva el rol Estudiante."
+                )
+        directs = Role.PROGRAM_DIRECTOR in roles
+        if directs and not director_program_ids:
+            raise DirectorRequiresProgramsError(
+                "Asigna al menos un programa al director de programa."
+            )
+        granted, revoked = roles - self.roles, self.roles - roles
+        self.roles = set(roles)
+        self.director_program_ids = set(director_program_ids) if directs else set()
+        if revoked:
+            self.invalidate_sessions()
+        return granted, revoked
 
     def revoke_role(self, role: Role) -> None:
         self._require(UserStatus.ACTIVE, UserStatus.DISABLED)

@@ -102,6 +102,9 @@ class UserRow(Base):
         lazy="selectin",
         foreign_keys="RoleAssignmentRow.user_id",
     )
+    director_programs: Mapped[list["DirectorProgramRow"]] = relationship(
+        cascade="all, delete-orphan", lazy="selectin"
+    )
 
 
 class RoleAssignmentRow(Base):

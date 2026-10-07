@@ -14,9 +14,10 @@ from saber_uli.identity.domain.invitation_batch import InvitationBatch
 from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.profile import Profile
 from saber_uli.identity.domain.program import Program
+from saber_uli.identity.domain.roles import Role
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.settings import IdentitySettings
-from saber_uli.identity.domain.user import InstitutionalIdentity, User
+from saber_uli.identity.domain.user import InstitutionalIdentity, User, UserKind
 
 if TYPE_CHECKING:
     from saber_uli.identity.application.audit import AuditEntry
@@ -265,6 +266,20 @@ class UserRepository(Protocol):
 
     async def lock_active_admins(self) -> list[UUID]:
         """Bloquea (`FOR UPDATE`) y devuelve los administradores activos (FR-025, FR-034d)."""
+        ...
+
+    async def search(
+        self,
+        *,
+        q: str | None,
+        kind: UserKind | None,
+        role: Role | None,
+        status: str | None,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[User], int]:
+        """Página de cuentas (las más recientes primero). `status` admite los estados visibles
+        (`guest_expired` y `guest_revoked` se derivan de la invitación)."""
         ...
 
     async def display_names(self, user_ids: Collection[UUID]) -> dict[UUID, str | None]:

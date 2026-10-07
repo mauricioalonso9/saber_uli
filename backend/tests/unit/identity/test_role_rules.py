@@ -168,7 +168,8 @@ async def test_desactivar_cierra_las_sesiones_y_reactivar_no_las_devuelve(
     disabled = await service.set_status(admin, student, "disabled")
     reactivated = await service.set_status(admin, student, "active")
 
-    assert disabled.user.status is UserStatus.DISABLED
+    assert disabled.status == "disabled"
+    assert reactivated.status == "active"
     assert reactivated.user.status is UserStatus.ACTIVE
     assert reactivated.user.auth_epoch == epoch + 1
     actions = [entry.action.value for entry in uow.audit.entries]

@@ -65,3 +65,12 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         if self._session is not None:
             await self._session.close()
             self._session = None
+
+
+LIKE_ESCAPE = "\\"
+
+
+def contains_pattern(text: str) -> str:
+    """Patrón de `LIKE … ESCAPE '\'` que busca `text` (en minúsculas) como subcadena literal."""
+    escaped = text.strip().lower().replace("\\", "\\\\").replace("%", r"\%").replace("_", r"\_")
+    return f"%{escaped}%"

@@ -19,9 +19,10 @@ from saber_uli.identity.domain.invitation_batch import InvitationBatch
 from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.profile import Profile
 from saber_uli.identity.domain.program import Program
+from saber_uli.identity.domain.roles import Role
 from saber_uli.identity.domain.session import RefreshToken, RevocationReason, Session
 from saber_uli.identity.domain.settings import IdentitySettings
-from saber_uli.identity.domain.user import InstitutionalIdentity, User
+from saber_uli.identity.domain.user import InstitutionalIdentity, User, UserStatus
 from saber_uli.shared.application.event_bus import EventBus
 
 
@@ -52,7 +53,28 @@ class FakeUsers:
         )
 
     async def lock_active_admins(self) -> list[UUID]:
-        return []
+        return sorted(
+            user_id
+            for user_id, user in self.rows.items()
+            if Role.ADMIN in user.roles and user.status is UserStatus.ACTIVE
+        )
+
+    async def search(
+        self,
+        *,
+        q: str | None,
+        kind: object,
+        role: Role | None,
+        status: str | None,
+        offset: int,
+        limit: int,
+    ) -> tuple[list[User], int]:
+        items = [
+            u
+            for u in self.rows.values()
+            if (role is None or role in u.roles) and (status is None or u.status.value == status)
+        ]
+        return items[offset : offset + limit], len(items)
 
     async def display_names(self, user_ids: Collection[UUID]) -> dict[UUID, str | None]:
         return {i: self.rows[i].display_name for i in user_ids if i in self.rows}

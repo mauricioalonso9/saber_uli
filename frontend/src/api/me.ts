@@ -523,7 +523,7 @@ export const decideConsent = async (
 export const getDecideConsentMutationKey = () => ["decideConsent"] as const;
 
 export const getDecideConsentMutationOptions = <
-  TError = UnauthorizedResponse | Problem,
+  TError = UnauthorizedResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -560,13 +560,16 @@ export const getDecideConsentMutationOptions = <
 
 export type DecideConsentMutationResult = NonNullable<Awaited<ReturnType<typeof decideConsent>>>;
 export type DecideConsentMutationBody = DecideConsentBody;
-export type DecideConsentMutationError = UnauthorizedResponse | Problem;
+export type DecideConsentMutationError = UnauthorizedResponse | Problem | ValidationErrorResponse;
 export type DecideConsentMutationVariables = { data: DecideConsentBody };
 
 /**
  * @summary Acepta o rechaza la versión vigente de la política (FR-015)
  */
-export const useDecideConsent = <TError = UnauthorizedResponse | Problem, TContext = unknown>(
+export const useDecideConsent = <
+  TError = UnauthorizedResponse | Problem | ValidationErrorResponse,
+  TContext = unknown,
+>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof decideConsent>>,

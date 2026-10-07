@@ -19,7 +19,11 @@ export interface Invitation {
   status: InvitationStatus;
   access_expires_at: string;
   link_expires_at?: string;
-  /** `display_name` es `null` si quien invitó fue suprimido. */
+  /**
+   * `null` si la creó el sistema (comando `invite-guest`). `display_name` es `null` si
+   * quien invitó fue suprimido.
+   * @nullable
+   */
   invited_by: InvitationInvitedBy;
   guest_user_id?: string;
   delivery_status?: InvitationDeliveryStatus;

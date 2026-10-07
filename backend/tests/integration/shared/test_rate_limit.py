@@ -165,15 +165,15 @@ async def test_la_clave_por_correo_es_un_hmac(limiter: RateLimiter, redis_client
 # --- Consumo de enlace, Microsoft y renovación -------------------------------------------------
 
 
-async def test_diez_por_minuto_por_ip_al_consumir_el_enlace(limiter: RateLimiter) -> None:
+async def test_sesenta_por_minuto_por_ip_al_consumir_el_enlace(limiter: RateLimiter) -> None:
     app = build_app(limiter)
     async with client(app) as http:
-        statuses = await hit(http, 11, "POST", "/api/auth/guest/sessions")
+        statuses = await hit(http, 61, "POST", "/api/auth/guest/sessions")
         last = await http.post("/api/auth/guest/sessions")
     async with client(app, "192.0.2.50") as other_ip:
         other = await other_ip.post("/api/auth/guest/sessions")
 
-    assert statuses == [200] * 10 + [429]
+    assert statuses == [200] * 60 + [429]
     assert_rate_limited(last, 60)
     assert other.status_code == 200
 

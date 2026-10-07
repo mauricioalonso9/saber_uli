@@ -398,7 +398,7 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
     acotado a `saber_uli.worker` por falta de tipos de Celery. 9 pruebas de T033 en verde.
     Verificado en Compose: T007 con 10 de 11 pruebas en verde (todos los servicios `healthy`,
     incluidos `worker` y `beat`, y `migrate` con código 0); falta solo `test_flujo_de_ci` (T014).
-- [x] T035 [P] Prueba: limitación de peticiones en `backend/tests/integration/shared/test_rate_limit.py` (ventanas de research R-31: 5/h por hash de correo y 20/h por IP en solicitud de enlace; 10/min por IP en consumo de enlace; 30/min por IP en ingreso Microsoft y renovación; 300/min por usuario en el resto; respuesta 429 `rate-limited` con `Retry-After`; la clave por correo usa hash, nunca el correo) → Opus
+- [x] T035 [P] Prueba: limitación de peticiones en `backend/tests/integration/shared/test_rate_limit.py` (ventanas de research R-31: 5/h por hash de correo y 20/h por IP en solicitud de enlace; 60/min por IP en consumo de enlace (precisión de R-31 en T120); 30/min por IP en ingreso Microsoft y renovación; 300/min por usuario en el resto; respuesta 429 `rate-limited` con `Retry-After`; la clave por correo usa hash, nunca el correo) → Opus
   - Terminado: la prueba falla.
   - Estado: ver T036.
 - [x] T036 Implementar `backend/src/saber_uli/shared/infrastructure/rate_limit.py` y la dependencia FastAPI en `backend/src/saber_uli/shared/api/rate_limit.py` con `limits` + Redis → Opus
@@ -1152,7 +1152,7 @@ ingreso nuevos; su acceso vence o se revoca de forma efectiva.
   - Terminado: la prueba falla.
 - [ ] T106 [P] [US4] Prueba: enlaces de acceso en `backend/tests/unit/identity/test_access_links.py` (token de 256 bits; se guarda solo su SHA-256; un solo uso; vigencia `invitation` 7 días y `sign_in` 15 minutos tomadas de los parámetros; emitir uno nuevo invalida los anteriores sin usar del mismo propósito; research R-18 y R-19) → Opus
   - Terminado: la prueba falla.
-- [ ] T107 [P] [US4] Prueba: `POST /api/auth/guest/sessions` en `backend/tests/integration/identity/test_guest_session_api.py` (token válido de invitación → crea invitado, abre sesión y fija la cookie; token usado o vencido → 400 `access-link-invalid`; acceso vencido → 403 `guest-access-expired`; revocado → 403 `guest-access-revoked`; 10/min por IP; escenarios 4.1, 4.3 y 4.4) → Opus
+- [ ] T107 [P] [US4] Prueba: `POST /api/auth/guest/sessions` en `backend/tests/integration/identity/test_guest_session_api.py` (token válido de invitación → crea invitado, abre sesión y fija la cookie; token usado o vencido → 400 `access-link-invalid`; acceso vencido → 403 `guest-access-expired`; revocado → 403 `guest-access-revoked`; 60/min por IP (precisión de R-31); escenarios 4.1, 4.3 y 4.4) → Opus
   - Terminado: la prueba falla.
 - [ ] T108 [P] [US4] Prueba: `POST /api/auth/guest/link-requests` en `backend/tests/integration/identity/test_sign_in_link_request.py` (siempre 202 con el mismo cuerpo exista o no el correo (FR-013); solo un invitado vigente genera `identity.SignInLinkRequested`; el payload del outbox no contiene correo ni token; límites 5/h por hash de correo y 20/h por IP) → Opus
   - Terminado: la prueba falla.

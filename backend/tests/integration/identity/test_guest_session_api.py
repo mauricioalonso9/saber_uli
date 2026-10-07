@@ -186,15 +186,15 @@ async def test_un_token_mal_formado_responde_422(api_client: httpx.AsyncClient) 
     assert response.status_code == 422
 
 
-async def test_limite_de_10_por_minuto_por_ip(
+async def test_limite_de_60_por_minuto_por_ip(
     migrated_database: dict[str, str], redis_url: str, redis_client: Redis
 ) -> None:
     app = create_app(settings_for(migrated_database, redis_url), log_stream=io.StringIO())
     transport = httpx.ASGITransport(app=app, client=("203.0.113.7", 40000))
     statuses: list[Any] = []
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-        for _ in range(11):
+        for _ in range(61):
             statuses.append((await sign_in(client, "y" * 43)).status_code)
 
-    assert statuses[:10] == [400] * 10
-    assert statuses[10] == 429
+    assert statuses[:60] == [400] * 60
+    assert statuses[60] == 429

@@ -39,7 +39,8 @@ class RateLimitRule:
 # Ventanas de R-31.
 GUEST_LINK_PER_EMAIL = RateLimitRule("guest-link-email", "5/hour")
 GUEST_LINK_PER_IP = RateLimitRule("guest-link-ip", "20/hour")
-GUEST_SESSION_PER_IP = RateLimitRule("guest-session-ip", "10/minute")
+# 60/min y no 10: varias personas detrás de la misma IP (R-31, precisión de T120).
+GUEST_SESSION_PER_IP = RateLimitRule("guest-session-ip", "60/minute")
 # Precisión de R-31 (T081): el campus sale a internet por una sola IP (NAT), así que el
 # ingreso con Microsoft admite un salón completo a la vez y la renovación se limita por
 # sesión (HMAC de la cookie) con un tope alto por IP contra abusos.

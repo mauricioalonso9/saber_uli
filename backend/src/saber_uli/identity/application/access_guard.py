@@ -27,6 +27,10 @@ from saber_uli.identity.application.ports import (
 )
 from saber_uli.identity.application.public import AuthenticatedUser
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
+from saber_uli.identity.domain.invitation import (
+    GuestAccessExpiredError,
+    GuestAccessRevokedError,
+)
 from saber_uli.identity.domain.permissions import permissions_for
 from saber_uli.identity.domain.user import UserKind, UserStatus
 from saber_uli.shared.domain.clock import Clock
@@ -39,14 +43,6 @@ class AccountDisabledError(UnauthenticatedError):
 
 class AccountDeletedError(UnauthenticatedError):
     slug = "account-deleted"
-
-
-class GuestAccessExpiredError(UnauthenticatedError):
-    slug = "guest-access-expired"
-
-
-class GuestAccessRevokedError(UnauthenticatedError):
-    slug = "guest-access-revoked"
 
 
 class SessionAccessRevokedError(UnauthenticatedError):

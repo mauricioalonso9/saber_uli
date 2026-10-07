@@ -16,8 +16,6 @@ from uuid import UUID
 from saber_uli.identity.application.access_guard import (
     AccountDeletedError,
     AccountDisabledError,
-    GuestAccessExpiredError,
-    GuestAccessRevokedError,
 )
 from saber_uli.identity.application.audit import AuditAction, AuditTarget, record_audit
 from saber_uli.identity.application.ports import (
@@ -29,6 +27,7 @@ from saber_uli.identity.application.ports import (
     SessionRevocations,
 )
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
+from saber_uli.identity.domain.invitation import GuestAccessExpiredError, GuestAccessRevokedError
 from saber_uli.identity.domain.session import (
     AuthMethod,
     RefreshToken,

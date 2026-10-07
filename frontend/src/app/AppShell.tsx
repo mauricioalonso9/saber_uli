@@ -65,6 +65,18 @@ export function AppShell() {
               {t("nav.home")}
             </Link>
           </li>
+          {session?.kind === "authenticated" &&
+          !session.me.onboarding.consent_required &&
+          session.me.permissions.some((p) => p.startsWith("invitations:")) ? (
+            <li>
+              <Link
+                to="/invitaciones"
+                className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+              >
+                {t("nav.invitations")}
+              </Link>
+            </li>
+          ) : null}
           {session?.kind === "authenticated" && !session.me.onboarding.consent_required ? (
             <li>
               <Link

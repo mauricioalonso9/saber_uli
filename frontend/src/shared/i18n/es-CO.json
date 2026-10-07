@@ -12,7 +12,8 @@
   "nav": {
     "home": "Inicio",
     "consent": "Mi autorización de datos",
-    "account": "Mi cuenta"
+    "account": "Mi cuenta",
+    "invitations": "Invitaciones"
   },
   "home": {
     "title": "Inicio",
@@ -176,6 +177,89 @@
     "back": "¿Eres de la Universidad Libre? Ingresa con tu cuenta Unilibre",
     "errors": {
       "email": "Escribe un correo válido, por ejemplo nombre@correo.com."
+    }
+  },
+  "invitations": {
+    "title": "Invitaciones",
+    "listTitle": "Invitaciones enviadas",
+    "loading": "Cargando invitaciones…",
+    "empty": "Todavía no hay invitaciones con este filtro.",
+    "reauth": "Confirmar mi identidad",
+    "status": {
+      "sent": "Enviada",
+      "accepted": "Aceptada",
+      "expired": "Vencida",
+      "revoked": "Revocada"
+    },
+    "filters": {
+      "status": "Estado",
+      "all": "Todas",
+      "mine": "Solo las que yo envié"
+    },
+    "table": {
+      "email": "Correo",
+      "name": "Nombre",
+      "status": "Estado",
+      "until": "Acceso hasta",
+      "invitedBy": "Invitó",
+      "actions": "Acciones",
+      "noEmail": "(contacto eliminado)",
+      "system": "Sistema",
+      "erased": "(cuenta eliminada)"
+    },
+    "form": {
+      "title": "Invitar a una persona",
+      "email": "Correo",
+      "name": "Nombre (opcional)",
+      "until": "Acceso hasta (opcional)",
+      "submit": "Enviar invitación",
+      "sent": "Enviamos la invitación a {{email}}.",
+      "errors": {
+        "email": "Escribe un correo válido, por ejemplo nombre@correo.com.",
+        "date": "Elige una fecha futura."
+      }
+    },
+    "batch": {
+      "title": "Invitar por lote",
+      "help": "Sube un archivo CSV en UTF-8 con el encabezado correo,nombre,vence (vence como AAAA-MM-DD; si la dejas vacía se usa el plazo por defecto). Máximo 500 filas. Revisa el reporte antes de enviar: solo se envían las filas válidas.",
+      "file": "Archivo CSV",
+      "check": "Revisar el archivo",
+      "chooseFile": "Elige un archivo CSV.",
+      "report": "Reporte del lote",
+      "line": "Fila",
+      "result": "Resultado",
+      "detail": "Detalle",
+      "summary_one": "{{count}} válida y {{invalid}} con problemas.",
+      "summary_other": "{{count}} válidas y {{invalid}} con problemas.",
+      "confirm_one": "Enviar {{count}} invitación",
+      "confirm_other": "Enviar {{count}} invitaciones",
+      "sent_one": "Enviamos {{count}} invitación.",
+      "sent_other": "Enviamos {{count}} invitaciones.",
+      "results": {
+        "valid": "Válida",
+        "invalid_email": "Correo inválido",
+        "duplicate_in_file": "Repetida en el archivo",
+        "already_invited": "Ya invitada",
+        "institutional_email": "Correo institucional",
+        "expiry_out_of_range": "Vencimiento fuera de rango"
+      }
+    },
+    "actions": {
+      "resend": "Reenviar",
+      "resendFor": "Reenviar la invitación de {{who}}",
+      "resent": "Reenviamos la invitación a {{who}}.",
+      "change": "Cambiar vencimiento",
+      "changeFor": "Cambiar vencimiento de {{who}}",
+      "newDate": "Nuevo vencimiento",
+      "save": "Guardar",
+      "changed": "Actualizamos el vencimiento de {{who}}.",
+      "revoke": "Revocar",
+      "revokeFor": "Revocar el acceso de {{who}}",
+      "confirmTitle": "¿Revocar el acceso de {{who}}?",
+      "confirmBody": "El enlace dejará de funcionar y, si ya ingresó, su sesión terminará de inmediato.",
+      "confirmYes": "Sí, revocar",
+      "cancel": "Cancelar",
+      "revoked": "Revocamos el acceso de {{who}}."
     }
   }
 }

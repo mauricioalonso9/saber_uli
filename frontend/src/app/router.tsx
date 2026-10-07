@@ -22,6 +22,7 @@ import { createSessionLoader } from "@/features/auth/session-loader";
 import { AccountPage } from "@/features/account/AccountPage";
 import { ConsentSettingsPage } from "@/features/account/ConsentSettingsPage";
 import { PolicyPage } from "@/features/admin/PolicyPage";
+import { InvitationsPage } from "@/features/invitations/InvitationsPage";
 import { ConsentPage } from "@/features/onboarding/ConsentPage";
 import { ProfilePage } from "@/features/onboarding/ProfilePage";
 
@@ -153,6 +154,12 @@ const guestLinkRequestRoute = createRoute({
   component: GuestLinkRequestPage,
 });
 
+const invitationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/invitaciones",
+  component: InvitationsPage,
+});
+
 const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sin-conexion",
@@ -168,6 +175,7 @@ export const routeTree = rootRoute.addChildren([
   consentRoute,
   consentSettingsRoute,
   adminPolicyRoute,
+  invitationsRoute,
   // Marcador: la supresión (US7) y la consulta y descarga de datos (US8, T169) la completan.
   page("/mi-cuenta/datos", "accountData.title", "accountData.placeholder"),
   profileRoute,

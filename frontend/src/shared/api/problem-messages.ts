@@ -55,6 +55,10 @@ const MESSAGES: Readonly<Record<string, string>> = {
     "La fecha de vencimiento del acceso está fuera del rango permitido.",
   "batch-too-large": "El archivo tiene demasiadas filas. Divídelo en lotes más pequeños.",
   "batch-not-pending": "Este lote ya fue procesado o cancelado.",
+  "invitation-not-pending": "Solo se pueden reenviar las invitaciones que aún no se aceptaron.",
+  "invitation-already-revoked": "Esta invitación ya estaba revocada.",
+  "invitation-not-renewable":
+    "Ya no se puede renovar este acceso: pasaron más de 90 días. Envía una invitación nueva.",
   // Roles, grupos y supresión
   "not-a-teacher": "La persona seleccionada no tiene el rol Docente.",
   "guest-role-exclusive": "Un invitado no puede tener otros roles.",

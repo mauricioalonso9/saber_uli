@@ -1065,29 +1065,74 @@ diaria; el invitado, solo nombre, meta y fecha opcional; ambos pueden editarlo d
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T095 [P] [US3] Prueba: perfil en `backend/tests/unit/identity/test_profile.py` (institucional completo exige `program_id`, `semester` entre 1 y 12, `expected_exam_date` y `daily_goal` en `casual|regular|intense`; invitado completo exige `guest_display_name` de 2 a 120 caracteres y `daily_goal`, con `expected_exam_date` opcional, y rechaza `program_id` y `semester`; programa inactivo rechazado) → Qwen
+- [x] T095 [P] [US3] Prueba: perfil en `backend/tests/unit/identity/test_profile.py` (institucional completo exige `program_id`, `semester` entre 1 y 12, `expected_exam_date` y `daily_goal` en `casual|regular|intense`; invitado completo exige `guest_display_name` de 2 a 120 caracteres y `daily_goal`, con `expected_exam_date` opcional, y rechaza `program_id` y `semester`; programa inactivo rechazado) → Qwen
   - Terminado: la prueba falla.
-- [ ] T096 [P] [US3] Prueba: API en `backend/tests/integration/identity/test_profile_api.py` (`GET /api/v1/programs` solo activos; `GET/PUT /api/v1/me/profile`; completar fija `onboarding_completed_at` y `/me` devuelve `profile_required=false`; nombre y correo institucionales no son editables (FR-021); 403 `consent-required` sin autorización) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 26 casos. Además del alcance: quien ya tiene un
+    programa que luego se desactivó puede conservarlo al editar; cambiar a otro inactivo no.
+- [x] T096 [P] [US3] Prueba: API en `backend/tests/integration/identity/test_profile_api.py` (`GET /api/v1/programs` solo activos; `GET/PUT /api/v1/me/profile`; completar fija `onboarding_completed_at` y `/me` devuelve `profile_required=false`; nombre y correo institucionales no son editables (FR-021); 403 `consent-required` sin autorización) → Qwen
   - Terminado: la prueba falla.
-- [ ] T097 [P] [US3] Prueba de componente `frontend/src/features/onboarding/ProfilePage.test.tsx` (variante institucional con nombre y correo de solo lectura y cuatro campos; variante invitado con nombre, meta y fecha opcional; errores accesibles por campo) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 15 casos, incluidos los dos envíos simultáneos
+    del primer perfil (doble toque) sin error 500 y el nombre del invitado como nombre visible.
+- [x] T097 [P] [US3] Prueba de componente `frontend/src/features/onboarding/ProfilePage.test.tsx` (variante institucional con nombre y correo de solo lectura y cuatro campos; variante invitado con nombre, meta y fecha opcional; errores accesibles por campo) → Qwen
   - Terminado: la prueba falla.
-- [ ] T098 [P] [US3] Prueba: comando `saber-uli identity import-programs --csv <archivo>` en `backend/tests/integration/identity/test_cli_import_programs.py` (CSV UTF-8 con encabezado `codigo,nombre,seccional`; `code` con patrón `^[A-Z0-9-]{2,20}$`, `name` de 3 a 200 caracteres, `campus` de 2 a 100; inserta o actualiza por `code` sin duplicar al repetir la carga; reporta filas inválidas sin abortar las válidas; audita `program.created` y `program.updated` con actor `system`) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 8 casos (institucional e invitado); la prueba de
+    `AccountPage` (3 casos) se agregó con T101.
+- [x] T098 [P] [US3] Prueba: comando `saber-uli identity import-programs --csv <archivo>` en `backend/tests/integration/identity/test_cli_import_programs.py` (CSV UTF-8 con encabezado `codigo,nombre,seccional`; `code` con patrón `^[A-Z0-9-]{2,20}$`, `name` de 3 a 200 caracteres, `campus` de 2 a 100; inserta o actualiza por `code` sin duplicar al repetir la carga; reporta filas inválidas sin abortar las válidas; audita `program.created` y `program.updated` con actor `system`) → Qwen
   - Terminado: la prueba falla.
+  - Estado: implementada por Opus (2026-10-07). 6 casos: CSV con BOM de Excel, carga repetible,
+    filas inválidas con su número (incluye código repetido y columnas incompletas), encabezado
+    distinto, errores de uso y ningún mensaje con la contraseña.
 
 ### Implementation for User Story 3
 
-- [ ] T099 [US3] Implementar `backend/src/saber_uli/identity/domain/profile.py` para que pase T095 → Qwen
+- [x] T099 [US3] Implementar `backend/src/saber_uli/identity/domain/profile.py` para que pase T095 → Qwen
   - Terminado: T095 en verde.
-- [ ] T100 [US3] Implementar `backend/src/saber_uli/identity/infrastructure/repositories/programs.py`, `backend/src/saber_uli/identity/application/profile.py` y `backend/src/saber_uli/identity/api/profile_router.py` para que pase T096; agregar `listActivePrograms`, `getMyProfile`, `updateMyProfile` a `implemented_operations.py` → Qwen
+  - Estado: implementada por Opus (2026-10-07). `domain/profile.py` (`Profile.update` reemplaza
+    el perfil completo según el tipo de cuenta; `invalid-profile` y `program-not-available`, 422).
+- [x] T100 [US3] Implementar `backend/src/saber_uli/identity/infrastructure/repositories/programs.py`, `backend/src/saber_uli/identity/application/profile.py` y `backend/src/saber_uli/identity/api/profile_router.py` para que pase T096; agregar `listActivePrograms`, `getMyProfile`, `updateMyProfile` a `implemented_operations.py` → Qwen
   - Terminado: T096 y la prueba de contrato en verde.
-- [ ] T101 [US3] Implementar `frontend/src/features/onboarding/ProfilePage.tsx` y `frontend/src/features/account/AccountPage.tsx` (edición del perfil) para que pase T097 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `ProfileService`, `ProgramCatalog`,
+    repositorios de perfiles (con `ON CONFLICT` en el primer guardado) y programas, y
+    `domain/program.py`; `User.complete_onboarding` y `User.rename_guest`. Sin perfil, `GET`
+    devuelve `daily_goal=regular` y `complete=false` (el contrato exige la meta). Contrato en
+    verde con 16 operaciones; en `updateMyProfile` se excluye `positive_data_acceptance` porque
+    las reglas entre campos (institucional frente a invitado) solo están en la descripción.
+- [x] T101 [US3] Implementar `frontend/src/features/onboarding/ProfilePage.tsx` y `frontend/src/features/account/AccountPage.tsx` (edición del perfil) para que pase T097 → Qwen
   - Terminado: T097 en verde.
-- [ ] T102 [US3] Implementar el comando `import-programs` en `backend/src/saber_uli/cli.py` y el caso de uso `backend/src/saber_uli/identity/application/import_programs.py` para que pase T098; documentado en quickstart.md §3 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `features/profile/ProfileForm.tsx` y
+    `DirectoryData.tsx` compartidos; `ProfilePage` en `/bienvenida/perfil` y `AccountPage` en
+    `/mi-cuenta` (con enlaces a la autorización y a mis datos). El menú muestra «Mi cuenta».
+- [x] T102 [US3] Implementar el comando `import-programs` en `backend/src/saber_uli/cli.py` y el caso de uso `backend/src/saber_uli/identity/application/import_programs.py` para que pase T098; documentado en quickstart.md §3 → Qwen
   - Terminado: T098 en verde.
-- [ ] T103 [US3] Prueba e2e `frontend/tests/e2e/us3-first-login.spec.ts` (V1 de quickstart: ingreso, autorización y perfil hasta `/inicio` en menos de 60 s medidos por la prueba (SC-001); cerrar la app a mitad del primer ingreso y retomarlo en el paso pendiente (FR-022); editar el perfil) → Qwen
+  - Estado: implementada por Opus (2026-10-07). `saber-uli identity import-programs --csv`
+    con `DATABASE_URL` (saber_app); salida 0, 1 (filas rechazadas o error de base de datos) o 2
+    (archivo o configuración inválidos, nada cargado). No cambia el estado activo de los
+    existentes. Ejemplo y códigos de salida en quickstart §3.
+- [x] T103 [US3] Prueba e2e `frontend/tests/e2e/us3-first-login.spec.ts` (V1 de quickstart: ingreso, autorización y perfil hasta `/inicio` en menos de 60 s medidos por la prueba (SC-001); cerrar la app a mitad del primer ingreso y retomarlo en el paso pendiente (FR-022); editar el perfil) → Qwen
   - Terminado: pasa contra el stack `e2e`.
-- [ ] T104 [US3] Revisión de US3 (T095–T103) en `specs/001-identidad-acceso/tasks.md`: FR-019 a FR-022 y SC-001 → Opus
+  - Estado: implementada por Opus (2026-10-07). V1 mide el tiempo desde el ingreso hasta
+    `/inicio` (menos de 60 s; en local, unos 3 s); FR-022 cierra y reabre la app antes y después
+    de autorizar; edición desde `/mi-cuenta` con recarga. axe sin infracciones. En verde 4
+    corridas completas seguidas.
+  - Hallazgo corregido (commit e03ca90): cerrar la app mientras se renovaba la sesión dejaba la
+    cookie anterior y al volver se revocaba la sesión por «reutilización». Ahora hay un margen de
+    30 s (precisión de R-14).
+- [x] T104 [US3] Revisión de US3 (T095–T103) en `specs/001-identidad-acceso/tasks.md`: FR-019 a FR-022 y SC-001 → Opus
   - Terminado: tareas aprobadas y marcadas.
+  - Revisión de Opus (2026-10-07): T095–T103 aprobadas.
+    - FR-019: el institucional completa solo programa (del catálogo activo), semestre 1–12,
+      fecha estimada y meta; el servidor valida igual que la interfaz.
+    - FR-020: el invitado completa nombre (2–120), meta y fecha opcional; nunca programa ni
+      semestre; su nombre pasa a ser su nombre visible.
+    - FR-021: nombre y correo institucionales no viajan en `ProfileUpdate` (`additionalProperties:
+      false` → 422) y la interfaz los muestra de solo lectura.
+    - FR-022: el paso pendiente sale de `/me` (`consent_required`, `profile_required`) y la
+      guardia lo aplica en cada carga; la e2e cierra y reabre la app en ambos pasos.
+    - SC-001: medido por la e2e (muy por debajo de 60 s).
+    - Correcciones hechas en la revisión: margen de reutilización del token de renovación (R-14)
+      y primer perfil con doble envío sin error 500.
+    - Pendiente fuera del código: cargar el catálogo real de programas de todas las seccionales
+      con `import-programs` antes de abrir la app a estudiantes.
 
 **Checkpoint**: MVP institucional completo (US1 + US2 + US3).
 

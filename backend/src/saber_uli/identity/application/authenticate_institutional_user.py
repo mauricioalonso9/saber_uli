@@ -15,6 +15,7 @@ from uuid import UUID
 
 from saber_uli.identity.application.access_guard import AccountDeletedError, AccountDisabledError
 from saber_uli.identity.application.audit import AuditAction, AuditTarget, record_audit
+from saber_uli.identity.application.ports import UserAlreadyExistsError
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
 from saber_uli.identity.domain.user import InstitutionalIdentity, User, UserStatus
 from saber_uli.shared.domain.clock import Clock
@@ -56,6 +57,14 @@ class AuthenticateInstitutionalUser:
         if claims.tenant_id != self._tenant_id:
             raise TenantNotAllowedError("Solo pueden ingresar cuentas de la Universidad Libre.")
 
+        try:
+            return await self._execute_once(claims)
+        except UserAlreadyExistsError:
+            # Dos primeros ingresos simultáneos (dos pestañas): el otro ya creó la cuenta;
+            # el reintento la encuentra y la reutiliza.
+            return await self._execute_once(claims)
+
+    async def _execute_once(self, claims: InstitutionalClaims) -> AuthenticationResult:
         now = self._clock.now()
         identity = InstitutionalIdentity(tenant_id=claims.tenant_id, object_id=claims.object_id)
         display_name = (claims.name or "").strip() or claims.email

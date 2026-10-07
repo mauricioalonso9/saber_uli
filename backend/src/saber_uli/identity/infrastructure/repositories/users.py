@@ -3,8 +3,10 @@
 from uuid import UUID
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from saber_uli.identity.application.ports import UserAlreadyExistsError
 from saber_uli.identity.domain.roles import Role
 from saber_uli.identity.domain.user import InstitutionalIdentity, User, UserKind, UserStatus
 from saber_uli.identity.infrastructure.orm import RoleAssignmentRow, UserRow
@@ -65,7 +67,12 @@ class SqlAlchemyUserRepository:
         _copy_fields(user, row)
         _sync_roles(user, row)
         self._session.add(row)
-        await self._session.flush()
+        try:
+            await self._session.flush()
+        except IntegrityError as error:
+            if "uq_users_entra_identity" in str(error.orig):
+                raise UserAlreadyExistsError from error
+            raise
         user.id = row.id
         return user
 

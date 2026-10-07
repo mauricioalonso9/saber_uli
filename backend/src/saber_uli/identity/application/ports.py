@@ -95,9 +95,16 @@ class ConsentReader(Protocol):
     async def current_policy_version_id(self, *, now: datetime) -> UUID | None: ...
 
 
+class UserAlreadyExistsError(Exception):
+    """Otra transacción ya creó la cuenta con la misma identidad institucional."""
+
+
 class UserRepository(Protocol):
     async def add(self, user: User) -> User:
-        """Guarda un usuario nuevo y le asigna el `id` generado por la base de datos."""
+        """Guarda un usuario nuevo y le asigna el `id` generado por la base de datos.
+
+        Lanza `UserAlreadyExistsError` si la identidad (`tid`, `oid`) ya existe.
+        """
         ...
 
     async def save(self, user: User) -> None:

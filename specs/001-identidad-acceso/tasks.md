@@ -904,8 +904,31 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
     fijos y clase del error de la biblioteca, sin valores del token);
     (4) el health check de `db` en Compose tiene más margen (60 s de arranque, 20 intentos): el
     primer arranque con los scripts de inicio superaba el anterior en un equipo cargado.
-- [ ] T082 [US1] Revisión de US1 (T071–T081) en `specs/001-identidad-acceso/tasks.md`: validación OIDC, ausencia de datos personales en logs, mensajes de error y cumplimiento de FR-001 a FR-005 y FR-036 → Opus
+- [x] T082 [US1] Revisión de US1 (T071–T081) en `specs/001-identidad-acceso/tasks.md`: validación OIDC, ausencia de datos personales en logs, mensajes de error y cumplimiento de FR-001 a FR-005 y FR-036 → Opus
   - Terminado: tareas aprobadas y marcadas; quickstart V2 verificado.
+  - Revisión de Opus (2026-10-07): T071–T081 aprobadas.
+    - Validación OIDC: autoridad del inquilino (configuración y adaptador; el emisor del
+      descubrimiento debe ser el del inquilino), PKCE S256, `state` en tiempo constante con cookie
+      firmada de un solo uso (también evita el login CSRF), ID token solo RS256 con `kid`, `iss`,
+      `aud`, `exp`/`nbf`, `nonce` en tiempo constante y `tid`; `return_to` solo interno y aplicado
+      tras completar el primer ingreso. Riesgo bajo aceptado: un `kid` desconocido provoca una sola
+      descarga del JWKS (el callback exige la cookie emitida por `/login`, que tiene límite).
+    - Datos personales en logs (FR-036): `auth.login_rejected` con causa y motivo técnico,
+      `auth.login_succeeded` solo con `user_id`; verificado en T073 sobre los logs JSON.
+    - Mensajes: cada código de `/ingresar?error=` tiene texto propio en es-CO, con la alternativa
+      de invitación para cuentas externas (SC-008); los códigos desconocidos usan un texto fijo
+      (no se refleja la consulta).
+    - FR-001 a FR-005: ingreso con Microsoft (T078, T081), rechazo de otro inquilino sin crear
+      cuenta (T071, T073, T081), cuenta institucional con Estudiante (T071), solo `oid`, `tid`,
+      nombre y correo (T072), reutilización por (`tid`, `oid`) con nombre y correo actualizados
+      (T071).
+    - **Corregido en la revisión**: dos primeros ingresos simultáneos de la misma persona (dos
+      pestañas) terminaban en 500 por la restricción única; el repositorio la traduce a
+      `UserAlreadyExistsError` y el caso de uso reintenta una vez (pruebas nuevas en T071 y T043).
+    - Quickstart V2 verificado con las pruebas automáticas (mensaje con alternativa de invitación,
+      sin cuenta nueva, log `tenant_not_allowed` sin correo). Para T177: el quickstart debe
+      documentar `127.0.0.1 oidc` en el archivo hosts para e2e y la respuesta de `/api/ready` con
+      `checks`.
 
 **Checkpoint**: US1 funciona y se demuestra sola.
 

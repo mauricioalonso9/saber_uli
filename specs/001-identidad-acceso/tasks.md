@@ -1264,35 +1264,86 @@ institucionales; revisar el reporte; revocar y comprobar que el invitado pierde 
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T122 [P] [US5] Prueba: reglas de gestión en `backend/tests/unit/identity/test_invitation_management.py` (correo de `INSTITUTIONAL_EMAIL_DOMAINS` o sus subdominios → `institutional-email-not-invitable` (FR-008); docente con vencimiento mayor a `teacher_max_access_days` → `access-expiry-out-of-range`, administrador sin límite (FR-006a); sin vencimiento → `default_guest_access_days`; invitación vigente al mismo correo → `invitation-already-active`; reenviar solo si no está aceptada; revocar incrementa el `auth_epoch` del invitado; renovar dentro de 90 días desde el fin del acceso vuelve a `accepted` y limpia `retention_notice_sent_at`; invitado suprimido → `guest-erased`) → Qwen
+- [x] T122 [P] [US5] Prueba: reglas de gestión en `backend/tests/unit/identity/test_invitation_management.py` (correo de `INSTITUTIONAL_EMAIL_DOMAINS` o sus subdominios → `institutional-email-not-invitable` (FR-008); docente con vencimiento mayor a `teacher_max_access_days` → `access-expiry-out-of-range`, administrador sin límite (FR-006a); sin vencimiento → `default_guest_access_days`; invitación vigente al mismo correo → `invitation-already-active`; reenviar solo si no está aceptada; revocar incrementa el `auth_epoch` del invitado; renovar dentro de 90 días desde el fin del acceso vuelve a `accepted` y limpia `retention_notice_sent_at`; invitado suprimido → `guest-erased`) → Qwen
   - Terminado: la prueba falla.
-- [ ] T123 [P] [US5] Prueba: lotes en `backend/tests/unit/identity/test_invitation_batch.py` (CSV UTF-8 con encabezado `correo,nombre,vence`, fecha `AAAA-MM-DD`; JSON equivalente; más de 500 filas → `batch-too-large`; resultado por fila `valid`, `invalid_email`, `duplicate_in_file`, `already_invited`, `institutional_email`, `expiry_out_of_range`; el lote vence a las 24 h; validar 500 filas en menos de 2 s) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 20 casos sobre `InvitationService` con los
+    dobles en memoria (incluye el alcance del docente: lo ajeno es `not-found`).
+- [x] T123 [P] [US5] Prueba: lotes en `backend/tests/unit/identity/test_invitation_batch.py` (CSV UTF-8 con encabezado `correo,nombre,vence`, fecha `AAAA-MM-DD`; JSON equivalente; más de 500 filas → `batch-too-large`; resultado por fila `valid`, `invalid_email`, `duplicate_in_file`, `already_invited`, `institutional_email`, `expiry_out_of_range`; el lote vence a las 24 h; validar 500 filas en menos de 2 s) → Qwen
   - Terminado: la prueba falla.
-- [ ] T124 [P] [US5] Prueba: API de invitaciones en `backend/tests/integration/identity/test_invitations_api.py` (crear, listar con filtros `status`, `q` e `invited_by` (solo administrador), obtener, cambiar vencimiento, reenviar y revocar; un docente solo ve las suyas y las ajenas responden 404 (escenario 5.7); un estudiante recibe 403; todas exigen sesión privilegiada; cada acción audita `invitation.*`; revocar termina las sesiones abiertas del invitado (escenario 5.4)) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 13 casos; «vence» es una fecha y el acceso dura
+    hasta el final de ese día en Colombia; una fecha mal escrita queda como
+    `expiry_out_of_range`.
+- [x] T124 [P] [US5] Prueba: API de invitaciones en `backend/tests/integration/identity/test_invitations_api.py` (crear, listar con filtros `status`, `q` e `invited_by` (solo administrador), obtener, cambiar vencimiento, reenviar y revocar; un docente solo ve las suyas y las ajenas responden 404 (escenario 5.7); un estudiante recibe 403; todas exigen sesión privilegiada; cada acción audita `invitation.*`; revocar termina las sesiones abiertas del invitado (escenario 5.4)) → Qwen
   - Terminado: la prueba falla.
-- [ ] T125 [P] [US5] Prueba: API de lotes en `backend/tests/integration/identity/test_invitation_batches_api.py` (`POST /api/v1/invitation-batches` con CSV y con JSON devuelve el reporte; `POST /{id}/confirmation` crea solo las válidas, encola un `InvitationCreated` por fila y audita `invitation_batch.confirmed`; confirmar dos veces o vencido → 409 `batch-not-pending`; un docente no ve lotes ajenos) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 12 casos con la fixture `staff`
+    (`tests/integration/identity/staff.py`); `committed_login` borra también los lotes.
+- [x] T125 [P] [US5] Prueba: API de lotes en `backend/tests/integration/identity/test_invitation_batches_api.py` (`POST /api/v1/invitation-batches` con CSV y con JSON devuelve el reporte; `POST /{id}/confirmation` crea solo las válidas, encola un `InvitationCreated` por fila y audita `invitation_batch.confirmed`; confirmar dos veces o vencido → 409 `batch-not-pending`; un docente no ve lotes ajenos) → Qwen
   - Terminado: la prueba falla.
-- [ ] T126 [P] [US5] Prueba: tarea `expire_invitations` en `backend/tests/integration/identity/test_expire_invitations_task.py` (`sent` con enlace vencido → `expired`; `accepted` con acceso vencido → `expired` e incremento de `auth_epoch`; idempotente; `last_delivery_status` refleja `queued`, `sent` o `failed` del manejador; una invitación nunca aceptada pierde `email` e `invitee_name` y sus `access_links` 90 días después de `revoked_at` si fue revocada o, si no, de `link_expires_at`, y se audita `invitation.contact_purged` (FR-034e)) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 7 casos (CSV, JSON, confirmación con eventos y
+    auditoría, 409 al repetir o vencer, alcance, 413 y encabezado inválido).
+- [x] T126 [P] [US5] Prueba: tarea `expire_invitations` en `backend/tests/integration/identity/test_expire_invitations_task.py` (`sent` con enlace vencido → `expired`; `accepted` con acceso vencido → `expired` e incremento de `auth_epoch`; idempotente; `last_delivery_status` refleja `queued`, `sent` o `failed` del manejador; una invitación nunca aceptada pierde `email` e `invitee_name` y sus `access_links` 90 días después de `revoked_at` si fue revocada o, si no, de `link_expires_at`, y se audita `invitation.contact_purged` (FR-034e)) → Qwen
   - Terminado: la prueba falla.
-- [ ] T127 [P] [US5] Pruebas de componente `frontend/src/features/invitations/InvitationsPage.test.tsx` (lista con filtro por estado, acciones por fila, docente sin filtro `invited_by`), `InviteForm.test.tsx` (validación de correo y vencimiento máximo) y `BatchUpload.test.tsx` (carga de CSV, tabla del reporte por fila, confirmación) → Qwen
+  - Estado: implementada por Opus (2026-10-07). 6 casos; incluye el estado `failed` cuando el
+    envío del correo falla.
+- [x] T127 [P] [US5] Pruebas de componente `frontend/src/features/invitations/InvitationsPage.test.tsx` (lista con filtro por estado, acciones por fila, docente sin filtro `invited_by`), `InviteForm.test.tsx` (validación de correo y vencimiento máximo) y `BatchUpload.test.tsx` (carga de CSV, tabla del reporte por fila, confirmación) → Qwen
   - Terminado: las pruebas fallan.
+  - Estado: implementada por Opus (2026-10-07). 16 casos en las tres pruebas (con
+    `features/invitations/testing.tsx`), más la búsqueda por correo o nombre agregada en la e2e.
 
 ### Implementation for User Story 5
 
-- [ ] T128 [US5] Completar `backend/src/saber_uli/identity/domain/invitation.py` (reenviar, revocar, cambiar vencimiento, renovar) para que pase T122 → Qwen
+- [x] T128 [US5] Completar `backend/src/saber_uli/identity/domain/invitation.py` (reenviar, revocar, cambiar vencimiento, renovar) para que pase T122 → Qwen
   - Terminado: T122 en verde.
-- [ ] T129 [US5] Implementar `backend/src/saber_uli/identity/domain/invitation_batch.py` y `backend/src/saber_uli/identity/application/invitation_batches.py` para que pase T123 → Qwen
+  - Estado: implementada por Opus (2026-10-07). Dominio (`resend`, `revoke` que no se repite,
+    `change_expiry` con renovación dentro de 90 días, `validate_access_expiry`) e
+    `InvitationService` en `application/invitations.py`, que reemplaza a `CreateInvitation`.
+    Errores nuevos: `invitation-already-revoked`, `invitation-not-renewable`, `guest-erased`.
+- [x] T129 [US5] Implementar `backend/src/saber_uli/identity/domain/invitation_batch.py` y `backend/src/saber_uli/identity/application/invitation_batches.py` para que pase T123 → Qwen
   - Terminado: T123 en verde.
-- [ ] T130 [US5] Completar `backend/src/saber_uli/identity/application/invitations.py` e implementar `backend/src/saber_uli/identity/api/invitations_router.py` (invitaciones y lotes, con alcance por `invited_by` en la consulta) para que pasen T124 y T125; agregar las 9 operaciones de invitaciones y lotes a `implemented_operations.py` → Qwen
+  - Estado: implementada por Opus (2026-10-07). `InvitationBatch` y `InvitationBatchService`;
+    al confirmar se vuelve a comprobar cada fila (vencimiento y otra invitación creada en el
+    intervalo).
+- [x] T130 [US5] Completar `backend/src/saber_uli/identity/application/invitations.py` e implementar `backend/src/saber_uli/identity/api/invitations_router.py` (invitaciones y lotes, con alcance por `invited_by` en la consulta) para que pasen T124 y T125; agregar las 9 operaciones de invitaciones y lotes a `implemented_operations.py` → Qwen
   - Terminado: T124, T125 y la prueba de contrato en verde.
-- [ ] T131 [US5] Implementar las tareas `expire_invitations` en `backend/src/saber_uli/identity/infrastructure/tasks.py` y el registro de `last_delivery_status` en `backend/src/saber_uli/identity/infrastructure/handlers/link_emails.py` (reenvío con `InvitationResent`), incluida la purga de contacto de FR-034e, para que pase T126 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `invitations_router` con las 9 operaciones; el
+    lote acepta `text/csv` o JSON. Contrato en verde con 27 operaciones. El contrato deja
+    `invited_by` en `null` para las invitaciones del sistema.
+- [x] T131 [US5] Implementar las tareas `expire_invitations` en `backend/src/saber_uli/identity/infrastructure/tasks.py` y el registro de `last_delivery_status` en `backend/src/saber_uli/identity/infrastructure/handlers/link_emails.py` (reenvío con `InvitationResent`), incluida la purga de contacto de FR-034e, para que pase T126 → Qwen
   - Terminado: T126 en verde.
-- [ ] T132 [US5] Implementar `frontend/src/features/invitations/{InvitationsPage.tsx,InviteForm.tsx,BatchUpload.tsx,InvitationActions.tsx}` para que pase T127 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `identity/infrastructure/tasks.py` y la tarea del
+    worker (invalida la caché de épocas tras el commit). Además vence los lotes pendientes y borra
+    los lotes de más de 30 días (data-model §2.9).
+- [x] T132 [US5] Implementar `frontend/src/features/invitations/{InvitationsPage.tsx,InviteForm.tsx,BatchUpload.tsx,InvitationActions.tsx}` para que pase T127 → Qwen
   - Terminado: T127 en verde.
-- [ ] T133 [US5] Prueba e2e `frontend/tests/e2e/us5-invitations.spec.ts` (V7 a V12 de quickstart: correo institucional rechazado, tope del docente, lote de 200 filas en menos de 5 minutos (SC-005), alcance del docente, revocación inmediata, renovación con progreso conservado) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Página `/invitaciones` con formulario, lote,
+    filtro por estado, búsqueda, «solo las que yo envié» para administradores y acciones por
+    fila. Además: sin sesión privilegiada ofrece «Confirmar mi identidad»; las consultas no
+    reintentan errores 4xx; y si la renovación responde que el acceso del invitado fue revocado o
+    venció (o la cuenta está desactivada o eliminada), la app vuelve a `/ingresar` con la causa
+    (SC-003).
+- [x] T133 [US5] Prueba e2e `frontend/tests/e2e/us5-invitations.spec.ts` (V7 a V12 de quickstart: correo institucional rechazado, tope del docente, lote de 200 filas en menos de 5 minutos (SC-005), alcance del docente, revocación inmediata, renovación con progreso conservado) → Qwen
   - Terminado: pasa contra el stack `e2e`.
-- [ ] T134 [US5] Revisión de US5 (T122–T133) en `specs/001-identidad-acceso/tasks.md`: alcance por docente sin fugas (404 en recursos ajenos), auditoría completa (SC-004), FR-006 a FR-010 → Opus
+  - Estado: implementada por Opus (2026-10-07). V7, V8, V10, V11 y V12 en
+    `us5-invitations.spec.ts`; V9 en `us5-invitation-batch.global.spec.ts` (proyecto
+    `estado-global`). `globalSetup` borra los contadores de límites antes de cada corrida. En
+    verde 3 corridas completas seguidas.
+- [x] T134 [US5] Revisión de US5 (T122–T133) en `specs/001-identidad-acceso/tasks.md`: alcance por docente sin fugas (404 en recursos ajenos), auditoría completa (SC-004), FR-006 a FR-010 → Opus
   - Terminado: tareas aprobadas y marcadas.
+  - Revisión de Opus (2026-10-07): T122–T133 aprobadas.
+    - Alcance sin fugas: el docente solo encuentra lo suyo en la consulta (listado, detalle,
+      acciones y lotes); lo ajeno responde 404 (T122, T124, T125, V10). El filtro `invited_by`
+      solo aplica a administradores.
+    - Auditoría (SC-004): `invitation.created|resent|expiry_changed|revoked|accepted`,
+      `invitation_batch.confirmed` e `invitation.contact_purged`, con actor y sin datos
+      personales. El vencimiento automático lo hace el sistema y no es una acción
+      administrativa.
+    - FR-006/006a (plazo del docente al crear, al cambiar el vencimiento y en lotes), FR-007
+      (enlaces del worker), FR-008 (subdominios incluidos), FR-009 (reporte por fila, solo las
+      válidas, 500 filas), FR-010 (revocar termina las sesiones; cambiar el vencimiento aplica de
+      inmediato) y FR-034e (purga a los 90 días) cubiertos.
+    - Riesgos aceptados: (1) si otra invitación al mismo correo se crea justo durante la
+      confirmación de un lote, la confirmación falla con 409 y se puede repetir; (2) el worker
+      envía unos 6 correos por segundo, así que un lote de 500 demora los demás correos ~1,5 min.
 
 **Checkpoint**: ciclo completo de invitados (US4 + US5).
 

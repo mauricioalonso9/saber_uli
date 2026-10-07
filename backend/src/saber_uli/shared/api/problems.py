@@ -13,8 +13,10 @@ import structlog
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.routing import iter_route_contexts
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.routing import compile_path
 
 from saber_uli.shared.domain.errors import (
     ConflictError,
@@ -203,20 +205,54 @@ async def _on_problem(request: Request, exc: Exception) -> JSONResponse:
 async def _on_validation_error(request: Request, exc: Exception) -> JSONResponse:
     if not isinstance(exc, RequestValidationError):  # Starlette tipa los manejadores con Exception
         raise exc
+    errors = exc.errors()
+    if errors and all(tuple(error.get("loc", ()))[:1] == ("path",) for error in errors):
+        # Un identificador mal formado en la ruta no nombra ningún recurso: 404, como uno que no
+        # existe (el contrato no documenta 422 para los parámetros de ruta).
+        return problem_response(request, 404, f"{PROBLEM_TYPE_PREFIX}not-found")
     return problem_response(
         request,
         422,
         f"{PROBLEM_TYPE_PREFIX}validation-error",
         detail=_VALIDATION_DETAIL,
-        errors=[_field_error(error) for error in exc.errors()],
+        errors=[_field_error(error) for error in errors],
     )
+
+
+def _allowed_methods(request: Request) -> str | None:
+    """Métodos de todas las rutas con esta URL.
+
+    Starlette responde 405 con el `Allow` de la primera ruta que coincide, aunque otra ruta con la
+    misma URL atienda otro método (por ejemplo, `GET` y `POST` en `/api/v1/me/consents`).
+    """
+    path = request.url.path
+    methods: set[str] = set()
+    for route in iter_route_contexts(request.app.router.routes):
+        if route.methods and route.path_format:
+            regex, _, _ = compile_path(route.path_format)
+            if regex.match(path):
+                methods |= route.methods
+    return ", ".join(sorted(methods)) or None
 
 
 async def _on_http_error(request: Request, exc: Exception) -> JSONResponse:
     if not isinstance(exc, StarletteHTTPException):  # Starlette tipa los manejadores con Exception
         raise exc
+    if exc.status_code == 400:
+        # FastAPI responde 400 cuando el cuerpo no se puede leer (por ejemplo, bytes que no son
+        # UTF-8); para el contrato es un dato inválido más.
+        return problem_response(
+            request,
+            422,
+            f"{PROBLEM_TYPE_PREFIX}validation-error",
+            detail=_VALIDATION_DETAIL,
+            errors=[_field_error({"type": "json_invalid"})],
+        )
+    headers = dict(exc.headers or {})
+    if exc.status_code == 405 and (allowed := _allowed_methods(request)):
+        headers["Allow"] = allowed
     type_ = f"{PROBLEM_TYPE_PREFIX}not-found" if exc.status_code == 404 else ABOUT_BLANK
-    return problem_response(request, exc.status_code, type_, headers=exc.headers)
+    return problem_response(request, exc.status_code, type_, headers=headers or None)
 
 
 async def _on_unhandled(request: Request, exc: Exception) -> JSONResponse:

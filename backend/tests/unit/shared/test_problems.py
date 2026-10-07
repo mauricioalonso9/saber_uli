@@ -1,9 +1,10 @@
 """T020: Problem Details (RFC 9457) y paginación (contrato: Problem, PageMeta, Page, PageSize)."""
 
 from typing import Annotated, Any
+from uuid import UUID, uuid4
 
 import pytest
-from fastapi import Depends, FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field, ValidationError
 
@@ -81,6 +82,19 @@ def client() -> TestClient:
     @app.post("/personas")
     def personas(persona: Persona) -> Persona:
         return persona
+
+    # Dos rutas con la misma URL y otro método, en un router incluido (como /me/consents).
+    router = APIRouter(prefix="/r")
+
+    @router.get("/personas/{persona_id}")
+    def ver(persona_id: UUID) -> str:
+        return str(persona_id)
+
+    @router.put("/personas/{persona_id}")
+    def cambiar(persona_id: UUID) -> str:
+        return str(persona_id)
+
+    app.include_router(router)
 
     @app.get("/lista")
     def lista(params: Annotated[PageParams, Depends(page_params)]) -> Page[int]:
@@ -179,6 +193,20 @@ def test_json_invalido(client: TestClient) -> None:
     assert_problem(response, 422, f"{PROBLEM_TYPE_PREFIX}validation-error")
 
 
+def test_un_cuerpo_ilegible_es_un_dato_invalido_y_no_un_400(client: TestClient) -> None:
+    # Bytes que no son UTF-8: FastAPI lanza 400 antes de validar.
+    response = client.post(
+        "/personas", content=bytes([0xFF, 0xFE, 0x01]), headers={"Content-Type": "application/json"}
+    )
+
+    body = assert_problem(response, 422, f"{PROBLEM_TYPE_PREFIX}validation-error")
+    assert body["errors"][0]["field"] == "body"
+
+
+def test_un_identificador_mal_formado_en_la_ruta_es_404(client: TestClient) -> None:
+    assert_problem(client.get("/r/personas/no-es-uuid"), 404, f"{PROBLEM_TYPE_PREFIX}not-found")
+
+
 # --- Paginación ----------------------------------------------------------------------------
 
 
@@ -232,6 +260,15 @@ def test_ruta_inexistente(client: TestClient) -> None:
 
 def test_metodo_no_permitido(client: TestClient) -> None:
     assert_problem(client.delete("/lista"), 405, "about:blank")
+
+
+def test_allow_lista_los_metodos_de_todas_las_rutas_con_la_misma_url(
+    client: TestClient,
+) -> None:
+    response = client.delete(f"/r/personas/{uuid4()}")
+
+    assert_problem(response, 405, "about:blank")
+    assert {m.strip() for m in response.headers["allow"].split(",")} >= {"GET", "PUT"}
 
 
 def test_excepcion_no_controlada_no_filtra_detalles(client: TestClient) -> None:

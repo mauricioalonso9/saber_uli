@@ -327,6 +327,7 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/me/consents/revocation:
     post:
       tags: [me]

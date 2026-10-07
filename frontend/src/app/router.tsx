@@ -15,6 +15,8 @@ import { useTranslation } from "react-i18next";
 import { AppShell } from "@/app/AppShell";
 import { type SessionState, decideNavigation } from "@/app/guards";
 import { OFFLINE_EXPIRED_MESSAGE } from "@/features/auth/offline-access";
+import { GuestAccessPage } from "@/features/auth/GuestAccessPage";
+import { GuestLinkRequestPage } from "@/features/auth/GuestLinkRequestPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { createSessionLoader } from "@/features/auth/session-loader";
 import { AccountPage } from "@/features/account/AccountPage";
@@ -139,6 +141,18 @@ const adminPolicyRoute = createRoute({
   component: PolicyPage,
 });
 
+const guestAccessRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/acceso",
+  component: GuestAccessPage,
+});
+
+const guestLinkRequestRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/ingresar/invitado",
+  component: GuestLinkRequestPage,
+});
+
 const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sin-conexion",
@@ -149,7 +163,8 @@ export const routeTree = rootRoute.addChildren([
   indexRoute,
   page("/inicio", "home.title", "home.placeholder"),
   loginRoute,
-  page("/acceso", "guestAccess.title"),
+  guestAccessRoute,
+  guestLinkRequestRoute,
   consentRoute,
   consentSettingsRoute,
   adminPolicyRoute,

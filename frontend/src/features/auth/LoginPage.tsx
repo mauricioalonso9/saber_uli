@@ -36,7 +36,7 @@ export function LoginPage() {
         {t("login.microsoft")}
       </Button>
       <p className="text-sm">
-        <Link to="/acceso" className="underline">
+        <Link to="/ingresar/invitado" className="underline">
           {t("login.guestLink")}
         </Link>
       </p>

@@ -40,7 +40,11 @@
     }
   },
   "guestAccess": {
-    "title": "Acceso de invitado"
+    "title": "Acceso de invitado",
+    "intro": "Pulsa «Ingresar» para entrar a Saber Uli. El enlace sirve una sola vez.",
+    "enter": "Ingresar",
+    "noToken": "Abre el enlace que te enviamos por correo para entrar. Si ya no lo tienes o venció, pide uno nuevo.",
+    "requestLink": "Pedir un enlace nuevo por correo"
   },
   "consent": {
     "title": "Tratamiento de tus datos",
@@ -162,5 +166,16 @@
     "profile": "Tu perfil",
     "save": "Guardar cambios",
     "saved": "Guardamos tus cambios."
+  },
+  "guestLink": {
+    "title": "Ingresar como invitado",
+    "intro": "Escribe el correo al que te llegó la invitación y te enviaremos un enlace para entrar, sin contraseña.",
+    "email": "Tu correo",
+    "submit": "Enviarme un enlace",
+    "sent": "Si el correo corresponde a un invitado con acceso vigente, en unos minutos recibirás un enlace para ingresar. Revisa también la carpeta de correo no deseado.",
+    "back": "¿Eres de la Universidad Libre? Ingresa con tu cuenta Unilibre",
+    "errors": {
+      "email": "Escribe un correo válido, por ejemplo nombre@correo.com."
+    }
   }
 }

@@ -39,6 +39,10 @@ class RateLimitGuard:
     async def check_email(self, rule: RateLimitRule, email: str) -> None:
         await self.check(rule, self._limiter.email_key(email))
 
+    async def check_opaque(self, rule: RateLimitRule, value: str) -> None:
+        """Límite por un valor secreto (cookie): solo su HMAC llega a Redis."""
+        await self.check(rule, self._limiter.opaque_key(value))
+
 
 def rate_limit_guard(request: Request) -> RateLimitGuard:
     limiter: RateLimiter = request.app.state.rate_limiter

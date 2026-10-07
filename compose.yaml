@@ -158,8 +158,10 @@ services:
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 20s
+      # Margen amplio: el primer arranque ejecuta los scripts de inicio y en equipos cargados
+      # puede tardar más de un minuto.
+      retries: 20
+      start_period: 60s
 
   redis:
     image: redis:8-alpine

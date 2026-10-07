@@ -185,11 +185,11 @@ async def test_proveedor_caido_al_iniciar(flow: Flow, idp: respx.MockRouter) -> 
     assert location(response) == "/ingresar?error=idp_unavailable"
 
 
-async def test_limite_de_30_por_minuto_por_ip(flow: Flow) -> None:
-    statuses = [(await flow.start())[0].status_code for _ in range(31)]
+async def test_limite_de_120_por_minuto_por_ip(flow: Flow) -> None:
+    statuses = [(await flow.start())[0].status_code for _ in range(121)]
 
-    assert statuses[:30] == [302] * 30
-    assert statuses[30] == 429
+    assert statuses[:120] == [302] * 120
+    assert statuses[120] == 429
 
 
 # --- Retorno -----------------------------------------------------------------------------------

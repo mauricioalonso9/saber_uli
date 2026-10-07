@@ -408,6 +408,12 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
   - `GET /api/auth/microsoft/*` y `POST /api/auth/refresh`: 30 por minuto por IP.
   - Resto de la API: 300 por minuto por usuario.
   Se responde `429` con `Retry-After`.
+- **Precisión (2026-10-07, T081)**: en el campus muchas personas salen a internet por la misma IP
+  (NAT); 30/min por IP compartidos entre ingreso y renovación bloqueaban a un salón entero (lo
+  mostró la prueba e2e). Ahora: `GET /api/auth/microsoft/login` 120/min por IP;
+  `POST /api/auth/refresh` 30/min **por sesión** (HMAC de la cookie, nunca la cookie) y 600/min por
+  IP como tope de abuso. El *callback* no tiene límite propio: solo avanza con la cookie firmada de
+  un solo uso que emite `/login`.
 - **Dependencia nueva**: `limits`.
 - **Alternativas**: `slowapi` (envoltorio de `limits` con mantenimiento irregular); límites solo
   en Nginx (no conoce usuarios ni correos).

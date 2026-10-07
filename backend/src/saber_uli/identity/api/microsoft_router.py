@@ -9,7 +9,7 @@ FR-001 a FR-005, FR-036; research R-10 a R-13, R-31.
   canjea el código y valida el ID token; crea o actualiza la cuenta; abre la sesión (cookie
   `su_refresh`) y redirige al primer paso pendiente (`/bienvenida/datos`, `/bienvenida/perfil`)
   o a `return_to` (por defecto `/inicio`).
-- Límite de 30/min por IP en `/login` (R-31).
+- Límite de 120/min por IP en `/login` (R-31, precisión de T081).
 - Cualquier rechazo redirige a `/ingresar?error=<código>` sin crear cuenta ni sesión y se
   registra `auth.login_rejected` con la causa, nunca el correo ni los tokens (FR-036).
 """
@@ -38,7 +38,7 @@ from saber_uli.identity.infrastructure.entra_id import (
     LoginFailedError,
 )
 from saber_uli.shared.api.rate_limit import per_ip
-from saber_uli.shared.infrastructure.rate_limit import AUTH_PER_IP
+from saber_uli.shared.infrastructure.rate_limit import MICROSOFT_LOGIN_PER_IP
 
 _log = structlog.get_logger(__name__)
 
@@ -57,9 +57,19 @@ def _safe_return_to(value: str | None) -> str | None:
     return value if value and _SAFE_RETURN.fullmatch(value) else None
 
 
-def _rejected(request: Request, code: str) -> RedirectResponse:
+def _rejected(request: Request, code: str, error: Exception | None = None) -> RedirectResponse:
     request.session.clear()
-    _log.info("auth.login_rejected", provider="entra_id", cause=code)
+    # Motivo para diagnóstico: mensajes fijos del adaptador y la clase del error de la biblioteca
+    # (PyJWT, Authlib); nunca valores del token ni datos personales.
+    reason = str(error) if error is not None else None
+    library_error = type(error.__cause__).__name__ if error and error.__cause__ else None
+    _log.info(
+        "auth.login_rejected",
+        provider="entra_id",
+        cause=code,
+        reason=reason,
+        library_error=library_error,
+    )
     return RedirectResponse(f"{LOGIN_PATH}?error={code}", status_code=302)
 
 
@@ -71,7 +81,7 @@ def _state(request: Request, name: str) -> Any:
     "/login",
     operation_id="startMicrosoftLogin",
     status_code=302,
-    dependencies=[Depends(per_ip(AUTH_PER_IP))],
+    dependencies=[Depends(per_ip(MICROSOFT_LOGIN_PER_IP))],
 )
 async def start_microsoft_login(
     request: Request,
@@ -104,7 +114,7 @@ async def _next_step(request: Request, user: User, return_to: str | None) -> str
 
 
 # Sin límite propio: el callback solo avanza con la cookie firmada de un solo uso que emite
-# `/login`, que sí está limitado (30/min por IP, R-31); el contrato no documenta 429 aquí.
+# `/login`, que sí está limitado (120/min por IP, R-31); el contrato no documenta 429 aquí.
 @router.get("/callback", operation_id="completeMicrosoftLogin", status_code=302)
 async def complete_microsoft_login(
     request: Request,
@@ -137,10 +147,10 @@ async def complete_microsoft_login(
         result = await authenticate.execute(claims)
     except TenantNotAllowedError:
         return _rejected(request, "tenant_not_allowed")
-    except IdpUnavailableError:
-        return _rejected(request, "idp_unavailable")
-    except LoginFailedError:
-        return _rejected(request, "login_failed")
+    except IdpUnavailableError as failure:
+        return _rejected(request, "idp_unavailable", failure)
+    except LoginFailedError as failure:
+        return _rejected(request, "login_failed", failure)
     except AccountDisabledError:
         return _rejected(request, "account_disabled")
     except AccountDeletedError:

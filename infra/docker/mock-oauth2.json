@@ -10,12 +10,7 @@
           "requestParam": "code",
           "match": "*",
           "claims": {
-            "tid": "11111111-1111-4111-8111-111111111111",
-            "oid": "${subject}",
-            "name": "Estudiante de prueba ${subject}",
-            "preferred_username": "${subject}@unilibre.edu.co",
-            "email": "${subject}@unilibre.edu.co",
-            "aud": ["${clientId}"]
+            "tid": "11111111-1111-4111-8111-111111111111"
           }
         }
       ]
@@ -28,12 +23,7 @@
           "requestParam": "code",
           "match": "*",
           "claims": {
-            "tid": "22222222-2222-4222-8222-222222222222",
-            "oid": "${subject}",
-            "name": "Persona externa ${subject}",
-            "preferred_username": "${subject}@externo.example.com",
-            "email": "${subject}@externo.example.com",
-            "aud": ["${clientId}"]
+            "tid": "22222222-2222-4222-8222-222222222222"
           }
         }
       ]

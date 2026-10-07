@@ -40,6 +40,9 @@ class Unlimited:
     def email_key(self, email: str) -> str:
         return "email:prueba"
 
+    def opaque_key(self, value: str) -> str:
+        return "opaque:prueba"
+
 
 class OfflineEntra:
     """Sustituye a Entra ID: ninguna prueba llama a Microsoft."""

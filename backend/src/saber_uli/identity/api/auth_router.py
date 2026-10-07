@@ -13,9 +13,9 @@ from pydantic import BaseModel
 
 from saber_uli.identity.application.sessions import IssuedSession, SessionService
 from saber_uli.shared.api.problems import ProblemException
-from saber_uli.shared.api.rate_limit import per_ip
+from saber_uli.shared.api.rate_limit import RateLimitGuard, per_ip, rate_limit_guard
 from saber_uli.shared.domain.errors import UnauthenticatedError
-from saber_uli.shared.infrastructure.rate_limit import AUTH_PER_IP
+from saber_uli.shared.infrastructure.rate_limit import REFRESH_PER_IP, REFRESH_PER_SESSION
 
 REFRESH_COOKIE = "su_refresh"
 COOKIE_PATH = "/api/auth"
@@ -49,11 +49,12 @@ RefreshCookie = Annotated[str | None, Cookie(alias=REFRESH_COOKIE)]
 @router.post(
     "/refresh",
     operation_id="refreshSession",
-    dependencies=[Depends(per_ip(AUTH_PER_IP))],
+    dependencies=[Depends(per_ip(REFRESH_PER_IP))],
 )
 async def refresh_session(
     response: Response,
     service: Service,
+    guard: Annotated[RateLimitGuard, Depends(rate_limit_guard)],
     x_requested_with: RequestedWith = None,
     su_refresh: RefreshCookie = None,
 ) -> SessionTokens:
@@ -66,6 +67,7 @@ async def refresh_session(
             detail="La sesión venció.",
             headers={"Set-Cookie": DELETED_COOKIE},
         )
+    await guard.check_opaque(REFRESH_PER_SESSION, su_refresh)
     try:
         issued = await service.refresh(su_refresh)
     except UnauthenticatedError as error:

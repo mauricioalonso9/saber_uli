@@ -1,7 +1,9 @@
 """T035: limitación de peticiones (research R-31; principio IX) con Redis real.
 
 Ventanas: 5/h por correo y 20/h por IP al pedir enlace de invitado; 10/min por IP al consumirlo;
-30/min por IP en el ingreso con Microsoft y la renovación; 300/min por usuario en el resto.
+120/min por IP al iniciar el ingreso con Microsoft; 30/min por sesión y 600/min por IP en la
+renovación (precisión de R-31 en T081: el campus sale por una sola IP); 300/min por usuario en
+el resto.
 Respuesta 429 `rate-limited` con `Retry-After`. La clave por correo es un HMAC: el correo nunca
 llega a Redis.
 """
@@ -25,10 +27,12 @@ from saber_uli.shared.api.rate_limit import (
 )
 from saber_uli.shared.infrastructure.rate_limit import (
     API_PER_USER,
-    AUTH_PER_IP,
     GUEST_LINK_PER_EMAIL,
     GUEST_LINK_PER_IP,
     GUEST_SESSION_PER_IP,
+    MICROSOFT_LOGIN_PER_IP,
+    REFRESH_PER_IP,
+    REFRESH_PER_SESSION,
     RateLimiter,
 )
 
@@ -60,12 +64,16 @@ def build_app(limiter: RateLimiter) -> FastAPI:
     async def guest_sessions() -> dict[str, str]:
         return {"status": "ok"}
 
-    @app.get("/api/auth/microsoft/login", dependencies=[Depends(per_ip(AUTH_PER_IP))])
+    @app.get("/api/auth/microsoft/login", dependencies=[Depends(per_ip(MICROSOFT_LOGIN_PER_IP))])
     async def microsoft_login() -> dict[str, str]:
         return {"status": "ok"}
 
-    @app.post("/api/auth/refresh", dependencies=[Depends(per_ip(AUTH_PER_IP))])
-    async def refresh() -> dict[str, str]:
+    @app.post("/api/auth/refresh", dependencies=[Depends(per_ip(REFRESH_PER_IP))])
+    async def refresh(
+        guard: Annotated[RateLimitGuard, Depends(rate_limit_guard)],
+        x_session: Annotated[str, Header()] = "sin-sesion",
+    ) -> dict[str, str]:
+        await guard.check_opaque(REFRESH_PER_SESSION, x_session)
         return {"status": "ok"}
 
     @app.get("/api/v1/algo", dependencies=[Depends(per_user(API_PER_USER, user_from_header))])
@@ -170,16 +178,41 @@ async def test_diez_por_minuto_por_ip_al_consumir_el_enlace(limiter: RateLimiter
     assert other.status_code == 200
 
 
-async def test_treinta_por_minuto_por_ip_entre_microsoft_y_renovacion(
-    limiter: RateLimiter,
+async def test_ingreso_con_microsoft_120_por_minuto_por_ip(limiter: RateLimiter) -> None:
+    # Un salón completo detrás de la misma IP del campus puede ingresar a la vez.
+    async with client(build_app(limiter)) as http:
+        statuses = await hit(http, 120, "GET", "/api/auth/microsoft/login")
+        blocked = await http.get("/api/auth/microsoft/login")
+
+    assert statuses == [200] * 120
+    assert_rate_limited(blocked, 60)
+
+
+async def test_renovacion_30_por_minuto_por_sesion(
+    limiter: RateLimiter, redis_client: Redis
 ) -> None:
     async with client(build_app(limiter)) as http:
-        login = await hit(http, 15, "GET", "/api/auth/microsoft/login")
-        refresh = await hit(http, 15, "POST", "/api/auth/refresh")
-        blocked = await http.post("/api/auth/refresh")
+        mine = await hit(http, 30, "POST", "/api/auth/refresh", headers={"X-Session": "cookie-a"})
+        blocked = await http.post("/api/auth/refresh", headers={"X-Session": "cookie-a"})
+        other = await http.post("/api/auth/refresh", headers={"X-Session": "cookie-b"})
 
-    assert login + refresh == [200] * 30
+    assert mine == [200] * 30
     assert_rate_limited(blocked, 60)
+    # Otra sesión detrás de la misma IP no se ve afectada.
+    assert other.status_code == 200
+    # La cookie nunca llega a Redis: la clave es un HMAC.
+    keys = [key.decode() async for key in redis_client.scan_iter("*")]
+    assert not [key for key in keys if "cookie-a" in key]
+
+
+async def test_renovacion_600_por_minuto_por_ip(limiter: RateLimiter) -> None:
+    async with client(build_app(limiter)) as http:
+        statuses = [
+            (await http.post("/api/auth/refresh", headers={"X-Session": f"s{n}"})).status_code
+            for n in range(601)
+        ]
+
+    assert statuses == [200] * 600 + [429]
 
 
 # --- Resto de la API ---------------------------------------------------------------------------

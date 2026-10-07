@@ -418,6 +418,9 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Nota para T058: crear `RateLimiter(settings.redis_url, hash_key=...)` en
     `app.state.rate_limiter`, con una clave HMAC derivada (por ejemplo
     `HMAC(SESSION_COOKIE_SECRET, "saber-uli/rate-limit-email")`), nunca el secreto tal cual.
+  - Precisión de Opus (2026-10-07, en T081): `AUTH_PER_IP` (30/min compartido) se reemplazó por
+    `MICROSOFT_LOGIN_PER_IP` (120/min) y, en la renovación, `REFRESH_PER_SESSION` (30/min por
+    HMAC de la cookie) más `REFRESH_PER_IP` (600/min). Motivo: NAT del campus. Ver R-31.
 
 ### Correo (contexto notifications)
 
@@ -884,8 +887,23 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
     `AppShell` muestra "Cerrar sesión" con sesión, invalida la caché de sesión y vuelve a
     `/ingresar`. Tras volver de Microsoft, el cargador de sesión de T067 renueva, consulta `/me`,
     guarda la instantánea y aplica las guardias. Frontend: 112 pruebas en verde.
-- [ ] T081 [US1] Prueba e2e `frontend/tests/e2e/us1-institutional-login.spec.ts` (usuario del inquilino llega a `/bienvenida/datos`; usuario externo ve el rechazo y no se crea cuenta; cerrar sesión exige ingresar de nuevo; axe sin infracciones AA en `/ingresar`) → Qwen
+- [x] T081 [US1] Prueba e2e `frontend/tests/e2e/us1-institutional-login.spec.ts` (usuario del inquilino llega a `/bienvenida/datos`; usuario externo ve el rechazo y no se crea cuenta; cerrar sesión exige ingresar de nuevo; axe sin infracciones AA en `/ingresar`) → Qwen
   - Terminado: pasa contra el stack `e2e`.
+  - Estado: implementada por Opus (2026-10-07) porque Qwen no tenía créditos.
+    `tests/e2e/us1-institutional-login.spec.ts` contra el stack real con perfil `e2e`: el usuario
+    del inquilino llega a `/bienvenida/datos`; la cuenta externa ve el rechazo con la alternativa
+    de invitación y no queda con sesión; cerrar sesión exige ingresar de nuevo; `/ingresar` sin
+    infracciones de axe AA. En verde 3 corridas seguidas (Pixel 7). En WebKit se omite salvo con
+    `E2E_OIDC_RESOLVES=1` (CI, con `127.0.0.1 oidc` en el archivo hosts); Chromium resuelve
+    `oidc` con `--host-resolver-rules`. Hallazgos y correcciones:
+    (1) `mock-oauth2-server` 3.0.3 no sustituye `${subject}`: la configuración solo fija `tid` y la
+    fixture envía `oid`, `email` y `name` explícitos;
+    (2) límites de R-31 incompatibles con el NAT del campus (429 en la renovación): ingreso 120/min
+    por IP y renovación 30/min por sesión más 600/min por IP (research R-31 actualizado);
+    (3) `auth.login_rejected` registra ahora el motivo de `login_failed`/`idp_unavailable` (mensajes
+    fijos y clase del error de la biblioteca, sin valores del token);
+    (4) el health check de `db` en Compose tiene más margen (60 s de arranque, 20 intentos): el
+    primer arranque con los scripts de inicio superaba el anterior en un equipo cargado.
 - [ ] T082 [US1] Revisión de US1 (T071–T081) en `specs/001-identidad-acceso/tasks.md`: validación OIDC, ausencia de datos personales en logs, mensajes de error y cumplimiento de FR-001 a FR-005 y FR-036 → Opus
   - Terminado: tareas aprobadas y marcadas; quickstart V2 verificado.
 

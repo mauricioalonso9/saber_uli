@@ -25,7 +25,15 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "pixel-7", use: { ...devices["Pixel 7"], locale: "es-CO" } },
+    {
+      name: "pixel-7",
+      use: {
+        ...devices["Pixel 7"],
+        locale: "es-CO",
+        // Resuelve `oidc` (proveedor simulado) sin tocar el archivo hosts del equipo.
+        launchOptions: { args: ["--host-resolver-rules=MAP oidc 127.0.0.1"] },
+      },
+    },
     { name: "iphone-14", use: { ...devices["iPhone 14"], locale: "es-CO" } },
   ],
 });

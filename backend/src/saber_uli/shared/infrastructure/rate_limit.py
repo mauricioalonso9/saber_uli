@@ -40,8 +40,12 @@ class RateLimitRule:
 GUEST_LINK_PER_EMAIL = RateLimitRule("guest-link-email", "5/hour")
 GUEST_LINK_PER_IP = RateLimitRule("guest-link-ip", "20/hour")
 GUEST_SESSION_PER_IP = RateLimitRule("guest-session-ip", "10/minute")
-# Ingreso con Microsoft y renovación comparten el cupo por IP.
-AUTH_PER_IP = RateLimitRule("auth-ip", "30/minute")
+# Precisión de R-31 (T081): el campus sale a internet por una sola IP (NAT), así que el
+# ingreso con Microsoft admite un salón completo a la vez y la renovación se limita por
+# sesión (HMAC de la cookie) con un tope alto por IP contra abusos.
+MICROSOFT_LOGIN_PER_IP = RateLimitRule("microsoft-login-ip", "120/minute")
+REFRESH_PER_SESSION = RateLimitRule("refresh-session", "30/minute")
+REFRESH_PER_IP = RateLimitRule("refresh-ip", "600/minute")
 API_PER_USER = RateLimitRule("api-user", "300/minute")
 
 
@@ -73,10 +77,15 @@ class RateLimiter:
         )
         self._strategy = SlidingWindowCounterRateLimiter(storage)
 
+    def _digest(self, value: str) -> str:
+        return hmac.new(self._hash_key, value.encode(), hashlib.sha256).hexdigest()
+
     def email_key(self, email: str) -> str:
-        normalized = email.strip().lower().encode()
-        digest = hmac.new(self._hash_key, normalized, hashlib.sha256).hexdigest()
-        return f"email:{digest}"
+        return f"email:{self._digest(email.strip().lower())}"
+
+    def opaque_key(self, value: str) -> str:
+        """Clave para un valor secreto (por ejemplo, la cookie de renovación)."""
+        return f"opaque:{self._digest(value)}"
 
     async def hit(self, rule: RateLimitRule, key: str) -> RateLimitDecision:
         """Cuenta una petición; si excede la regla devuelve los segundos para reintentar."""

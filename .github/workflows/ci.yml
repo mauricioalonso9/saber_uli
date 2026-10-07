@@ -152,6 +152,8 @@ jobs:
       - name: Playwright
         if: steps.enabled.outputs.value == 'true'
         working-directory: frontend
+        env:
+          E2E_OIDC_RESOLVES: "1"
         run: |
           npm ci
           npx playwright install --with-deps chromium webkit

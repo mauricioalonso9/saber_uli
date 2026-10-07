@@ -12,13 +12,19 @@ Subcomandos actuales:
   válidas sí se cargan) o si falla la base de datos, y 2 si el archivo o la configuración no
   sirven (no se carga nada).
 
-T118 y T147 agregarán `invite-guest` y `grant-admin`. Ningún mensaje muestra URL ni contraseñas.
+- `identity invite-guest --email <correo> [--days N] [--name <nombre>]`: invita a una persona
+  externa con actor `system` (quickstart V5). Usa `DATABASE_URL` e
+  `INSTITUTIONAL_EMAIL_DOMAINS`; el worker envía el correo. Sale con 0 si creó la invitación, 1
+  si una regla la impidió (correo institucional, invitación vigente) y 2 si los datos no sirven.
+
+T147 agregará `grant-admin`. Ningún mensaje muestra URL, contraseñas ni el correo invitado.
 """
 
 import argparse
 import asyncio
 import csv
 import os
+import re
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -31,9 +37,12 @@ from saber_uli.identity.application.import_programs import (
     ProgramLine,
     RejectedLine,
 )
+from saber_uli.identity.application.invitations import CreateInvitation
+from saber_uli.identity.infrastructure.outbox_events import register_identity_outbox
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.domain.clock import SystemClock
+from saber_uli.shared.domain.errors import DomainError
 from saber_uli.shared.infrastructure.db import create_engine, create_session_factory
 from saber_uli.shared.infrastructure.logging import configure_logging
 from saber_uli.shared.infrastructure.migrations import run_migrations
@@ -145,6 +154,56 @@ def _import_programs(csv_path: str) -> int:
     return EXIT_FAILURE if report.rejected else EXIT_OK
 
 
+EMAIL_PATTERN = re.compile(r"^[^@\s<>,;]+@[^@\s<>,;]+\.[^@\s<>,;]+$")
+
+
+async def _run_invite(
+    url: str, domains: list[str], email: str, days: int | None, name: str | None
+) -> None:
+    engine = create_engine(url)
+    try:
+        session_factory = create_session_factory(engine)
+        bus = EventBus()
+        register_identity_outbox(bus)
+        use_case = CreateInvitation(
+            uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, bus),
+            clock=SystemClock(),
+            institutional_domains=domains,
+        )
+        await use_case.execute(email=email, invited_by=None, access_days=days, invitee_name=name)
+    finally:
+        await engine.dispose()
+
+
+def _invite_guest(email: str, days: int | None, name: str | None) -> int:
+    url = os.environ.get("DATABASE_URL")
+    domains = [d for d in os.environ.get("INSTITUTIONAL_EMAIL_DOMAINS", "").split(",") if d.strip()]
+    if not url or not domains:
+        print(
+            "Error: faltan las variables de entorno DATABASE_URL o INSTITUTIONAL_EMAIL_DOMAINS.",
+            file=sys.stderr,
+        )
+        return EXIT_USAGE
+    if len(email) > 254 or not EMAIL_PATTERN.fullmatch(email.strip()):
+        print("Error: el correo no es válido.", file=sys.stderr)
+        return EXIT_USAGE
+    if days is not None and not 1 <= days <= 730:
+        print("Error: --days debe estar entre 1 y 730.", file=sys.stderr)
+        return EXIT_USAGE
+    configure_logging(os.environ.get("LOG_LEVEL", "WARNING"))
+    try:
+        asyncio.run(_run_invite(url, domains, email.strip(), days, name))
+    except DomainError as error:
+        print(f"No se creó la invitación: {error.message}", file=sys.stderr)
+        return EXIT_FAILURE
+    except Exception as error:
+        detail = _redact(str(error), url).splitlines()[0] if str(error) else ""
+        print(f"Error: la invitación falló ({type(error).__name__}): {detail}", file=sys.stderr)
+        return EXIT_FAILURE
+    print("Invitación creada. El correo con el enlace se enviará en unos segundos.")
+    return EXIT_OK
+
+
 def _utf8_output() -> None:
     """Mensajes en español también en consolas de Windows con otra página de códigos."""
     for stream in (sys.stdout, sys.stderr):
@@ -168,12 +227,23 @@ def app(argv: Sequence[str] | None = None) -> None:
         "--csv", required=True, help="archivo CSV UTF-8 con encabezado codigo,nombre,seccional"
     )
 
+    invite_guest = identity_commands.add_parser(
+        "invite-guest", help="invita a una persona externa (actor: sistema)"
+    )
+    invite_guest.add_argument("--email", required=True, help="correo de la persona invitada")
+    invite_guest.add_argument(
+        "--days", type=int, default=None, help="días de acceso (por defecto, el parámetro)"
+    )
+    invite_guest.add_argument("--name", default=None, help="nombre de la persona (opcional)")
+
     _utf8_output()
     args = parser.parse_args(argv)
     if args.command == "migrate":
         sys.exit(_migrate())
     if args.command == "identity" and args.action == "import-programs":
         sys.exit(_import_programs(args.csv))
+    if args.command == "identity" and args.action == "invite-guest":
+        sys.exit(_invite_guest(args.email, args.days, args.name))
 
 
 if __name__ == "__main__":

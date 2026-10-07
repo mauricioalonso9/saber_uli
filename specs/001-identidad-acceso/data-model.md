@@ -126,7 +126,7 @@ miembros de los grupos donde está en `group_teachers`; nunca su correo.
 | `id` | uuid PK | |
 | `email` | citext NULL | correo destino; `NULL` tras la supresión del invitado o la purga de FR-034e |
 | `invitee_name` | text NULL | nombre opcional que indica quien invita |
-| `invited_by` | uuid FK → `users.id` | docente o administrador |
+| `invited_by` | uuid NULL FK → `users.id` | docente o administrador; `NULL` = sistema (comando `invite-guest`, T118) |
 | `batch_id` | uuid NULL FK → `invitation_batches.id` | |
 | `guest_user_id` | uuid NULL FK → `users.id` | se llena al aceptar |
 | `status` | text | `CHECK (status IN ('sent','accepted','expired','revoked'))` |

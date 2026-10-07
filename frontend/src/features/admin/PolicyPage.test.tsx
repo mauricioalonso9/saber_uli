@@ -78,8 +78,9 @@ function renderPolicyPage() {
 
 async function fill(values: { version?: string; title?: string; body?: string }) {
   const user = userEvent.setup();
+  await screen.findByLabelText("Título");
   if (values.version !== undefined) {
-    await user.clear(await screen.findByLabelText("Número de versión"));
+    await user.clear(screen.getByLabelText("Número de versión"));
     if (values.version) await user.type(screen.getByLabelText("Número de versión"), values.version);
   }
   if (values.title !== undefined) {
@@ -144,7 +145,10 @@ describe("publicar una versión de la política", () => {
 
     await user.click(screen.getByRole("button", { name: "Publicar versión" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(/publicaste la versión 2\.0/i);
+    expect(await screen.findByText(/publicaste la versión 2\.0/i)).toHaveAttribute(
+      "role",
+      "status",
+    );
     expect(published).toHaveLength(1);
     const [body] = published;
     expect(body).toMatchObject({ version: "2.0", title: "Política 2.0", body_markdown: BODY });

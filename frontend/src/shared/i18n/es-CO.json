@@ -102,5 +102,29 @@
   "accountData": {
     "title": "Mis datos",
     "placeholder": "Aquí podrás consultar y descargar tus datos y solicitar su supresión."
+  },
+  "policyAdmin": {
+    "title": "Política de tratamiento de datos",
+    "current": "Versión vigente: {{version}}, desde el {{date}}.",
+    "warning": "Al empezar a regir una versión nueva, todas las personas, incluida tú, deberán leerla y aceptarla antes de seguir usando Saber Uli.",
+    "version": "Número de versión",
+    "effectiveFrom": "Vigente desde (hora de Colombia)",
+    "titleField": "Título",
+    "body": "Texto de la política (Markdown)",
+    "count_one": "{{count}} carácter (entre {{min}} y {{max}}).",
+    "count_other": "{{count}} caracteres (entre {{min}} y {{max}}).",
+    "preview": "Vista previa",
+    "hidePreview": "Ocultar la vista previa",
+    "publish": "Publicar versión",
+    "untitled": "Sin título",
+    "published": "Publicaste la versión {{version}}. Desde el {{from}}, todas las personas deberán aceptarla.",
+    "errors": {
+      "version": "Usa el formato número.número, por ejemplo 2.0.",
+      "titleRequired": "Escribe el título.",
+      "titleMax": "El título admite hasta {{max}} caracteres.",
+      "bodyMin": "El texto debe tener al menos {{min}} caracteres.",
+      "bodyMax": "El texto admite hasta {{max}} caracteres.",
+      "effectiveFrom": "Indica la fecha y la hora de vigencia."
+    }
   }
 }

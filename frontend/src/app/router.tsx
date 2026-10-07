@@ -18,6 +18,7 @@ import { OFFLINE_EXPIRED_MESSAGE } from "@/features/auth/offline-access";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { createSessionLoader } from "@/features/auth/session-loader";
 import { ConsentSettingsPage } from "@/features/account/ConsentSettingsPage";
+import { PolicyPage } from "@/features/admin/PolicyPage";
 import { ConsentPage } from "@/features/onboarding/ConsentPage";
 
 export interface SessionGetter {
@@ -118,6 +119,12 @@ const consentSettingsRoute = createRoute({
   component: ConsentSettingsPage,
 });
 
+const adminPolicyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/politica",
+  component: PolicyPage,
+});
+
 const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sin-conexion",
@@ -131,6 +138,7 @@ export const routeTree = rootRoute.addChildren([
   page("/acceso", "guestAccess.title"),
   consentRoute,
   consentSettingsRoute,
+  adminPolicyRoute,
   // Marcador: la supresión (US7) y la consulta y descarga de datos (US8, T169) la completan.
   page("/mi-cuenta/datos", "accountData.title", "accountData.placeholder"),
   page("/bienvenida/perfil", "profile.title"),

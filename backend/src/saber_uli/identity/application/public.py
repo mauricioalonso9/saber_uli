@@ -7,7 +7,9 @@ Es lo único que otros contextos y el kernel compartido pueden importar de `iden
   `app.state.authenticator`.
 - `ConsentChecker`: lo usa `shared/api/consent_guard.py` (T052); lo implementa
   `identity.application.queries.consent_status.ConsentStatusQuery`.
-- `is_institutional`, `is_guest` y `director_program_ids` llegan con T117 y T145.
+- `UserDirectory` (`is_institutional`, `is_guest`): las ligas y la analítica de programa excluyen
+  a los invitados (FR-012). Lo implementa `identity.application.directory.IdentityDirectory`.
+  `director_program_ids` llega con T145.
 """
 
 from dataclasses import dataclass
@@ -39,4 +41,14 @@ class Authenticator(Protocol):
 class ConsentChecker(Protocol):
     async def has_current_consent(self, user_id: UUID) -> bool:
         """Autorización de datos vigente (FR-014)."""
+        ...
+
+
+class UserDirectory(Protocol):
+    async def is_institutional(self, user_id: UUID) -> bool:
+        """Cuenta institucional de Unilibre (falso si no existe)."""
+        ...
+
+    async def is_guest(self, user_id: UUID) -> bool:
+        """Invitado: no aparece en ligas institucionales ni en analítica (FR-012)."""
         ...

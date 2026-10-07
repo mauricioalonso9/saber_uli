@@ -89,6 +89,8 @@ describe("shell de la aplicación", () => {
     expect(links.length).toBeGreaterThan(0);
 
     await user.tab(); // salto al contenido
+    await user.tab(); // cerrar sesión, en la cabecera
+    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toHaveFocus();
     await user.tab();
     expect(links[0]).toHaveFocus();
   });

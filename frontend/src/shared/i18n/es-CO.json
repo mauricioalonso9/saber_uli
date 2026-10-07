@@ -22,7 +22,20 @@
     "back": "Volver al inicio"
   },
   "login": {
-    "title": "Ingresar"
+    "title": "Ingresar",
+    "intro": "Usa tu cuenta institucional de la Universidad Libre (Microsoft 365).",
+    "microsoft": "Ingresar con mi cuenta Unilibre",
+    "guestLink": "Soy invitado: recibir un enlace de ingreso por correo",
+    "errors": {
+      "tenant_not_allowed": "Tu cuenta no pertenece a la Universidad Libre. Si no eres parte de la comunidad Unilibre, pide una invitación a un docente o a la administración de Saber Uli.",
+      "idp_unavailable": "No pudimos conectar con Microsoft. Intenta de nuevo en unos minutos.",
+      "invalid_state": "El ingreso tardó demasiado o se interrumpió. Vuelve a intentarlo.",
+      "login_cancelled": "Cancelaste el ingreso con Microsoft. Puedes intentarlo de nuevo cuando quieras.",
+      "login_failed": "No pudimos completar el ingreso. Vuelve a intentarlo.",
+      "account_disabled": "Tu cuenta está desactivada. Comunícate con la administración de Saber Uli.",
+      "account_deleted": "Esta cuenta fue eliminada.",
+      "unknown": "No pudimos completar el ingreso. Vuelve a intentarlo."
+    }
   },
   "guestAccess": {
     "title": "Acceso de invitado"
@@ -41,5 +54,8 @@
     "ios": "Para tenerla en tu iPhone como una app, toca el botón Compartir de Safari y luego «Agregar a inicio».",
     "dismiss": "Cerrar la guía de instalación",
     "dismissShort": "Entendido"
+  },
+  "auth": {
+    "signOut": "Cerrar sesión"
   }
 }

@@ -1,8 +1,10 @@
-import { Link, Outlet } from "@tanstack/react-router";
+import { Link, Outlet, useRouteContext, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/shared/lib/utils";
+import { logout } from "@/features/auth/bootstrap";
 import { useOnlineStatus } from "@/shared/lib/use-online-status";
+import { Button } from "@/shared/ui/button";
 import { InstallHint } from "@/shared/ui/InstallHint";
 
 /**
@@ -12,6 +14,14 @@ import { InstallHint } from "@/shared/ui/InstallHint";
 export function AppShell() {
   const { t } = useTranslation();
   const online = useOnlineStatus();
+  const router = useRouter();
+  const { session, getSession } = useRouteContext({ from: "__root__" });
+
+  async function signOut() {
+    await logout();
+    getSession.invalidate?.();
+    await router.navigate({ to: "/ingresar" });
+  }
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -38,6 +48,11 @@ export function AppShell() {
         >
           {online ? t("connection.online") : t("connection.offline")}
         </p>
+        {session?.kind === "authenticated" ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => void signOut()}>
+            {t("auth.signOut")}
+          </Button>
+        ) : null}
       </header>
       <InstallHint />
       <nav aria-label={t("app.mainNavigation")} className="border-b px-4 py-2">

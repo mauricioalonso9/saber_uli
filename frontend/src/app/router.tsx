@@ -16,10 +16,17 @@ import { useTranslation } from "react-i18next";
 import { AppShell } from "@/app/AppShell";
 import { type SessionState, decideNavigation } from "@/app/guards";
 import { OFFLINE_EXPIRED_MESSAGE } from "@/features/auth/offline-access";
+import { LoginPage } from "@/features/auth/LoginPage";
 import { createSessionLoader } from "@/features/auth/session-loader";
 
+export interface SessionGetter {
+  (): Promise<SessionState>;
+  /** Olvida la sesión en caché (tras ingresar o cerrar sesión). */
+  invalidate?: () => void;
+}
+
 export interface RouterContext {
-  getSession: () => Promise<SessionState>;
+  getSession: SessionGetter;
 }
 
 function Page({ titleKey, bodyKey }: { titleKey: string; bodyKey?: string }) {
@@ -59,10 +66,12 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: AppShell,
   notFoundComponent: NotFoundPage,
   beforeLoad: async ({ context, location }) => {
-    const target = decideNavigation(await context.getSession(), location.pathname);
+    const session = await context.getSession();
+    const target = decideNavigation(session, location.pathname);
     if (target) {
       throw redirect({ href: target });
     }
+    return { session };
   },
 });
 
@@ -81,6 +90,21 @@ const page = <TPath extends string>(path: TPath, titleKey: string, bodyKey?: str
     component: () => <Page titleKey={titleKey} bodyKey={bodyKey} />,
   });
 
+interface LoginSearch {
+  error?: string;
+  return_to?: string;
+}
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/ingresar",
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    error: typeof search.error === "string" ? search.error : undefined,
+    return_to: typeof search.return_to === "string" ? search.return_to : undefined,
+  }),
+  component: LoginPage,
+});
+
 const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sin-conexion",
@@ -90,7 +114,7 @@ const offlineRoute = createRoute({
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   page("/inicio", "home.title", "home.placeholder"),
-  page("/ingresar", "login.title"),
+  loginRoute,
   page("/acceso", "guestAccess.title"),
   page("/bienvenida/datos", "consent.title"),
   page("/bienvenida/perfil", "profile.title"),
@@ -101,7 +125,7 @@ export interface AppRouterOptions {
   /** Ruta inicial en memoria (pruebas); sin ella se usa el historial del navegador. */
   initialPath?: string;
   /** Estado de la sesión para las guardias; por defecto renovación + `/me` con caché. */
-  getSession?: () => Promise<SessionState>;
+  getSession?: SessionGetter;
 }
 
 export function createAppRouter(options: AppRouterOptions = {}) {

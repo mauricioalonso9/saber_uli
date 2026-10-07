@@ -805,8 +805,9 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
 - [x] T074 [P] [US1] Prueba: `GET /api/v1/me` en `backend/tests/integration/identity/test_me.py` (campos del esquema `Me`; `permissions` según roles; `onboarding.consent_required` y `profile_required`; `access.offline_grace_until` = `validated_at` + 7 días; responde sin autorización de datos por ser exenta) → Qwen
   - Terminado: la prueba falla.
   - Estado: ver T079.
-- [ ] T075 [P] [US1] Prueba de componente `frontend/src/features/auth/LoginPage.test.tsx` (botón "Ingresar con mi cuenta Unilibre"; mensaje para `tenant_not_allowed` con la alternativa de pedir invitación (SC-008); mensaje para `idp_unavailable`; enlace a ingreso de invitados) → Qwen
+- [x] T075 [P] [US1] Prueba de componente `frontend/src/features/auth/LoginPage.test.tsx` (botón "Ingresar con mi cuenta Unilibre"; mensaje para `tenant_not_allowed` con la alternativa de pedir invitación (SC-008); mensaje para `idp_unavailable`; enlace a ingreso de invitados) → Qwen
   - Terminado: la prueba falla.
+  - Estado: ver T080.
 
 ### Implementation for User Story 1
 
@@ -870,8 +871,19 @@ creada, redirige a `/bienvenida/datos`) y con uno externo (rechazo, sin cuenta);
     documenta 429 ahí): solo avanza con la cookie firmada de un solo uso que emite `/login`, que sí
     tiene el límite de 30/min por IP (precisión de R-31). T074 (7 pruebas) y contrato en verde;
     suite: 433.
-- [ ] T080 [US1] Implementar `frontend/src/features/auth/LoginPage.tsx` y `frontend/src/features/auth/bootstrap.ts` (tras volver de Microsoft: renovar, consultar `/me`, guardar instantánea, redirigir según guardias; botón de cerrar sesión en `AppShell`) → Qwen
+- [x] T080 [US1] Implementar `frontend/src/features/auth/LoginPage.tsx` y `frontend/src/features/auth/bootstrap.ts` (tras volver de Microsoft: renovar, consultar `/me`, guardar instantánea, redirigir según guardias; botón de cerrar sesión en `AppShell`) → Qwen
   - Terminado: T075 en verde.
+  - Estado: implementadas por Opus (2026-10-07) porque Qwen no tenía créditos; T075 falló al no
+    existir los módulos (commit `40548c5`). `LoginPage` en `/ingresar` (búsqueda validada
+    `error` y `return_to`): botón "Ingresar con mi cuenta Unilibre" que navega a
+    `/api/auth/microsoft/login` (con `return_to` si lo hay), mensaje en `role="alert"` para cada
+    código del backend (con la alternativa de pedir invitación ante `tenant_not_allowed`, SC-008,
+    y uno genérico para códigos desconocidos) y enlace al ingreso de invitados (`/acceso`).
+    `bootstrap.ts`: `startMicrosoftLogin` y `logout` (revoca en el servidor y siempre borra el
+    token en memoria y la instantánea de Dexie). La ruta raíz pasa `session` al contexto; el
+    `AppShell` muestra "Cerrar sesión" con sesión, invalida la caché de sesión y vuelve a
+    `/ingresar`. Tras volver de Microsoft, el cargador de sesión de T067 renueva, consulta `/me`,
+    guarda la instantánea y aplica las guardias. Frontend: 112 pruebas en verde.
 - [ ] T081 [US1] Prueba e2e `frontend/tests/e2e/us1-institutional-login.spec.ts` (usuario del inquilino llega a `/bienvenida/datos`; usuario externo ve el rechazo y no se crea cuenta; cerrar sesión exige ingresar de nuevo; axe sin infracciones AA en `/ingresar`) → Qwen
   - Terminado: pasa contra el stack `e2e`.
 - [ ] T082 [US1] Revisión de US1 (T071–T081) en `specs/001-identidad-acceso/tasks.md`: validación OIDC, ausencia de datos personales en logs, mensajes de error y cumplimiento de FR-001 a FR-005 y FR-036 → Opus

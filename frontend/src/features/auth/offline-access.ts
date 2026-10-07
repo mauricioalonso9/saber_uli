@@ -41,6 +41,11 @@ export async function saveValidation(me: Me, now: Date = new Date()): Promise<vo
   await db.meta.put({ key: SNAPSHOT_KEY, value: snapshot });
 }
 
+/** Al cerrar sesión: sin instantánea, la app ya no se puede usar sin conexión. */
+export async function clearOfflineSnapshot(): Promise<void> {
+  await db.meta.delete(SNAPSHOT_KEY);
+}
+
 export async function evaluateOfflineAccess(now: Date = new Date()): Promise<OfflineAccess> {
   const entry = await db.meta.get(SNAPSHOT_KEY);
   const snapshot = entry?.value as Snapshot | undefined;

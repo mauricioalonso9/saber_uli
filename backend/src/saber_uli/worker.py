@@ -6,7 +6,7 @@
 Tareas programadas (zona America/Bogota):
 
 - `dispatch_outbox`: cada 5 s (aquí).
-- `expire_invitations`: cada hora (T126).
+- `expire_invitations`: cada hora (T131).
 - `process_retention`: diaria a las 02:00 (T156).
 - `process_deletion_requests`: cada 15 min (T157).
 - `purge_expired_auth_artifacts`: diaria a las 03:30; purga el outbox aquí y las sesiones y
@@ -163,9 +163,38 @@ def purge_expired_auth_artifacts() -> int:
 # --- Tareas que completan las historias --------------------------------------------------------
 
 
+async def _expire_invitations() -> None:
+    from saber_uli.config import get_settings
+    from saber_uli.identity.domain.events import UserAccessChanged
+    from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
+    from saber_uli.identity.infrastructure.tasks import expire_invitations as run
+    from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
+    from saber_uli.shared.application.event_bus import EventBus
+    from saber_uli.shared.infrastructure.db import create_engine, create_session_factory
+
+    settings = get_settings()
+    engine = create_engine(settings.database_url.get_secret_value())
+    epochs = RedisEpochStore(settings.redis_url.get_secret_value())
+    try:
+        session_factory = create_session_factory(engine)
+        bus = EventBus()
+
+        async def invalidate_epoch(event: UserAccessChanged) -> None:
+            await epochs.invalidate(event.user_id)
+
+        bus.subscribe(UserAccessChanged, invalidate_epoch, phase="after_commit")
+        await run(
+            uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, bus),
+            clock=SystemClock(),
+        )
+    finally:
+        await epochs.close()
+        await engine.dispose()
+
+
 @celery_app.task(name="saber_uli.expire_invitations")
 def expire_invitations() -> None:
-    _log.debug("task_not_implemented_yet", task="expire_invitations", owner="T126")
+    asyncio.run(_expire_invitations())
 
 
 @celery_app.task(name="saber_uli.process_retention")

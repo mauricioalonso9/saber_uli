@@ -1,38 +1,16 @@
 """T037: envío real a Mailpit, verificado por su API (research R-30)."""
 
-import time
-from collections.abc import Iterator
 from typing import Any
 
 import httpx
 import pytest
 from structlog.testing import capture_logs
-from testcontainers.core.container import DockerContainer
 
 from saber_uli.notifications.application.public import EmailService
 from saber_uli.notifications.infrastructure.smtp import SmtpEmailSender
 from saber_uli.notifications.infrastructure.templates import JinjaTemplateRenderer
 
 RECIPIENT = "ana.perez@unilibre.edu.co"
-
-
-@pytest.fixture(scope="module")
-def mailpit() -> Iterator[tuple[str, int, str]]:
-    container = DockerContainer("axllent/mailpit:v1.31").with_exposed_ports(1025, 8025)
-    with container:
-        host = container.get_container_host_ip()
-        api = f"http://{host}:{container.get_exposed_port(8025)}"
-        deadline = time.monotonic() + 30
-        while True:
-            try:
-                if httpx.get(f"{api}/readyz", timeout=2).status_code == 200:
-                    break
-            except httpx.HTTPError:
-                pass
-            if time.monotonic() > deadline:
-                raise TimeoutError("Mailpit no arrancó")
-            time.sleep(0.5)
-        yield host, int(container.get_exposed_port(1025)), api
 
 
 def latest(api: str) -> dict[str, Any]:

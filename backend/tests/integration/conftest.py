@@ -18,6 +18,7 @@ Sin Docker, todo `tests/integration/` se omite, salvo con `REQUIRE_DOCKER=1`.
 
 import asyncio
 import secrets
+import time
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from datetime import UTC, datetime
 from pathlib import Path
@@ -30,6 +31,7 @@ from redis.asyncio import Redis
 from sqlalchemy import NullPool, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from testcontainers.core.container import DockerContainer
 from testcontainers.postgres import PostgresContainer
 from testcontainers.redis import RedisContainer
 
@@ -360,3 +362,23 @@ async def api_client(
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
+
+
+@pytest.fixture(scope="session")
+def mailpit() -> Iterator[tuple[str, int, str]]:
+    """Mailpit real: (host, puerto SMTP, URL de su API)."""
+    container = DockerContainer("axllent/mailpit:v1.31").with_exposed_ports(1025, 8025)
+    with container:
+        host = container.get_container_host_ip()
+        api = f"http://{host}:{container.get_exposed_port(8025)}"
+        deadline = time.monotonic() + 30
+        while True:
+            try:
+                if httpx.get(f"{api}/readyz", timeout=2).status_code == 200:
+                    break
+            except httpx.HTTPError:
+                pass
+            if time.monotonic() > deadline:
+                raise TimeoutError("Mailpit no arrancó")
+            time.sleep(0.5)
+        yield host, int(container.get_exposed_port(1025)), api

@@ -1011,10 +1011,45 @@ autorización vigente no se usa la plataforma; una versión nueva exige aceptarl
   - Estado: implementada por Opus (2026-10-07). react-hook-form + zod con los límites del
     contrato, contador de caracteres, vista previa con `PolicyMarkdown` y vigencia en hora de
     Colombia (`-05:00`). Tras publicar invalida la sesión: quien publica también debe aceptar.
-- [ ] T093 [US2] Prueba e2e `frontend/tests/e2e/us2-consent.spec.ts` (V3 y V4 de quickstart: rechazar bloquea todo salvo política, cierre de sesión y supresión; aceptar da acceso; revocar cierra la sesión en la siguiente acción; nueva versión exige aceptación) → Qwen
+- [x] T093 [US2] Prueba e2e `frontend/tests/e2e/us2-consent.spec.ts` (V3 y V4 de quickstart: rechazar bloquea todo salvo política, cierre de sesión y supresión; aceptar da acceso; revocar cierra la sesión en la siguiente acción; nueva versión exige aceptación) → Qwen
   - Terminado: pasa contra el stack `e2e`.
-- [ ] T094 [US2] Revisión de US2 (T083–T093) en `specs/001-identidad-acceso/tasks.md`: Ley 1581 (autorización expresa, finalidad, versiones), FR-014 a FR-018 y SC-002 → Opus
+  - Estado: implementada por Opus (2026-10-07). V3 en `us2-consent.spec.ts` (rechazo con
+    explicación, guardias, supresión accesible, cierre de sesión; aceptar, consultar, revocar con
+    `refresh` → 401 y nueva autorización al volver a ingresar) y V4 en
+    `us2-policy-version.global.spec.ts`, en el proyecto `estado-global` de Playwright (corre
+    después de los demás y sin paralelismo, porque cambia la versión vigente para todos). axe sin
+    infracciones en las tres pantallas. `fixtures/db.ts` otorga el rol Administrador y completa
+    el perfil con `psql` en el contenedor `db` hasta que existan `grant-admin` (T147) y US3. En
+    verde 3 corridas completas seguidas (Pixel 7).
+  - Hallazgo corregido (commit 11a42a8): dos versiones con la misma `effective_from` dejaban la
+    vigente ambigua y una fecha anterior a la última nunca regía. Ahora 422
+    `effective-from-too-early`, desempate por `created_at` y vigencia con segundos en el
+    formulario.
+- [x] T094 [US2] Revisión de US2 (T083–T093) en `specs/001-identidad-acceso/tasks.md`: Ley 1581 (autorización expresa, finalidad, versiones), FR-014 a FR-018 y SC-002 → Opus
   - Terminado: tareas aprobadas y marcadas.
+  - Revisión de Opus (2026-10-07): T083–T093 aprobadas.
+    - Ley 1581 (art. 9, autorización previa, expresa e informada): la decisión es explícita
+      (radios sin preselección y confirmación), queda con usuario, fecha y hora, versión, decisión
+      y canal `web_pwa` en `consents` (solo inserción para `saber_app`); la revocación es un
+      registro más y nunca borra la prueba de la autorización. Finalidad, datos, derechos y
+      canales vienen del texto de la política (FR-016), que se versiona (FR-017).
+    - FR-014: la guardia de `/api/v1` responde 403 `consent-required` salvo `getMe`, decidir,
+      consultar, revocar y supresión; política pública; la interfaz solo deja
+      `/bienvenida/datos` y `/mi-cuenta/datos`. Aplica también a administración: quien publica
+      debe aceptar su propia versión.
+    - FR-015/FR-018: verificados por T084/T085 (unidad e integración) y T086/T093 (interfaz y
+      e2e). Revocar sube `auth_epoch`, revoca las sesiones y la siguiente petición es 401; en el
+      dispositivo se borran el token y la instantánea sin conexión.
+    - SC-002: ningún usuario activo usa funciones sin una autorización vigente con fecha y versión
+      (guardia en el servidor; la interfaz es solo ayuda).
+    - Seguridad: Markdown sin HTML (R-40), publicar exige `policy:publish` y sesión privilegiada,
+      auditoría sin datos personales (solo el número de versión).
+    - Riesgos aceptados: (1) dos administradores que publiquen a la vez podrían pasar la
+      validación de vigencia; la restricción única de `version` sigue protegiendo y el efecto es
+      solo de orden (acción rara y auditada). (2) Un dispositivo sin conexión en el que no se
+      revocó puede seguir mostrando contenido ya descargado hasta 7 días (R-17); no puede
+      sincronizar y en la siguiente conexión recibe 401.
+    - Pendiente fuera del código: aprobación jurídica del texto de la política (ver T088).
 
 **Checkpoint**: US1 + US2 funcionan; ningún usuario usa la plataforma sin autorización vigente.
 

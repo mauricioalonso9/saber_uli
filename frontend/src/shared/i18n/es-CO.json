@@ -10,7 +10,8 @@
     "offline": "Sin conexión"
   },
   "nav": {
-    "home": "Inicio"
+    "home": "Inicio",
+    "consent": "Mi autorización de datos"
   },
   "home": {
     "title": "Inicio",
@@ -41,7 +42,21 @@
     "title": "Acceso de invitado"
   },
   "consent": {
-    "title": "Tratamiento de tus datos"
+    "title": "Tratamiento de tus datos",
+    "intro": "Antes de usar Saber Uli, lee cómo tratamos tus datos personales y decide si autorizas su tratamiento.",
+    "loading": "Cargando la política…",
+    "version": "Versión {{version}}, vigente desde el {{date}}",
+    "decision": "Tu decisión",
+    "accept": "Acepto",
+    "reject": "No acepto",
+    "confirm": "Confirmar mi decisión",
+    "chooseOne": "Elige una opción: «Acepto» o «No acepto».",
+    "rejected": {
+      "title": "No aceptaste la política",
+      "body": "Sin tu autorización no puedes usar ninguna función de Saber Uli, porque necesitamos tratar tus datos para funcionar. Puedes revisar la política y aceptarla cuando quieras, o solicitar la eliminación de tu cuenta.",
+      "reviewAgain": "Revisar la política y aceptar",
+      "requestDeletion": "Solicitar la eliminación de mi cuenta"
+    }
   },
   "profile": {
     "title": "Completa tu perfil"
@@ -57,5 +72,35 @@
   },
   "auth": {
     "signOut": "Cerrar sesión"
+  },
+  "consentSettings": {
+    "title": "Mi autorización de datos",
+    "current": "Autorización vigente",
+    "acceptedOn": "Aceptaste la versión {{version}} de la política el {{date}}.",
+    "none": "No tienes una autorización vigente.",
+    "showText": "Ver el texto de la versión {{version}}",
+    "hideText": "Ocultar el texto de la versión {{version}}",
+    "revoke": "Revocar mi autorización",
+    "history": "Historial de decisiones",
+    "decision": {
+      "accepted": "Aceptaste la versión {{version}} el {{date}}",
+      "rejected": "No aceptaste la versión {{version}} el {{date}}",
+      "revoked": "Revocaste la autorización de la versión {{version}} el {{date}}"
+    },
+    "confirm": {
+      "title": "¿Revocar tu autorización?",
+      "body": "Si la revocas, no podrás usar Saber Uli hasta que vuelvas a aceptar la política, y tu sesión se cerrará en todos tus dispositivos.",
+      "yes": "Sí, revocar",
+      "cancel": "Cancelar"
+    },
+    "revoked": {
+      "title": "Revocaste tu autorización",
+      "body": "Tu acceso quedó suspendido. Para volver a usar Saber Uli, ingresa y acepta la política; si lo prefieres, desde allí puedes solicitar la supresión de tus datos.",
+      "signInAgain": "Ingresar de nuevo"
+    }
+  },
+  "accountData": {
+    "title": "Mis datos",
+    "placeholder": "Aquí podrás consultar y descargar tus datos y solicitar su supresión."
   }
 }

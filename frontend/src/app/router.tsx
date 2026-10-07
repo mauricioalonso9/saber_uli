@@ -1,7 +1,6 @@
 /**
  * Rutas de la interfaz (research R-35). La ruta raíz aplica las guardias (T067) antes de cargar
- * cualquier página. Las páginas de ingreso, autorización y perfil son mínimas y las completan
- * T080, T085 y T097; cada historia agrega aquí sus rutas.
+ * cualquier página. Cada historia agrega aquí sus rutas.
  */
 import {
   Link,
@@ -18,6 +17,8 @@ import { type SessionState, decideNavigation } from "@/app/guards";
 import { OFFLINE_EXPIRED_MESSAGE } from "@/features/auth/offline-access";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { createSessionLoader } from "@/features/auth/session-loader";
+import { ConsentSettingsPage } from "@/features/account/ConsentSettingsPage";
+import { ConsentPage } from "@/features/onboarding/ConsentPage";
 
 export interface SessionGetter {
   (): Promise<SessionState>;
@@ -105,6 +106,18 @@ const loginRoute = createRoute({
   component: LoginPage,
 });
 
+const consentRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/bienvenida/datos",
+  component: ConsentPage,
+});
+
+const consentSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/mi-cuenta/autorizacion",
+  component: ConsentSettingsPage,
+});
+
 const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sin-conexion",
@@ -116,7 +129,10 @@ export const routeTree = rootRoute.addChildren([
   page("/inicio", "home.title", "home.placeholder"),
   loginRoute,
   page("/acceso", "guestAccess.title"),
-  page("/bienvenida/datos", "consent.title"),
+  consentRoute,
+  consentSettingsRoute,
+  // Marcador: la supresión (US7) y la consulta y descarga de datos (US8, T169) la completan.
+  page("/mi-cuenta/datos", "accountData.title", "accountData.placeholder"),
   page("/bienvenida/perfil", "profile.title"),
   offlineRoute,
 ]);

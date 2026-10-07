@@ -65,6 +65,16 @@ export function AppShell() {
               {t("nav.home")}
             </Link>
           </li>
+          {session?.kind === "authenticated" && !session.me.onboarding.consent_required ? (
+            <li>
+              <Link
+                to="/mi-cuenta/autorizacion"
+                className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+              >
+                {t("nav.consent")}
+              </Link>
+            </li>
+          ) : null}
         </ul>
       </nav>
       <main id="contenido" tabIndex={-1} className="mx-auto max-w-3xl px-4 py-6 outline-none">

@@ -31,6 +31,9 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "no-active-consent": "No tienes una autorización de tratamiento de datos vigente para revocar.",
   "policy-version-not-current":
     "La política cambió mientras la leías. Revisa la versión vigente y acéptala de nuevo.",
+  "invalid-consent-decision": "Elige «Acepto» o «No acepto».",
+  "policy-version-exists": "Esa versión de la política ya fue publicada. Usa un número nuevo.",
+  "invalid-policy-version": "Revisa el número de versión, el título y el texto de la política.",
   forbidden: "No tienes permiso para usar esta función.",
   "not-found": "No encontramos lo que buscas.",
   // Validación y conflictos

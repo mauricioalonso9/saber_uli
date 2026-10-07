@@ -14,6 +14,8 @@ export type SessionState =
 
 export const PUBLIC_PATHS = ["/ingresar", "/acceso"] as const;
 export const CONSENT_PATH = "/bienvenida/datos";
+/** Solicitar la supresión no exige autorización de datos (FR-014, escenario 2.3). */
+export const ACCOUNT_DATA_PATH = "/mi-cuenta/datos";
 export const PROFILE_PATH = "/bienvenida/perfil";
 export const OFFLINE_PATH = "/sin-conexion";
 export const HOME_PATH = "/inicio";
@@ -55,7 +57,7 @@ export function decideNavigation(session: SessionState, path: string): string | 
 
   const { onboarding, permissions } = session.me;
   if (onboarding.consent_required) {
-    return path === CONSENT_PATH ? null : CONSENT_PATH;
+    return path === CONSENT_PATH || path === ACCOUNT_DATA_PATH ? null : CONSENT_PATH;
   }
   if (onboarding.profile_required) {
     return path === PROFILE_PATH ? null : PROFILE_PATH;

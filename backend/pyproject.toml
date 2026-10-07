@@ -99,14 +99,14 @@ pretty = true
 
 # Celery no distribuye py.typed; se anota su uso en worker.py con ignores acotados.
 [[tool.mypy.overrides]]
-module = ["celery.*"]
+module = ["celery.*", "authlib.*"]
 ignore_missing_imports = true
 follow_untyped_imports = true
 
-# worker.py es el único módulo que usa la API de Celery (sin tipos): se relajan solo las reglas
-# que dependen de esos tipos; el resto de `--strict` sigue activo.
+# worker.py (Celery) y entra_id.py (Authlib) usan bibliotecas sin tipos: se relajan solo las
+# reglas que dependen de esos tipos; el resto de `--strict` sigue activo.
 [[tool.mypy.overrides]]
-module = ["saber_uli.worker"]
+module = ["saber_uli.worker", "saber_uli.identity.infrastructure.entra_id"]
 disallow_untyped_calls = false
 disallow_untyped_decorators = false
 disallow_subclassing_any = false

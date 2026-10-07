@@ -52,6 +52,15 @@ describe("decideNavigation", () => {
     expect(decideNavigation(signedIn(pending), "/bienvenida/datos")).toBeNull();
   });
 
+  it("sin autorización de datos deja solicitar la supresión (FR-014, escenario 2.3)", () => {
+    const pending = me({ onboarding: { consent_required: true, profile_required: true } });
+
+    expect(decideNavigation(signedIn(pending), "/mi-cuenta/datos")).toBeNull();
+    expect(decideNavigation(signedIn(pending), "/mi-cuenta/autorizacion")).toBe(
+      "/bienvenida/datos",
+    );
+  });
+
   it("con autorización pero sin perfil lleva a /bienvenida/perfil (FR-019, FR-020)", () => {
     const pending = me({ onboarding: { consent_required: false, profile_required: true } });
 

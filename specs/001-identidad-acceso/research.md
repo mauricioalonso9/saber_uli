@@ -516,6 +516,22 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
   principio de la constitución; ninguna agrega comportamiento en tiempo de ejecución salvo
   `pydantic-settings` y la imagen de Nginx.
 
+### R-40. Mostrar la política en Markdown
+
+- **Decisión**: `react-markdown` 10 (licencia MIT) para mostrar `body_markdown` de la política
+  en `/bienvenida/datos`, `/mi-cuenta/autorizacion` y la vista previa de `/admin/politica`. Solo CommonMark: **sin `rehype-raw`** (el HTML incrustado se descarta y no
+  se interpreta), sin `remark-gfm` mientras la política no use tablas, y `skipHtml` activado.
+  Los enlaces conservan el filtro de URL por defecto (`defaultUrlTransform`, que anula
+  `javascript:` y otros esquemas no seguros) y abren con `rel="noopener noreferrer"`.
+- **Justificación**: el texto lo escribe un administrador, pero es contenido que verá toda la
+  comunidad; `react-markdown` construye elementos de React a partir del árbol de Markdown, sin
+  `dangerouslySetInnerHTML`, así que no hay vía de XSS aunque el texto traiga HTML. Mantiene la
+  estructura (títulos, listas, negritas) necesaria para que la política sea legible y accesible
+  (los títulos quedan como encabezados reales para lectores de pantalla).
+- **Alternativas**: `marked` + `DOMPurify` (genera HTML y depende de sanear bien; inserción con
+  `dangerouslySetInnerHTML`); mostrar el texto plano (pierde la estructura que exige FR-016);
+  `markdown-to-jsx` (permite HTML por defecto; habría que desactivarlo y es menos usado).
+
 ---
 
 ## I. Decisiones del proyecto para especificaciones futuras

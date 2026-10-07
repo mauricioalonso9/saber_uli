@@ -964,8 +964,11 @@ autorización vigente no se usa la plataforma; una versión nueva exige aceptarl
 
 ### Implementation for User Story 2
 
-- [ ] T087 [US2] Registrar en `specs/001-identidad-acceso/research.md` la dependencia `react-markdown` (sin `rehype-raw`, HTML deshabilitado) para mostrar la política de forma segura, con justificación y alternativas → Opus
+- [x] T087 [US2] Registrar en `specs/001-identidad-acceso/research.md` la dependencia `react-markdown` (sin `rehype-raw`, HTML deshabilitado) para mostrar la política de forma segura, con justificación y alternativas → Opus
   - Terminado: entrada nueva en research.md; ningún otro artefacto de diseño cambia.
+  - Estado: hecho por Opus (2026-10-07): R-40 en research.md (`react-markdown` 10, sin
+    `rehype-raw`, `skipHtml`, filtro de URL por defecto; alternativas `marked` + DOMPurify,
+    texto plano y `markdown-to-jsx`).
 - [x] T088 [US2] Implementar la migración `backend/migrations/versions/0005_seed_policy_v1.py` (carga idempotente de la versión 1.0) para que pase T083 → Qwen
   - Terminado: T083 en verde.
   - Estado: implementada por Opus (2026-10-07). `INSERT … ON CONFLICT (version) DO NOTHING` con

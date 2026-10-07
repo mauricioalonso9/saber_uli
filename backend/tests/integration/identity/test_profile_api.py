@@ -3,6 +3,7 @@
 `GET /api/v1/programs`, `GET /api/v1/me/profile` y `PUT /api/v1/me/profile`.
 """
 
+import asyncio
 from collections.abc import AsyncIterator, Awaitable, Callable
 from typing import Any
 from uuid import UUID, uuid4
@@ -305,3 +306,16 @@ async def test_el_invitado_no_indica_programa(
 
     assert response.status_code == 422
     assert problem_type(response) == "invalid-profile"
+
+
+async def test_dos_envios_simultaneos_del_primer_perfil_no_fallan(
+    api_client: httpx.AsyncClient, login: Any, program: ProgramFactory
+) -> None:
+    _, token = await login()
+    body = institutional(await program())
+
+    first, second = await asyncio.gather(
+        put_profile(api_client, token, body), put_profile(api_client, token, body)
+    )
+
+    assert (first.status_code, second.status_code) == (200, 200)

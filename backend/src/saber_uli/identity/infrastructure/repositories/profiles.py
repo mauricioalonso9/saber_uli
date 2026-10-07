@@ -3,6 +3,7 @@
 from uuid import UUID
 
 from sqlalchemy import func
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from saber_uli.identity.domain.profile import DailyGoal, Profile
@@ -27,15 +28,24 @@ class SqlAlchemyProfileRepository:
         )
 
     async def save(self, profile: Profile) -> None:
+        values = {
+            "program_id": profile.program_id,
+            "semester": profile.semester,
+            "expected_exam_date": profile.expected_exam_date,
+            "daily_goal": profile.daily_goal.value if profile.daily_goal else None,
+            "guest_display_name": profile.guest_display_name,
+        }
         row = await self._db.get(ProfileRow, profile.user_id)
-        if row is None:
-            row = ProfileRow(user_id=profile.user_id)
-            self._db.add(row)
-        else:
+        if row is not None:
+            for name, value in values.items():
+                setattr(row, name, value)
             row.updated_at = func.now()
-        row.program_id = profile.program_id
-        row.semester = profile.semester
-        row.expected_exam_date = profile.expected_exam_date
-        row.daily_goal = profile.daily_goal.value if profile.daily_goal else None
-        row.guest_display_name = profile.guest_display_name
-        await self._db.flush()
+            await self._db.flush()
+            return
+        # Primer guardado: dos envíos simultáneos (doble toque) no deben chocar con la llave.
+        statement = insert(ProfileRow).values(user_id=profile.user_id, **values)
+        await self._db.execute(
+            statement.on_conflict_do_update(
+                index_elements=[ProfileRow.user_id], set_={**values, "updated_at": func.now()}
+            )
+        )

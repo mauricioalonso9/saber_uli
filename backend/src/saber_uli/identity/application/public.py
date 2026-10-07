@@ -9,7 +9,7 @@ Es lo único que otros contextos y el kernel compartido pueden importar de `iden
   `identity.application.queries.consent_status.ConsentStatusQuery`.
 - `UserDirectory` (`is_institutional`, `is_guest`): las ligas y la analítica de programa excluyen
   a los invitados (FR-012). Lo implementa `identity.application.directory.IdentityDirectory`.
-  `director_program_ids` llega con T145.
+  `director_program_ids` da los programas de un director, para la analítica agregada (FR-026).
 """
 
 from dataclasses import dataclass
@@ -51,4 +51,8 @@ class UserDirectory(Protocol):
 
     async def is_guest(self, user_id: UUID) -> bool:
         """Invitado: no aparece en ligas institucionales ni en analítica (FR-012)."""
+        ...
+
+    async def director_program_ids(self, user_id: UUID) -> set[UUID]:
+        """Programas que dirige (vacío si no es Director de programa)."""
         ...

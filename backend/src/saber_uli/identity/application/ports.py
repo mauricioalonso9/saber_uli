@@ -9,6 +9,7 @@ from uuid import UUID
 
 from saber_uli.identity.domain.access_link import AccessLink, LinkPurpose
 from saber_uli.identity.domain.consent import ConsentDecision, ConsentRecord
+from saber_uli.identity.domain.group import Group
 from saber_uli.identity.domain.invitation import Invitation, InvitationStatus
 from saber_uli.identity.domain.invitation_batch import InvitationBatch
 from saber_uli.identity.domain.policy import PolicyVersion
@@ -181,6 +182,50 @@ class InvitationRepository(Protocol):
     async def set_delivery_status(self, invitation_id: UUID, status: str) -> None:
         """`queued`, `sent` o `failed` (caso límite de rebote)."""
         ...
+
+
+@dataclass(frozen=True)
+class PersonName:
+    """Identificador y nombre visible (sin correo: vista del docente, FR-027)."""
+
+    user_id: UUID
+    display_name: str | None
+
+
+class GroupRepository(Protocol):
+    async def add(self, group: Group) -> Group: ...
+
+    async def save(self, group: Group) -> None: ...
+
+    async def get(self, group_id: UUID) -> Group | None: ...
+
+    async def search(
+        self, *, q: str | None, offset: int, limit: int
+    ) -> tuple[list[Group], int]: ...
+
+    async def member_count(self, group_id: UUID) -> int: ...
+
+    async def teachers(self, group_id: UUID) -> list[PersonName]: ...
+
+    async def add_members(self, group_id: UUID, user_ids: Collection[UUID]) -> list[UUID]:
+        """Agrega los que aún no son miembros y los devuelve."""
+        ...
+
+    async def remove_member(self, group_id: UUID, user_id: UUID) -> bool: ...
+
+    async def add_teachers(self, group_id: UUID, user_ids: Collection[UUID]) -> list[UUID]: ...
+
+    async def remove_teacher(self, group_id: UUID, user_id: UUID) -> bool: ...
+
+    async def teaching_groups(self, user_id: UUID) -> list[Group]:
+        """Grupos sin archivar donde el usuario es docente."""
+        ...
+
+    async def is_teacher(self, group_id: UUID, user_id: UUID) -> bool: ...
+
+    async def students(
+        self, group_id: UUID, *, offset: int, limit: int
+    ) -> tuple[list[PersonName], int]: ...
 
 
 class InvitationBatchRepository(Protocol):

@@ -300,6 +300,10 @@ class FakeSettings:
         return self.current
 
 
+class FakeGroups:
+    """Grupos: las pruebas unitarias de grupos usan solo el dominio (T138)."""
+
+
 class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     """Comparte los repositorios entre aperturas (como una base de datos) y cuenta los commits."""
 
@@ -313,6 +317,7 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
         self._policies = FakePolicies()
         self._profiles = FakeProfiles()
         self._programs = FakePrograms()
+        self._groups = FakeGroups()
         self._invitations = FakeInvitations()
         self._invitation_batches = FakeInvitationBatches()
         self._access_links = FakeAccessLinks()
@@ -349,6 +354,10 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     @property
     def programs(self) -> FakePrograms:
         return self._programs
+
+    @property
+    def groups(self) -> FakeGroups:
+        return self._groups
 
     @property
     def invitations(self) -> FakeInvitations:

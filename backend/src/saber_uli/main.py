@@ -24,18 +24,21 @@ from saber_uli.config import Settings, get_settings
 from saber_uli.identity.api.admin_users_router import router as admin_users_router
 from saber_uli.identity.api.auth_router import router as auth_router
 from saber_uli.identity.api.consent_router import router as consent_router
+from saber_uli.identity.api.groups_router import router as groups_router
 from saber_uli.identity.api.guest_router import router as guest_router
 from saber_uli.identity.api.invitations_router import router as invitations_router
 from saber_uli.identity.api.me_router import router as me_router
 from saber_uli.identity.api.microsoft_router import router as microsoft_router
 from saber_uli.identity.api.policy_router import router as policy_router
 from saber_uli.identity.api.profile_router import router as profile_router
+from saber_uli.identity.api.teacher_router import router as teacher_router
 from saber_uli.identity.application.access_guard import AccessGuard
 from saber_uli.identity.application.admin_users import AdminUsersService
 from saber_uli.identity.application.authenticate_institutional_user import (
     AuthenticateInstitutionalUser,
 )
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
+from saber_uli.identity.application.groups import GroupService, TeacherGroups
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
 from saber_uli.identity.application.invitation_batches import InvitationBatchService
 from saber_uli.identity.application.invitations import InvitationService
@@ -179,6 +182,8 @@ def create_app(
     app.state.get_me = GetMe(uow_factory=identity_uow, clock=clock)
     app.state.consent_service = ConsentService(uow_factory=identity_uow, clock=clock)
     app.state.admin_users_service = AdminUsersService(uow_factory=identity_uow, clock=clock)
+    app.state.group_service = GroupService(uow_factory=identity_uow, clock=clock)
+    app.state.teacher_groups = TeacherGroups(uow_factory=identity_uow)
     app.state.profile_service = ProfileService(uow_factory=identity_uow, clock=clock)
     app.state.program_catalog = ProgramCatalog(uow_factory=identity_uow)
     app.state.privacy_policy_service = PrivacyPolicyService(uow_factory=identity_uow, clock=clock)
@@ -197,6 +202,8 @@ def create_app(
     app.include_router(profile_router, dependencies=v1)
     app.include_router(invitations_router, dependencies=v1)
     app.include_router(admin_users_router, dependencies=v1)
+    app.include_router(groups_router, dependencies=v1)
+    app.include_router(teacher_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

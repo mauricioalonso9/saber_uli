@@ -6,6 +6,7 @@ from saber_uli.identity.application.ports import (
     AccessLinkRepository,
     AuditRepository,
     ConsentRepository,
+    GroupRepository,
     GuestAccessReader,
     InvitationBatchRepository,
     InvitationRepository,
@@ -47,6 +48,10 @@ class IdentityUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def programs(self) -> ProgramRepository: ...
+
+    @property
+    @abstractmethod
+    def groups(self) -> GroupRepository: ...
 
     @property
     @abstractmethod

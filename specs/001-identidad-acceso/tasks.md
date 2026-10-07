@@ -959,8 +959,10 @@ autorización vigente no se usa la plataforma; una versión nueva exige aceptarl
   - Estado: implementada por Opus (2026-10-07). 18 casos. Las rutas de administración también
     pasan por la guardia de FR-014: el administrador debe tener la autorización vigente para
     publicar. `committed_login` ahora borra también las versiones que publicaron sus usuarios.
-- [ ] T086 [P] [US2] Pruebas de componente `frontend/src/features/onboarding/ConsentPage.test.tsx` (muestra finalidad, datos, derechos y canales; opciones "Acepto" y "No acepto" sin preselección; "No acepto" muestra la explicación con las opciones de aceptar luego o solicitar supresión) y `frontend/src/features/account/ConsentSettingsPage.test.tsx` (versión aceptada, fecha, ver texto, revocar con confirmación) → Qwen
+- [x] T086 [P] [US2] Pruebas de componente `frontend/src/features/onboarding/ConsentPage.test.tsx` (muestra finalidad, datos, derechos y canales; opciones "Acepto" y "No acepto" sin preselección; "No acepto" muestra la explicación con las opciones de aceptar luego o solicitar supresión) y `frontend/src/features/account/ConsentSettingsPage.test.tsx` (versión aceptada, fecha, ver texto, revocar con confirmación) → Qwen
   - Terminado: las pruebas fallan.
+  - Estado: implementada por Opus (2026-10-07). 12 casos entre las dos páginas, más un caso de
+    guardia: sin autorización se puede abrir `/mi-cuenta/datos` (supresión, FR-014).
 
 ### Implementation for User Story 2
 
@@ -996,10 +998,19 @@ autorización vigente no se usa la plataforma; una versión nueva exige aceptarl
     métodos de todas las rutas con la misma URL; un cuerpo ilegible responde 422 en vez de 400;
     un id mal formado en la ruta responde 404 (no nombra ningún recurso). El contrato agrega el
     422 de `decideConsent` (cuerpo inválido), que faltaba.
-- [ ] T091 [P] [US2] Implementar `frontend/src/features/onboarding/ConsentPage.tsx` y `frontend/src/features/account/ConsentSettingsPage.tsx` (Markdown con `react-markdown`) para que pase T086 → Qwen
+- [x] T091 [P] [US2] Implementar `frontend/src/features/onboarding/ConsentPage.tsx` y `frontend/src/features/account/ConsentSettingsPage.tsx` (Markdown con `react-markdown`) para que pase T086 → Qwen
   - Terminado: T086 en verde.
-- [ ] T092 [P] [US2] Implementar `frontend/src/features/admin/PolicyPage.tsx` con su prueba `frontend/src/features/admin/PolicyPage.test.tsx` (publicar versión con vista previa; validación de versión y longitud) → Qwen
+  - Estado: implementada por Opus (2026-10-07). `ConsentPage` (radios sin preselección,
+    confirmación explícita, explicación al no aceptar con «revisar y aceptar» y enlace a la
+    supresión; si la versión cambió, avisa y recarga) y `ConsentSettingsPage` (vigente, texto de
+    esa versión, historial y revocación con `alertdialog`; al revocar borra el token y la
+    instantánea sin conexión). `shared/ui/PolicyMarkdown.tsx` aplica R-40; `/mi-cuenta/datos` es
+    un marcador hasta US7/US8 y el menú muestra «Mi autorización de datos».
+- [x] T092 [P] [US2] Implementar `frontend/src/features/admin/PolicyPage.tsx` con su prueba `frontend/src/features/admin/PolicyPage.test.tsx` (publicar versión con vista previa; validación de versión y longitud) → Qwen
   - Terminado: prueba en verde.
+  - Estado: implementada por Opus (2026-10-07). react-hook-form + zod con los límites del
+    contrato, contador de caracteres, vista previa con `PolicyMarkdown` y vigencia en hora de
+    Colombia (`-05:00`). Tras publicar invalida la sesión: quien publica también debe aceptar.
 - [ ] T093 [US2] Prueba e2e `frontend/tests/e2e/us2-consent.spec.ts` (V3 y V4 de quickstart: rechazar bloquea todo salvo política, cierre de sesión y supresión; aceptar da acceso; revocar cierra la sesión en la siguiente acción; nueva versión exige aceptación) → Qwen
   - Terminado: pasa contra el stack `e2e`.
 - [ ] T094 [US2] Revisión de US2 (T083–T093) en `specs/001-identidad-acceso/tasks.md`: Ley 1581 (autorización expresa, finalidad, versiones), FR-014 a FR-018 y SC-002 → Opus

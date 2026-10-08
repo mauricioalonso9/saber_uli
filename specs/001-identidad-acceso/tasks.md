@@ -1603,10 +1603,10 @@ dato editable del perfil.
     - Escenario 8.2: la nota explica que nombre y correo institucionales se corrigen en el
       directorio de Unilibre y enlaza a Mi cuenta para el perfil; al invitado no le habla del
       directorio.
-    - Decisión pendiente (cambio de contrato): el esquema `PersonalDataExport` no tiene campos
-      para los programas que dirige un director (`director_programs`), las sesiones abiertas
-      (método y fechas) ni los eventos de auditoría sobre la persona. Se proponen como campos
-      nuevos del contrato antes del lanzamiento; no se agregaron en esta revisión.
+    - Cambio de contrato aprobado por el usuario (2026-10-07): `PersonalDataExport` agrega
+      `director_programs`, `sessions` y `audit_events` (con `actor` self|staff|system, sin el
+      identificador de quien actuó). Contrato y R-26 en b54a15f; backend en 5441312 (T166
+      cubre los campos); frontend y V17 en el commit siguiente. 52 operaciones en verde.
     - Durante US8 se corrigió una regla de lint que dejó T164 (región desplazable con foco).
 
 **Checkpoint**: las 8 historias están completas.

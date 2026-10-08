@@ -106,3 +106,23 @@ export function markGuestAccessExpired(email: string): void {
     { email },
   );
 }
+
+/** Simula que la persona lleva 31 minutos sin actividad privilegiada (R-15, quickstart V15). */
+export function idlePrivilegedSession(email: string): void {
+  psql(
+    `UPDATE identity.sessions SET last_privileged_activity_at = now() - interval '31 minutes'
+      WHERE user_id IN (SELECT id FROM identity.users WHERE lower(email) = lower(:'email'))
+        AND revoked_at IS NULL;`,
+    { email },
+  );
+}
+
+/** Deja como único administrador activo a `email` (para probar la regla del último). */
+export function keepOnlyAdmin(email: string): void {
+  psql(
+    `DELETE FROM identity.role_assignments
+      WHERE role = 'admin'
+        AND user_id NOT IN (SELECT id FROM identity.users WHERE lower(email) = lower(:'email'));`,
+    { email },
+  );
+}

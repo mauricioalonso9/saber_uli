@@ -255,8 +255,11 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 
 - **Decisión**:
   - Tokens aleatorios de 256 bits; en base de datos solo su hash SHA-256; un solo uso.
-  - Vigencias: enlace de invitación 7 días; enlace de ingreso 15 minutos (valores por defecto
+  - Vigencias: enlace de invitación 7 días; enlace de ingreso 10 minutos (valores por defecto
     configurables en `identity.settings`).
+  - **Precisión (2026-10-08, T178a)**: el enlace de ingreso pasa de 15 a 10 minutos y su máximo
+    configurable de 60 a 10, porque ASVS 4.0.3 V2.7.2 pide que un enlace fuera de banda venza a
+    los 10 minutos.
   - El enlace del correo apunta al **frontend** con el token en el fragmento:
     `https://<host>/acceso#t=<token>`. La página muestra el botón "Ingresar" y solo al pulsarlo
     hace `POST /api/auth/guest/sessions`. El fragmento no viaja al servidor ni a registros del
@@ -394,7 +397,7 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 - **Decisión**: tabla `identity.settings` (clave/valor tipado) editable por el Administrador:
   plazo máximo de acceso para invitaciones de docentes (180 días), vencimiento por defecto del
   acceso de invitado (90 días), vigencia del enlace de invitación (7 días) y del enlace de
-  ingreso (15 minutos).
+  ingreso (10 minutos; T178a).
 - **Justificación**: FR-006a pide un plazo configurable por un administrador; los demás valores
   son supuestos de la especificación que conviene poder ajustar sin desplegar código.
 

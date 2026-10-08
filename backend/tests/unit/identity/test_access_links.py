@@ -65,15 +65,15 @@ def test_el_enlace_de_invitacion_dura_7_dias_por_defecto() -> None:
 
 
 def test_el_enlace_de_ingreso_dura_15_minutos_por_defecto() -> None:
-    assert link(LinkPurpose.SIGN_IN).expires_at == T0 + timedelta(minutes=15)
+    assert link(LinkPurpose.SIGN_IN).expires_at == T0 + timedelta(minutes=10)
 
 
 def test_las_vigencias_salen_de_los_parametros() -> None:
     assert link(LinkPurpose.INVITATION, invitation_link_ttl_days=3).expires_at == T0 + timedelta(
         days=3
     )
-    assert link(LinkPurpose.SIGN_IN, sign_in_link_ttl_minutes=30).expires_at == T0 + timedelta(
-        minutes=30
+    assert link(LinkPurpose.SIGN_IN, sign_in_link_ttl_minutes=5).expires_at == T0 + timedelta(
+        minutes=5
     )
 
 

@@ -155,7 +155,7 @@ miembros de los grupos donde está en `group_teachers`; nunca su correo.
 | `invitation_id` | uuid FK → `invitations.id` `ON DELETE CASCADE` | |
 | `purpose` | text | `CHECK (purpose IN ('invitation','sign_in'))` |
 | `token_hash` | bytea UNIQUE | SHA-256 del token; el token en claro nunca se guarda (R-19) |
-| `expires_at` | timestamptz | 7 días (`invitation`) o 15 minutos (`sign_in`) |
+| `expires_at` | timestamptz | 7 días (`invitation`) o 10 minutos (`sign_in`) |
 | `used_at` | timestamptz NULL | un solo uso |
 | `created_at` | timestamptz | |
 
@@ -260,7 +260,7 @@ Reglas:
 | `teacher_max_access_days` | integer | 180 |
 | `default_guest_access_days` | integer | 90 |
 | `invitation_link_ttl_days` | integer | 7 |
-| `sign_in_link_ttl_minutes` | integer | 15 |
+| `sign_in_link_ttl_minutes` | integer | 10 (rango 5 a 10; ASVS 2.7.2, migración 0007) |
 
 Columnas: `key` PK, `value` jsonb, `updated_by`, `updated_at`. Cada cambio se audita.
 

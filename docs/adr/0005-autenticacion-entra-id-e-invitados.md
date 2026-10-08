@@ -18,7 +18,7 @@ conexión.
    validación explícita de `tid` e `iss`. Identidad estable = (`tid`, `oid`). Solo alcances
    `openid profile email`; sin Microsoft Graph. El frontend nunca ve tokens de Microsoft.
 2. **Invitados**: tokens de 256 bits de un solo uso guardados como hash; enlace de invitación de
-   7 días y de ingreso de 15 minutos. El enlace apunta al frontend con el token en el fragmento
+   7 días y de ingreso de 10 minutos (15 hasta el 2026-10-08; ASVS 2.7.2, T178a). El enlace apunta al frontend con el token en el fragmento
    (`/acceso#t=…`) y se consume con un POST explícito, para que los escáneres de correo no lo
    gasten. Sin contraseñas.
 3. **Sesión propia** para ambos: token de acceso JWT de 10 minutos en memoria del frontend y

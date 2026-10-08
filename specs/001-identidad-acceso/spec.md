@@ -550,7 +550,7 @@ personales, descarga una copia y corrige un dato editable.
   administrador no configure otro.
 - Si el administrador no indica otra cosa, el acceso de un invitado vence a los 90 días de
   enviada la invitación; el enlace de invitación vence a los 7 días y los enlaces de ingreso
-  posteriores a los 15 minutos.
+  posteriores a los 10 minutos (máximo configurable: 10, por ASVS 2.7.2; enmienda del 2026-10-08).
 - Todas las cuentas institucionales, incluidos funcionarios y docentes, entran con rol Estudiante;
   los demás roles los asigna un administrador.
 - Los usuarios son mayores de edad; la autorización la otorga el propio titular.

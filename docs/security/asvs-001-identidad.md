@@ -38,7 +38,7 @@ entran con enlaces de un solo uso enviados a su correo (R-18). No hay contraseñ
 | 2.5.x Recuperación de credenciales | N/A | No hay credencial que recuperar: Microsoft gestiona las cuentas institucionales, y un invitado pide un enlace de ingreso nuevo (V2.7). La respuesta es siempre 202 con el mismo cuerpo, exista o no el correo (FR-013). |
 | 2.6.x Secretos de consulta | N/A | No se usan. |
 | 2.7.1 Sin OOB en claro por SMS o teléfono | Cumple | No hay SMS ni llamadas; el canal es el correo (ver 2.2.2). |
-| 2.7.2 El código OOB vence a los 10 minutos | **Hallazgo** | El enlace de ingreso de invitados vence a los 15 minutos (supuesto de la especificación) y un administrador puede ponerlo entre 5 y 60. Tarea T178a. |
+| 2.7.2 El código OOB vence a los 10 minutos | Cumple | El enlace de ingreso vence a los 10 minutos por defecto y un administrador puede ponerlo entre 5 y 10 (T178a: antes 15, de 5 a 60; la migración 0007 recorta valores guardados mayores). `identity/domain/settings.py`; `unit/identity/test_settings.py`, `integration/identity/test_settings_repository.py`. |
 | 2.7.3 Un solo uso y solo para la solicitud original | Cumple | El enlace se consume con bloqueo de fila y se marca usado en la misma transacción que abre la sesión; al emitir un enlace nuevo, los anteriores sin usar del mismo propósito quedan invalidados (`identity/domain/access_link.py`). `unit/identity/test_access_links.py`, `integration/identity/test_guest_session_api.py`, `test_sign_in_link_handler.py`. |
 | 2.7.4 Canal independiente y seguro | Cumple | El correo es un canal distinto del navegador. El token va en el fragmento (`/acceso#t=…`): no llega al servidor, a los registros ni a `Referer`, y no se consume con un GET (los escáneres de correo no lo queman). |
 | 2.7.5 El verificador guarda solo un hash | Cumple | `identity.access_links.token_hash` (SHA-256, único); el token en claro solo existe en el correo. |
@@ -183,7 +183,6 @@ otro origen no puede leer las respuestas.
 
 | Tarea | Requisito | Qué falta | Quién decide |
 |-------|-----------|-----------|--------------|
-| T178a | 2.7.2 | Enlace de ingreso de invitados de 10 minutos como máximo (hoy 15 por defecto y configurable de 5 a 60). Cambia un supuesto de spec.md, data-model.md, la migración de valores por defecto y el rango de `identity.settings`. | Producto (spec) |
 | T178b | 3.3.4 | Que cada persona vea sus sesiones activas y pueda cerrar las demás. Es una operación nueva del contrato y una sección en Mi cuenta. | Producto (spec y contrato) |
 
 ## Desviaciones aceptadas

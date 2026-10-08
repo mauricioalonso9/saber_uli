@@ -21,7 +21,7 @@ export interface Settings {
   invitation_link_ttl_days: number;
   /**
    * @minimum 5
-   * @maximum 60
+   * @maximum 10
    */
   sign_in_link_ttl_minutes: number;
 }

@@ -1696,9 +1696,14 @@ dato editable del perfil.
     - Desviaciones aceptadas: 2.2.2/2.7.1 (invitados por correo, FR-007), 2.10.1, 3.3.2
       (registrada en plan.md), 3.4.4 (`Path=/api/auth`), 8.2.2 (instantánea sin conexión).
     - Hallazgos abiertos: T178a, T178b y T178c.
-- [ ] T178a Enlace de ingreso de invitados de 10 minutos como máximo (ASVS 2.7.2): hoy 15 por defecto y configurable de 5 a 60 → Opus
+- [x] T178a Enlace de ingreso de invitados de 10 minutos como máximo (ASVS 2.7.2): hoy 15 por defecto y configurable de 5 a 60 → Opus
   - Decisión pendiente: cambia un supuesto de spec.md ("enlaces de ingreso … a los 15 minutos"), data-model.md (`sign_in_link_ttl_minutes`), la migración de valores por defecto y el rango de `identity.settings` (5 a 10). Requiere aprobar el cambio de la especificación.
   - Terminado: valor por defecto 10 y máximo 10; pruebas de ajustes y del enlace actualizadas.
+  - Estado: implementada por Opus (2026-10-08) tras aprobar la persona usuaria el cambio de la
+    especificación. Por defecto 10 y rango 5 a 10 en el dominio, la API, el contrato (Orval
+    regenerado) y la pantalla de parámetros; migración 0007 que recorta a 10 los valores
+    guardados mayores y conserva los menores (con prueba). Enmendados spec.md (supuestos),
+    data-model.md, research.md (R-18 y R-29) y ADR 0005.
 - [ ] T178b Ver las sesiones activas y cerrar las demás desde Mi cuenta (ASVS 3.3.4) → Opus
   - Decisión pendiente: operación nueva en el contrato (listar mis sesiones y cerrar una o todas las demás) y requisito nuevo en spec.md. Requiere una enmienda de la especificación.
   - Terminado: la persona ve el tipo de ingreso y la última actividad de cada sesión y puede cerrarlas; la sesión cerrada deja de servir en la siguiente petición.

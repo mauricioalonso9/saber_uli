@@ -18,7 +18,7 @@ def test_valores_por_defecto() -> None:
     assert settings.teacher_max_access_days == 180
     assert settings.default_guest_access_days == 90
     assert settings.invitation_link_ttl_days == 7
-    assert settings.sign_in_link_ttl_minutes == 15
+    assert settings.sign_in_link_ttl_minutes == 10  # ASVS 2.7.2 (T178a)
 
 
 def test_rangos_del_contrato() -> None:
@@ -26,7 +26,7 @@ def test_rangos_del_contrato() -> None:
         "teacher_max_access_days": (1, 730),
         "default_guest_access_days": (1, 730),
         "invitation_link_ttl_days": (1, 30),
-        "sign_in_link_ttl_minutes": (5, 60),
+        "sign_in_link_ttl_minutes": (5, 10),
     }
 
 
@@ -36,7 +36,7 @@ def test_rangos_del_contrato() -> None:
         ("teacher_max_access_days", 1, 730),
         ("default_guest_access_days", 1, 730),
         ("invitation_link_ttl_days", 1, 30),
-        ("sign_in_link_ttl_minutes", 5, 60),
+        ("sign_in_link_ttl_minutes", 5, 10),
     ],
 )
 def test_los_limites_se_aceptan_y_fuera_de_rango_se_rechaza(key: str, low: int, high: int) -> None:
@@ -52,10 +52,10 @@ def test_los_limites_se_aceptan_y_fuera_de_rango_se_rechaza(key: str, low: int, 
 
 def test_with_changes_no_modifica_el_original() -> None:
     original = IdentitySettings()
-    changed = original.with_changes(sign_in_link_ttl_minutes=30)
+    changed = original.with_changes(sign_in_link_ttl_minutes=8)
 
-    assert original.sign_in_link_ttl_minutes == 15
-    assert changed.sign_in_link_ttl_minutes == 30
+    assert original.sign_in_link_ttl_minutes == 10
+    assert changed.sign_in_link_ttl_minutes == 8
     assert changed.changed_keys(original) == {"sign_in_link_ttl_minutes"}
 
 
@@ -70,4 +70,4 @@ def test_duraciones() -> None:
     assert settings.teacher_max_access == timedelta(days=180)
     assert settings.default_guest_access == timedelta(days=90)
     assert settings.invitation_link_ttl == timedelta(days=7)
-    assert settings.sign_in_link_ttl == timedelta(minutes=15)
+    assert settings.sign_in_link_ttl == timedelta(minutes=10)

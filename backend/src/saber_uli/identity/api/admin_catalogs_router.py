@@ -72,7 +72,7 @@ class SettingsPatch(BaseModel):
     teacher_max_access_days: Annotated[int, Field(ge=1, le=730)] | None = None
     default_guest_access_days: Annotated[int, Field(ge=1, le=730)] | None = None
     invitation_link_ttl_days: Annotated[int, Field(ge=1, le=30)] | None = None
-    sign_in_link_ttl_minutes: Annotated[int, Field(ge=5, le=60)] | None = None
+    sign_in_link_ttl_minutes: Annotated[int, Field(ge=5, le=10)] | None = None
 
     @model_validator(mode="after")
     def _not_empty(self) -> "SettingsPatch":

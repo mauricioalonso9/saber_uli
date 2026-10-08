@@ -20,7 +20,7 @@ const FIELDS: { key: keyof Settings; min: number; max: number }[] = [
   { key: "teacher_max_access_days", min: 1, max: 730 },
   { key: "default_guest_access_days", min: 1, max: 730 },
   { key: "invitation_link_ttl_days", min: 1, max: 30 },
-  { key: "sign_in_link_ttl_minutes", min: 5, max: 60 },
+  { key: "sign_in_link_ttl_minutes", min: 5, max: 10 },
 ];
 
 /** Parámetros (R-29; FR-006a): plazos de invitados y vigencia de los enlaces. */

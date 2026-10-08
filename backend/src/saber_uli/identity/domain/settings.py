@@ -14,7 +14,7 @@ SETTING_RANGES: dict[str, tuple[int, int]] = {
     "teacher_max_access_days": (1, 730),
     "default_guest_access_days": (1, 730),
     "invitation_link_ttl_days": (1, 30),
-    "sign_in_link_ttl_minutes": (5, 60),
+    "sign_in_link_ttl_minutes": (5, 10),  # ASVS 2.7.2: 10 minutos como máximo (T178a)
 }
 
 
@@ -27,7 +27,7 @@ class IdentitySettings:
     teacher_max_access_days: int = 180
     default_guest_access_days: int = 90
     invitation_link_ttl_days: int = 7
-    sign_in_link_ttl_minutes: int = 15
+    sign_in_link_ttl_minutes: int = 10
 
     def __post_init__(self) -> None:
         for key, (low, high) in SETTING_RANGES.items():

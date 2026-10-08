@@ -49,7 +49,7 @@ async def restore_settings(migrated_database: dict[str, str]) -> Any:
             ("teacher_max_access_days", 180),
             ("default_guest_access_days", 90),
             ("invitation_link_ttl_days", 7),
-            ("sign_in_link_ttl_minutes", 15),
+            ("sign_in_link_ttl_minutes", 10),
         ):
             await conn.execute(
                 text(
@@ -150,14 +150,14 @@ async def test_parametros_con_rangos_y_auditoria(
         SETTINGS, json={"teacher_max_access_days": 120}, headers=admin.headers
     )
     out_of_range = await api_client.patch(
-        SETTINGS, json={"sign_in_link_ttl_minutes": 4}, headers=admin.headers
+        SETTINGS, json={"sign_in_link_ttl_minutes": 11}, headers=admin.headers
     )
 
     assert current.json() == {
         "teacher_max_access_days": 180,
         "default_guest_access_days": 90,
         "invitation_link_ttl_days": 7,
-        "sign_in_link_ttl_minutes": 15,
+        "sign_in_link_ttl_minutes": 10,
     }
     assert changed.status_code == 200, changed.text
     assert changed.json()["teacher_max_access_days"] == 120

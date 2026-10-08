@@ -23,7 +23,7 @@ const SETTINGS: Settings = {
   teacher_max_access_days: 180,
   default_guest_access_days: 90,
   invitation_link_ttl_days: 7,
-  sign_in_link_ttl_minutes: 15,
+  sign_in_link_ttl_minutes: 10,
 };
 
 const EVENT: AuditEvent = {
@@ -144,10 +144,11 @@ describe("parámetros", () => {
 
     const field = await screen.findByRole("spinbutton", { name: /enlace de ingreso/i });
     await user.clear(field);
-    await user.type(field, "4");
+    // ASVS 2.7.2 (T178a): 10 minutos como máximo.
+    await user.type(field, "11");
     await user.click(screen.getByRole("button", { name: "Guardar parámetros" }));
 
-    expect(field).toHaveAccessibleDescription(/entre 5 y 60/i);
+    expect(field).toHaveAccessibleDescription(/entre 5 y 10/i);
     expect(sent).toEqual([]);
   });
 });

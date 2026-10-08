@@ -1,6 +1,6 @@
 """Enlaces de acceso de invitados (FR-007, FR-013; research R-18, R-19; data-model §2.8).
 
-Cada enlace es de un solo uso y vence: 7 días el de invitación y 15 minutos el de ingreso (por
+Cada enlace es de un solo uso y vence: 7 días el de invitación y 10 minutos el de ingreso (por
 defecto; ambos son parámetros). Del token solo se guarda su SHA-256. Emitir un enlace nuevo
 invalida los anteriores sin usar de la misma invitación y propósito.
 """

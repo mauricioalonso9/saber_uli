@@ -536,7 +536,7 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
   - Decisión de Opus (revisar en T070): el vencimiento natural del acceso de invitado no cambia
     la época por sí solo; lo hará `expire_invitations` (T126) y la renovación (T050) lo comprueba.
     Un token de acceso de un invitado vencido puede durar como máximo sus 10 minutos.
-- [x] T049 [P] Prueba: renovación y cierre de sesión en `backend/tests/integration/identity/test_refresh_logout.py` (`POST /api/auth/refresh` exige `X-Requested-With: saber-uli`; cookie `su_refresh` con `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`; rota la cookie; reutilización → 401 `session-revoked` y familia revocada; cuenta desactivada → 401 `account-disabled`; inactividad > 7 días → 401 `session-expired`; `POST /api/auth/logout` → 204 y cookie borrada; escenario 1.4) → Opus
+- [x] T049 [P] Prueba: renovación y cierre de sesión (FR-037) en `backend/tests/integration/identity/test_refresh_logout.py` (`POST /api/auth/refresh` exige `X-Requested-With: saber-uli`; cookie `su_refresh` con `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`; rota la cookie; reutilización → 401 `session-revoked` y familia revocada; cuenta desactivada → 401 `account-disabled`; inactividad > 7 días → 401 `session-expired`; `POST /api/auth/logout` → 204 y cookie borrada; escenario 1.4) → Opus
   - Terminado: la prueba falla.
   - Estado: ver T050.
 - [x] T050 Implementar `backend/src/saber_uli/identity/application/sessions.py` y `backend/src/saber_uli/identity/api/auth_router.py` (refresh y logout) → Opus
@@ -1683,6 +1683,8 @@ dato editable del perfil.
   - Estado: implementada por Opus (2026-10-07). Son 52, no 51: `adminListGroupMembers` (US6) se
     agregó después de generar esta tarea. La prueba exige ahora igualdad exacta en ambos sentidos.
     Revisión de Opus (2026-10-08): aprobada; 52 subpruebas de Schemathesis en verde.
+    Nota (2026-10-08): T178b agregó tres operaciones; hoy son 55 y la prueba de igualdad sigue en
+    verde.
 - [x] T178 Escribir la verificación ASVS 4.0.3 nivel 2 de la funcionalidad en `docs/security/asvs-001-identidad.md` (requisitos aplicables de V2, V3, V4, V5, V7, V8, V13 con evidencia o justificación, incluida la desviación de V3.3.2 registrada en plan.md) → Opus
   - Terminado: documento completo; ningún requisito aplicable sin evidencia.
   - Revisión de Opus (2026-10-08): `docs/security/asvs-001-identidad.md` con V2, V3, V4, V5,
@@ -1743,8 +1745,8 @@ dato editable del perfil.
       tipos, Vitest (206; se subió la espera de `findBy` por las rutas bajo demanda), cliente
       Orval sin diferencias, Lighthouse (mediana 0.92), infraestructura (13).
     - `/speckit.analyze`: sin críticos. Abiertos: el rendimiento de T176 se medirá en el
-      servidor de referencia; FR-024, FR-029 y FR-037 están implementados pero ninguna tarea
-      los cita; T177 dice 52 operaciones y hoy son 55.
+      servidor de referencia. Trazabilidad resuelta: FR-024 y FR-029 los cubre T151 (rango
+      FR-023 a FR-030), FR-037 quedó citado en T049 y T177 tiene nota de las 55 operaciones.
 
 ---
 

@@ -35,14 +35,32 @@ function dbContainer(): string {
   return ids[0] as string;
 }
 
-function psql(statement: string, variables: Record<string, string>): void {
+function psqlArgs(variables: Record<string, string>): string[] {
   const args = ["exec", "-i", dbContainer(), "psql", "-U", "postgres", "-v", "ON_ERROR_STOP=1"];
   for (const [name, value] of Object.entries(variables)) {
     args.push("-v", `${name}=${value}`);
   }
   // La base es la de POSTGRES_DB del contenedor (saber_uli por defecto).
   args.push("-d", process.env.E2E_POSTGRES_DB ?? "saber_uli", "-q");
-  execFileSync("docker", args, { input: statement, stdio: ["pipe", "ignore", "inherit"] });
+  return args;
+}
+
+function psql(statement: string, variables: Record<string, string>): void {
+  execFileSync("docker", psqlArgs(variables), {
+    input: statement,
+    stdio: ["pipe", "ignore", "inherit"],
+  });
+}
+
+/** Primer valor de una consulta (`""` si no hay filas). */
+function psqlValue(statement: string, variables: Record<string, string>): string {
+  return execFileSync("docker", [...psqlArgs(variables), "-At"], {
+    input: statement,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "inherit"],
+  })
+    .split(/\r?\n/)[0]!
+    .trim();
 }
 
 /** Asigna un rol a un usuario que ya ingresó una vez (`grant-admin` y la gestión de roles
@@ -124,5 +142,14 @@ export function keepOnlyAdmin(email: string): void {
       WHERE role = 'admin'
         AND user_id NOT IN (SELECT id FROM identity.users WHERE lower(email) = lower(:'email'));`,
     { email },
+  );
+}
+
+/** Estado de la solicitud de supresión más reciente de un usuario (US7). */
+export function deletionRequestStatus(userId: string): string {
+  return psqlValue(
+    `SELECT status FROM identity.deletion_requests WHERE user_id = :'id'
+      ORDER BY requested_at DESC LIMIT 1;`,
+    { id: userId },
   );
 }

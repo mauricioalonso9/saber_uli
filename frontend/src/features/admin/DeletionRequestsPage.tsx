@@ -54,7 +54,13 @@ export function DeletionRequestsPage() {
           <p className="mb-2 text-sm text-muted-foreground">
             {t("admin.deletions.count", { count: list.data.total })}
           </p>
-          <div className="overflow-x-auto">
+          {/* En el celular la tabla se desplaza: el contenedor recibe el foco del teclado. */}
+          <div
+            role="region"
+            aria-label={t("admin.deletions.table")}
+            tabIndex={0}
+            className="overflow-x-auto"
+          >
             <table aria-label={t("admin.deletions.table")} className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b">

@@ -135,6 +135,6 @@ test("V15: tras 31 minutos sin actividad privilegiada se pide autenticarse de nu
   await expect(admin.page.getByRole("button", { name: "Confirmar mi identidad" })).toBeVisible();
   // La práctica personal sigue sin interrupción.
   await admin.page.goto("/mi-cuenta");
-  await expect(admin.page.getByRole("heading", { name: "Mi cuenta" })).toBeVisible();
+  await expect(admin.page.getByRole("heading", { name: "Mi cuenta", exact: true })).toBeVisible();
   await expect(admin.page.getByRole("combobox", { name: "Semestre" })).toBeVisible();
 });

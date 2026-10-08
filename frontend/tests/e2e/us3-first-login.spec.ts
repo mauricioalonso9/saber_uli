@@ -79,7 +79,7 @@ test("editar el perfil desde Mi cuenta (FR-021)", async ({ page }) => {
   await expect(page).toHaveURL(/\/inicio$/);
 
   await page.getByRole("link", { name: "Mi cuenta" }).click();
-  await expect(page.getByRole("heading", { name: "Mi cuenta" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mi cuenta", exact: true })).toBeVisible();
   await expect(page.getByText(user.email)).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Semestre" })).toHaveValue("8");
   await expectNoA11yViolations(page);

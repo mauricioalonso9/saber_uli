@@ -21,6 +21,7 @@ import { LoginPage } from "@/features/auth/LoginPage";
 import { createSessionLoader } from "@/features/auth/session-loader";
 import { AccountPage } from "@/features/account/AccountPage";
 import { ConsentSettingsPage } from "@/features/account/ConsentSettingsPage";
+import { MyDataPage } from "@/features/account/MyDataPage";
 import { AuditPage } from "@/features/admin/AuditPage";
 import { DeletionRequestsPage } from "@/features/admin/DeletionRequestsPage";
 import { GroupDetail } from "@/features/admin/GroupDetail";
@@ -144,6 +145,12 @@ const consentSettingsRoute = createRoute({
   component: ConsentSettingsPage,
 });
 
+const myDataRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/mi-cuenta/datos",
+  component: MyDataPage,
+});
+
 const adminPolicyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/politica",
@@ -240,8 +247,7 @@ export const routeTree = rootRoute.addChildren([
   adminAuditRoute,
   adminDeletionsRoute,
   teacherGroupsRoute,
-  // Marcador: la consulta y descarga de datos (US8, T169) la completa.
-  page("/mi-cuenta/datos", "accountData.title", "accountData.placeholder"),
+  myDataRoute,
   profileRoute,
   accountRoute,
   offlineRoute,

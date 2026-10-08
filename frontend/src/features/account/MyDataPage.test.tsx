@@ -98,7 +98,7 @@ describe("mis datos", () => {
     renderMyData();
 
     expect(await screen.findByRole("heading", { name: "Mis datos", level: 1 })).toBeVisible();
-    const identity = screen.getByRole("region", { name: "Identidad" });
+    const identity = await screen.findByRole("region", { name: "Identidad" });
     expect(identity).toHaveTextContent("Ana Pérez");
     expect(identity).toHaveTextContent("ana.perez@unilibre.edu.co");
     expect(identity).toHaveTextContent("Cuenta institucional");
@@ -146,7 +146,7 @@ describe("mis datos", () => {
   });
 
   it("descarga una copia en JSON", async () => {
-    const createObjectURL = vi.fn((_: Blob) => "blob:mis-datos");
+    const createObjectURL = vi.fn<(blob: Blob) => string>(() => "blob:mis-datos");
     vi.stubGlobal("URL", Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() }));
     const clicked: HTMLAnchorElement[] = [];
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (

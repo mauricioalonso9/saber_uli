@@ -147,7 +147,38 @@
   },
   "accountData": {
     "title": "Mis datos",
-    "placeholder": "Aquí podrás consultar y descargar tus datos y solicitar su supresión."
+    "intro": "Estos son todos los datos personales que Saber Uli guarda sobre ti.",
+    "loading": "Cargando tus datos…",
+    "download": "Descargar una copia",
+    "identity": "Identidad",
+    "profile": "Perfil",
+    "roles": "Roles",
+    "groups": "Grupos",
+    "consents": "Historial de autorizaciones",
+    "invitation": "Invitación",
+    "fields": {
+      "name": "Nombre",
+      "email": "Correo",
+      "kind": "Tipo de cuenta",
+      "createdAt": "Cuenta creada el",
+      "lastLogin": "Último ingreso",
+      "program": "Programa académico",
+      "semester": "Semestre",
+      "examDate": "Fecha prevista de la prueba",
+      "dailyGoal": "Meta diaria",
+      "acceptedAt": "Aceptaste la invitación el",
+      "accessUntil": "Tu acceso dura hasta el"
+    },
+    "kinds": {
+      "institutional": "Cuenta institucional",
+      "guest": "Invitado"
+    },
+    "none": "Sin datos",
+    "noGroups": "No perteneces a ningún grupo.",
+    "fix": {
+      "title": "¿Algún dato está mal?",
+      "editProfile": "Editar mi perfil"
+    }
   },
   "policyAdmin": {
     "title": "Política de tratamiento de datos",

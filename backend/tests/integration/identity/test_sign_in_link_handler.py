@@ -163,7 +163,7 @@ async def test_el_enlace_de_ingreso_llega_por_correo_y_solo_queda_su_hash(
     token = token_in(mail)
     row = await link_row(app_engine, token)
     assert row is not None and row.purpose == "sign_in" and row.used_at is None
-    assert row.expires_at - row.created_at == timedelta(minutes=15)
+    assert row.expires_at - row.created_at == timedelta(minutes=10)  # ASVS 2.7.2 (T178a)
     await assert_token_not_stored(token, app_engine, redis_client, logs)
 
     response = await api_client.post("/api/auth/guest/sessions", json={"token": token})

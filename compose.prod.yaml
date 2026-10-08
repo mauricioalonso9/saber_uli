@@ -6,6 +6,13 @@
 # desde infra/docker/certs/ (fullchain.pem y privkey.pem; la carpeta está en .gitignore y
 # .dockerignore). Sin Mailpit ni proveedor OIDC simulado: solo existen en el perfil e2e, que no se
 # activa en producción.
+#
+# Redis exige contraseña (REDIS_PASSWORD, T070a). Llega a redis-server por su configuración en la
+# entrada estándar, no como argumento visible en `ps`, y a la API, al worker y a Beat dentro de
+# REDIS_URL. Use una contraseña sin caracteres reservados de URL (por ejemplo, token_urlsafe).
+
+x-redis-url: &redis-url
+  REDIS_URL: redis://:${REDIS_PASSWORD:?Defina REDIS_PASSWORD en .env}@redis:6379/0
 
 services:
   proxy:
@@ -21,4 +28,23 @@ services:
 
   api:
     environment:
+      <<: *redis-url
       API_WORKERS: "4"
+
+  worker:
+    environment:
+      <<: *redis-url
+
+  beat:
+    environment:
+      <<: *redis-url
+
+  redis:
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Defina REDIS_PASSWORD en .env}
+    command:
+      - sh
+      - -c
+      - printf 'requirepass %s\n' "$$REDIS_PASSWORD" | redis-server - --save '' --appendonly no
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]

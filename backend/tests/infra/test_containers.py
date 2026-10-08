@@ -73,6 +73,7 @@ def stack_env() -> dict[str, str]:
             f"postgresql+asyncpg://saber_migrator:{migrator_pw}@db:5432/saber_uli"
         ),
         "REDIS_URL": "redis://redis:6379/0",
+        "REDIS_PASSWORD": secrets.token_urlsafe(24),
         "SMTP_HOST": "mailpit",
         "SMTP_PORT": "1025",
         "SMTP_USER": "",
@@ -137,6 +138,57 @@ def test_compose_config_es_valido(env_file: Path, files: tuple[str, ...]) -> Non
     result = run([*compose(env_file, *files), "config", "-q"], timeout=120)
 
     assert result.returncode == 0, result.stderr
+
+
+def test_redis_de_produccion_exige_contrasena(env_file: Path) -> None:
+    """T070a: con compose.prod.yaml, `redis-cli ping` sin contraseña falla y con ella responde."""
+    prod = [
+        "docker",
+        "compose",
+        "-p",
+        f"{PROJECT}-prod",
+        "--env-file",
+        str(env_file),
+        "-f",
+        "compose.yaml",
+        "-f",
+        "compose.prod.yaml",
+    ]
+    up = run([*prod, "up", "-d", "--wait", "redis"], timeout=300)
+    try:
+        assert up.returncode == 0, (up.stdout + up.stderr)[-4000:]
+        anonymous = run([*prod, "exec", "-T", "redis", "redis-cli", "ping"], timeout=60)
+        authenticated = run(
+            [
+                *prod,
+                "exec",
+                "-T",
+                "redis",
+                "sh",
+                "-c",
+                'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping',
+            ],
+            timeout=60,
+        )
+        argv = run([*prod, "exec", "-T", "redis", "cat", "/proc/1/cmdline"], timeout=60)
+        config = run([*prod, "config", "--format", "json"], timeout=120)
+    finally:
+        run([*prod, "down", "-v", "--remove-orphans"])
+
+    assert "NOAUTH" in anonymous.stdout + anonymous.stderr
+    assert authenticated.stdout.strip() == "PONG"
+    password = stack_env_value(env_file, "REDIS_PASSWORD")
+    assert password not in argv.stdout  # la contraseña no queda en los argumentos del proceso
+    services = json.loads(config.stdout)["services"]
+    for name in ("api", "worker", "beat"):
+        assert services[name]["environment"]["REDIS_URL"] == f"redis://:{password}@redis:6379/0"
+
+
+def stack_env_value(env_file: Path, key: str) -> str:
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        if line.startswith(f"{key}="):
+            return line.split("=", 1)[1]
+    raise KeyError(key)
 
 
 def test_imagen_backend_corre_con_uid_10001(env_file: Path) -> None:

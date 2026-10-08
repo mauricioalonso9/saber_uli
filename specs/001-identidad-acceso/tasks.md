@@ -1467,37 +1467,95 @@ datos personales no aparecen y que todo quedó auditado; reingresar crea una cue
 
 ### Tests for User Story 7 ⚠️
 
-- [ ] T152 [P] [US7] Prueba: días hábiles en `backend/tests/unit/identity/test_business_days.py` (15 días hábiles en Colombia excluyendo sábados, domingos y festivos de `holidays` CO, incluidos los trasladados por la Ley Emiliani; casos que cruzan Semana Santa y fin de año) → Qwen
+- [x] T152 [P] [US7] Prueba: días hábiles en `backend/tests/unit/identity/test_business_days.py` (15 días hábiles en Colombia excluyendo sábados, domingos y festivos de `holidays` CO, incluidos los trasladados por la Ley Emiliani; casos que cruzan Semana Santa y fin de año) → Qwen
   - Terminado: la prueba falla.
-- [ ] T153 [P] [US7] Prueba: política de conservación en `backend/tests/unit/identity/test_retention_policy.py` (invitado: fin = mínimo(revocado_en, vence_en), aviso en fin + 60 días y supresión en fin + 90; institucional: aviso en `last_login_at` + 335 días y supresión en + 365; ingresar o renovar mueve las fechas y cancela; el aviso no se repite si `retention_notice_sent_at` existe; FR-034a, FR-034b, FR-034c) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Casos con el Día de la Raza, Todos los Santos, Semana
+    Santa de 2027, San José y Reyes trasladados; la fecha de la solicitud se toma en Bogotá.
+- [x] T153 [P] [US7] Prueba: política de conservación en `backend/tests/unit/identity/test_retention_policy.py` (invitado: fin = mínimo(revocado_en, vence_en), aviso en fin + 60 días y supresión en fin + 90; institucional: aviso en `last_login_at` + 335 días y supresión en + 365; ingresar o renovar mueve las fechas y cancela; el aviso no se repite si `retention_notice_sent_at` existe; FR-034a, FR-034b, FR-034c) → Qwen
   - Terminado: la prueba falla.
-- [ ] T154 [P] [US7] Prueba: solicitud en `backend/tests/integration/identity/test_deletion_request_api.py` (`POST /api/v1/me/deletion-request` exige `confirmation` = `ELIMINAR`; responde 202, pasa a `deletion_pending`, incrementa `auth_epoch` y la siguiente petición responde 401; `due_date` a 15 días hábiles; segunda solicitud → 409 `deletion-already-requested`; el último administrador activo recibe 409 `last-admin` y su cuenta no cambia (FR-034d, escenario 7.5); exenta de autorización de datos; audita `deletion.requested`; `GET /api/v1/admin/deletion-requests` con filtro de estado) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Incluye el aviso de un ciclo anterior (no cuenta) y que la
+    supresión no depende de que el aviso haya llegado (FR-034c).
+- [x] T154 [P] [US7] Prueba: solicitud en `backend/tests/integration/identity/test_deletion_request_api.py` (`POST /api/v1/me/deletion-request` exige `confirmation` = `ELIMINAR`; responde 202, pasa a `deletion_pending`, incrementa `auth_epoch` y la siguiente petición responde 401; `due_date` a 15 días hábiles; segunda solicitud → 409 `deletion-already-requested`; el último administrador activo recibe 409 `last-admin` y su cuenta no cambia (FR-034d, escenario 7.5); exenta de autorización de datos; audita `deletion.requested`; `GET /api/v1/admin/deletion-requests` con filtro de estado) → Qwen
   - Terminado: la prueba falla.
-- [ ] T155 [P] [US7] Prueba: borrado en `backend/tests/integration/identity/test_erase_user.py` (deja la lápida con `status='deleted'` y sin nombre, correo ni `oid`; borra perfil, roles, programas del director, membresías, sesiones, enlaces y correo de invitaciones; conserva `consents` y `audit_events` solo con el UUID; publica `identity.UserErased`; idempotente si se reanuda; tras borrar, ingresar con el mismo `oid` crea una cuenta nueva sin historial (escenario 7.3); revisión automática de que ninguna fila del esquema `identity` contiene el correo o el nombre borrados; FR-033) → Opus
+  - Estado: implementada por Opus (2026-10-07). El 409 `deletion-already-requested` se prueba en el servicio:
+    tras la primera solicitud el token ya no autentica. La limpieza de `committed_login` borra
+    también solicitudes de supresión y eventos del outbox con `user_id`.
+- [x] T155 [P] [US7] Prueba: borrado en `backend/tests/integration/identity/test_erase_user.py` (deja la lápida con `status='deleted'` y sin nombre, correo ni `oid`; borra perfil, roles, programas del director, membresías, sesiones, enlaces y correo de invitaciones; conserva `consents` y `audit_events` solo con el UUID; publica `identity.UserErased`; idempotente si se reanuda; tras borrar, ingresar con el mismo `oid` crea una cuenta nueva sin historial (escenario 7.3); revisión automática de que ninguna fila del esquema `identity` contiene el correo o el nombre borrados; FR-033) → Opus
   - Terminado: la prueba falla.
-- [ ] T156 [P] [US7] Prueba: tareas programadas en `backend/tests/integration/identity/test_retention_tasks.py` (`process_retention` con `FixedClock`: encola `RetentionNoticeDue` y envía el aviso a Mailpit 30 días antes con la fecha y cómo evitarlo; en la fecha crea la solicitud con origen `guest_retention` o `institutional_retention`; si el correo falla, la supresión sigue; `process_deletion_requests` completa solicitudes y audita `deletion.completed` y `retention.notice_sent`; el último administrador activo con más de 1 año sin ingresar no recibe solicitud de supresión y se audita `retention.skipped_last_admin` (FR-034d); SC-006) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Revisión automática: ninguna fila de `identity` ni del
+    outbox contiene el correo, el nombre o el `oid` borrados. Detectó que la lápida conservaba los
+    programas del director (corregido en `User.to_tombstone`, T161).
+- [x] T156 [P] [US7] Prueba: tareas programadas en `backend/tests/integration/identity/test_retention_tasks.py` (`process_retention` con `FixedClock`: encola `RetentionNoticeDue` y envía el aviso a Mailpit 30 días antes con la fecha y cómo evitarlo; en la fecha crea la solicitud con origen `guest_retention` o `institutional_retention`; si el correo falla, la supresión sigue; `process_deletion_requests` completa solicitudes y audita `deletion.completed` y `retention.notice_sent`; el último administrador activo con más de 1 año sin ingresar no recibe solicitud de supresión y se audita `retention.skipped_last_admin` (FR-034d); SC-006) → Qwen
   - Terminado: la prueba falla.
-- [ ] T157 [P] [US7] Pruebas de componente `frontend/src/features/account/DeleteAccountSection.test.tsx` (explica qué se borra y qué se conserva anónimo; exige escribir ELIMINAR; tras confirmar cierra la sesión) y `frontend/src/features/admin/DeletionRequestsPage.test.tsx` (estado y fecha límite) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Con Mailpit real y reloj fijo; la fecha esperada del aviso
+    es la de Bogotá.
+- [x] T157 [P] [US7] Pruebas de componente `frontend/src/features/account/DeleteAccountSection.test.tsx` (explica qué se borra y qué se conserva anónimo; exige escribir ELIMINAR; tras confirmar cierra la sesión) y `frontend/src/features/admin/DeletionRequestsPage.test.tsx` (estado y fecha límite) → Qwen
   - Terminado: las pruebas fallan.
+  - Estado: implementada por Opus (2026-10-07).
 
 ### Implementation for User Story 7
 
-- [ ] T158 [P] [US7] Implementar `backend/src/saber_uli/identity/domain/business_days.py` para que pase T152 → Qwen
+- [x] T158 [P] [US7] Implementar `backend/src/saber_uli/identity/domain/business_days.py` para que pase T152 → Qwen
   - Terminado: T152 en verde.
-- [ ] T159 [P] [US7] Implementar `backend/src/saber_uli/identity/domain/retention.py` para que pase T153 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `holidays` (CO) con caché por año.
+- [x] T159 [P] [US7] Implementar `backend/src/saber_uli/identity/domain/retention.py` para que pase T153 → Qwen
   - Terminado: T153 en verde.
-- [ ] T160 [US7] Implementar `backend/src/saber_uli/identity/application/deletion.py` y `backend/src/saber_uli/identity/api/deletion_router.py` para que pase T154; agregar `getMyDeletionRequest`, `requestMyDeletion` y `adminListDeletionRequests` a `implemented_operations.py` → Qwen
+  - Estado: implementada por Opus (2026-10-07).
+- [x] T160 [US7] Implementar `backend/src/saber_uli/identity/application/deletion.py` y `backend/src/saber_uli/identity/api/deletion_router.py` para que pase T154; agregar `getMyDeletionRequest`, `requestMyDeletion` y `adminListDeletionRequests` a `implemented_operations.py` → Qwen
   - Terminado: T154 y la prueba de contrato en verde.
-- [ ] T161 [US7] Implementar `backend/src/saber_uli/identity/application/erase_user.py` para que pase T155 → Opus
+  - Estado: implementada por Opus (2026-10-07). Contrato sin cambios; las 51 operaciones en verde.
+    `ensure_other_admin` pasa a ser pública en `admin_users` para compartir el bloqueo de FR-025
+    con la supresión (FR-034d). La solicitud publica `identity.DeletionRequested` por el outbox:
+    el worker la procesa en segundos y `process_deletion_requests` queda de respaldo.
+- [x] T161 [US7] Implementar `backend/src/saber_uli/identity/application/erase_user.py` para que pase T155 → Opus
   - Terminado: T155 en verde.
-- [ ] T162 [US7] Implementar `process_retention` y `process_deletion_requests` en `backend/src/saber_uli/identity/infrastructure/tasks.py`, el manejador `backend/src/saber_uli/identity/infrastructure/handlers/retention_notice.py` y las plantillas `backend/src/saber_uli/notifications/infrastructure/templates/retention_notice_{guest,institutional}.{html,txt}.j2` para que pase T156 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `EraseUser` en dos transacciones (`in_progress` y
+    `completed`), reanudable. `PersonalDataEraser` borra perfil, membresías, sesiones y el
+    contacto y los enlaces de sus invitaciones como invitado; conserva `consents`, auditoría y el
+    contenido que la persona creó (grupos, invitaciones enviadas con `invited_by` a la lápida).
+- [x] T162 [US7] Implementar `process_retention` y `process_deletion_requests` en `backend/src/saber_uli/identity/infrastructure/tasks.py`, el manejador `backend/src/saber_uli/identity/infrastructure/handlers/retention_notice.py` y las plantillas `backend/src/saber_uli/notifications/infrastructure/templates/retention_notice_{guest,institutional}.{html,txt}.j2` para que pase T156 → Qwen
   - Terminado: T156 en verde.
-- [ ] T163 [US7] Implementar `frontend/src/features/account/DeleteAccountSection.tsx` y `frontend/src/features/admin/DeletionRequestsPage.tsx` para que pase T157 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `apply_retention` (aplicación) decide con los datos
+    vigentes de cada cuenta en su propia transacción; `RetentionNoticeHandler` recalcula antes de
+    enviar y no envía si la persona ingresó o renovó. `retention_notice_sent_at` se marca al
+    encolar el aviso. Nuevo `InvitationRepository.latest_for_guest`.
+- [x] T163 [US7] Implementar `frontend/src/features/account/DeleteAccountSection.tsx` y `frontend/src/features/admin/DeletionRequestsPage.tsx` para que pase T157 → Qwen
   - Terminado: T157 en verde.
-- [ ] T164 [US7] Prueba e2e `frontend/tests/e2e/us7-deletion.spec.ts` (V18: solicitud, cierre inmediato, solicitud visible para el administrador, procesamiento por el worker, reingreso como cuenta nueva) → Qwen
+  - Estado: implementada por Opus (2026-10-07). La sección vive en `/mi-cuenta` (US8 la llevará también a
+    `/mi-cuenta/datos`); `/admin/supresiones` con guardia `deletions:read`. `formatDay` muestra
+    las fechas sin hora como días de Colombia (con `new Date("2026-10-28")` salía el día
+    anterior).
+- [x] T164 [US7] Prueba e2e `frontend/tests/e2e/us7-deletion.spec.ts` (V18: solicitud, cierre inmediato, solicitud visible para el administrador, procesamiento por el worker, reingreso como cuenta nueva) → Qwen
   - Terminado: pasa contra el stack `e2e`.
-- [ ] T165 [US7] Revisión de US7 (T152–T164) en `specs/001-identidad-acceso/tasks.md`: que no queden datos personales tras la supresión, plazos de la Ley 1581, FR-032 a FR-034c y SC-006 → Opus
+  - Estado: implementada por Opus (2026-10-07). El worker completa la solicitud por el outbox en segundos.
+    axe detectó que la tabla de supresiones no era alcanzable con teclado al desplazarse en el
+    celular (corregido). En verde 14 de 15 corridas completas con el outbox vacío al empezar.
+- [x] T165 [US7] Revisión de US7 (T152–T164) en `specs/001-identidad-acceso/tasks.md`: que no queden datos personales tras la supresión, plazos de la Ley 1581, FR-032 a FR-034c y SC-006 → Opus
   - Terminado: tareas aprobadas y marcadas.
+  - Revisión de Opus (2026-10-07): T152–T164 aprobadas.
+    - Sin datos personales tras la supresión (FR-033): lápida con `CHECK` en la base y revisión
+      automática de todo el esquema `identity` y del outbox (T155). Los registros de la API y del
+      worker solo llevan identificadores, orígenes y conteos.
+    - Plazos de la Ley 1581 y SC-006: fecha límite de 15 días hábiles con festivos de Colombia; la
+      solicitud se procesa en segundos por el outbox y cada 15 minutos como respaldo.
+    - FR-032: confirmación escrita, acceso cortado en la misma petición (`auth_epoch` + 1 y
+      sesiones revocadas) y reingreso como cuenta nueva (escenario 7.3, V18).
+    - FR-034 a FR-034c: listado del administrador con estado y fecha límite; aviso 30 días antes
+      con la fecha y cómo evitarlo; ingresar o renovar cancela; la supresión sigue si el correo
+      falla. FR-034d: el último administrador recibe 409 y la conservación automática no lo avisa
+      ni lo suprime (`retention.skipped_last_admin` una vez por ciclo). FR-034e ya estaba en
+      `expire_invitations` (US5).
+    - Sin cambios en el contrato, el modelo de datos ni los ADR.
+    - Riesgos aceptados: (1) si el aviso falla de forma definitiva no se reintenta en el mismo
+      ciclo (`retention_notice_sent_at` se marca al encolar), riesgo ya aceptado en la spec;
+      (2) invitaciones posteriores al mismo correo que no quedaron enlazadas al invitado siguen la
+      purga de FR-034e, no la supresión.
+    - Pendiente para T173: la tabla de `/admin/auditoria` usa el mismo contenedor desplazable sin
+      foco que se corrigió en supresiones; revisarla con axe en el celular.
+    - Pruebas e2e inestables de historias anteriores, una vez cada una en unas 30 corridas: V5
+      (US4) y el último administrador (US6) en corridas seguidas, con el outbox aún enviando los
+      200 correos del lote de la corrida anterior; V10 (US5) una vez con el outbox vacío, sin
+      capturar el error. Quedan para investigar.
 
 **Checkpoint**: derechos de supresión y conservación automáticos operativos.
 

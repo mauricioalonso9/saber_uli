@@ -66,7 +66,7 @@ condicional de TI (ver V4.3.1).
 | 3.3.1 Cerrar sesión y vencer invalida el token | Cumple | Logout revoca la familia de renovación y pone el `sid` en la lista de sesiones revocadas de Redis, que `AccessGuard` consulta en cada petición (corregido en T070). `integration/identity/test_refresh_logout.py`, `test_auth_dependency.py`. |
 | 3.3.2 Reautenticación cada 12 h o tras 30 min de inactividad | Desviación (registrada en plan.md) | Las funciones privilegiadas (docentes, directores y administradores) exigen `priv`: autenticación de hace menos de 12 h y actividad privilegiada en los últimos 30 min (R-15, ADR 0005). La práctica personal usa sesiones de aprendizaje de 7 días de inactividad y 30 absolutos por FR-038 (uso sin conexión); no dan acceso a datos de terceros. `unit/identity/test_session_policy.py`, `integration/identity/test_auth_dependency.py`. |
 | 3.3.3 Cerrar las demás sesiones al cambiar un factor | N/A | No hay factores que cambiar en la app. |
-| 3.3.4 Ver y cerrar las sesiones activas | **Hallazgo** | No hay pantalla ni operación para ver o cerrar otras sesiones; solo se cierra la actual. Hoy cortan todas las sesiones la desactivación por un administrador, revocar la autorización de datos o pedir la supresión. Tarea T178b. |
+| 3.3.4 Ver y cerrar las sesiones activas | Cumple | Mi cuenta lista las sesiones activas (forma de ingreso, inicio y última actividad, sin IP ni dispositivo) y permite cerrar una o todas las demás; la sesión cerrada entra en la lista de revocadas y deja de servir en su siguiente petición (FR-037a, T178b). No se pide reingresar antes de cerrar: es una acción de protección y la sesión actual ya es válida. `identity/application/my_sessions.py`; `integration/identity/test_my_sessions_api.py`, `frontend/tests/e2e/us1-sessions.spec.ts`. |
 | 3.4.1 Cookie `Secure` | Cumple | Siempre que `PUBLIC_BASE_URL` es https (producción); en http solo se admite localhost (R-14, precisión de T120). |
 | 3.4.2 Cookie `HttpOnly` | Cumple | Renovación y estado OIDC. |
 | 3.4.3 Cookie `SameSite` | Cumple | Renovación `Strict`; estado OIDC `Lax` (necesario para volver de Microsoft), 10 min, borrado tras el callback. |
@@ -181,9 +181,8 @@ otro origen no puede leer las respuestas.
 
 ## Hallazgos abiertos
 
-| Tarea | Requisito | Qué falta | Quién decide |
-|-------|-----------|-----------|--------------|
-| T178b | 3.3.4 | Que cada persona vea sus sesiones activas y pueda cerrar las demás. Es una operación nueva del contrato y una sección en Mi cuenta. | Producto (spec y contrato) |
+Ninguno. Los tres de esta revisión se resolvieron el 2026-10-08: T178a (2.7.2), T178b (3.3.4) y
+T178c (2.10.2).
 
 ## Desviaciones aceptadas
 

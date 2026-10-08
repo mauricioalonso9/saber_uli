@@ -1704,9 +1704,16 @@ dato editable del perfil.
     regenerado) y la pantalla de parámetros; migración 0007 que recorta a 10 los valores
     guardados mayores y conserva los menores (con prueba). Enmendados spec.md (supuestos),
     data-model.md, research.md (R-18 y R-29) y ADR 0005.
-- [ ] T178b Ver las sesiones activas y cerrar las demás desde Mi cuenta (ASVS 3.3.4) → Opus
+- [x] T178b Ver las sesiones activas y cerrar las demás desde Mi cuenta (ASVS 3.3.4) → Opus
   - Decisión pendiente: operación nueva en el contrato (listar mis sesiones y cerrar una o todas las demás) y requisito nuevo en spec.md. Requiere una enmienda de la especificación.
   - Terminado: la persona ve el tipo de ingreso y la última actividad de cada sesión y puede cerrarlas; la sesión cerrada deja de servir en la siguiente petición.
+  - Estado: implementada por Opus (2026-10-08) tras aprobar la persona usuaria la enmienda.
+    FR-037a y escenario 1.5 en spec.md; `listMySessions`, `revokeMySession` y
+    `revokeMyOtherSessions` en el contrato (exentas de la autorización de datos; 55
+    operaciones); regla de sesión activa y `user_revoked` en data-model.md. `MySessions`
+    revoca y pone el `sid` en la lista de revocadas de Redis. Sección "Sesiones abiertas" en Mi
+    cuenta. Pruebas: 5 de integración, Schemathesis (55 en verde), 4 unitarias de la sección y
+    e2e `us1-sessions.spec.ts`; suite e2e completa en verde (40) con axe en `/mi-cuenta`.
 - [x] T178c [P] Negarse a arrancar en producción con contraseñas de ejemplo (ASVS 2.10.2): si `PUBLIC_BASE_URL` es https y la contraseña de `DATABASE_URL`, `MIGRATION_DATABASE_URL` o `REDIS_URL` es `cambie-esta-contrasena`, `Settings` falla sin mostrar valores → Qwen
   - Terminado: prueba unitaria en `tests/unit/shared/test_config.py`; desarrollo, e2e y CI siguen funcionando con `.env.example`.
   - Estado: implementada por Opus (2026-10-08). `config.py` compara la contraseña de cada URL

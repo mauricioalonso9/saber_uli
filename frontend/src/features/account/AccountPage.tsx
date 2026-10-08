@@ -7,6 +7,7 @@ import type { ProfileUpdate } from "@/api/model";
 import { getGetMyProfileQueryKey, useGetMyProfile, useUpdateMyProfile } from "@/api/me";
 import { useListActivePrograms } from "@/api/programs";
 import { DeleteAccountSection } from "@/features/account/DeleteAccountSection";
+import { SessionsSection } from "@/features/account/SessionsSection";
 import { DirectoryData } from "@/features/profile/DirectoryData";
 import { ProfileForm } from "@/features/profile/ProfileForm";
 import { ApiProblem } from "@/shared/api/http";
@@ -14,8 +15,8 @@ import { GENERIC_MESSAGE } from "@/shared/api/problem-messages";
 import { refreshQueries } from "@/shared/api/refresh";
 
 /**
- * Mi cuenta (FR-021, FR-032): editar el perfil, llegar a la autorización y a mis datos, y
- * solicitar la supresión de la cuenta.
+ * Mi cuenta (FR-021, FR-032, FR-037a): editar el perfil, llegar a la autorización y a mis datos,
+ * ver y cerrar las sesiones abiertas, y solicitar la supresión de la cuenta.
  */
 export function AccountPage() {
   const { t } = useTranslation();
@@ -91,6 +92,7 @@ export function AccountPage() {
         </li>
       </ul>
 
+      <SessionsSection />
       <DeleteAccountSection />
     </section>
   );

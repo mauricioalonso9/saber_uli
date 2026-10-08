@@ -22,6 +22,9 @@ from saber_uli.shared.api.problems import ProblemException
 CONSENT_EXEMPT_OPERATIONS = frozenset(
     {
         "getMe",
+        "listMySessions",
+        "revokeMySession",
+        "revokeMyOtherSessions",
         "listMyConsents",
         "decideConsent",
         "revokeConsent",

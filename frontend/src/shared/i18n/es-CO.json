@@ -247,6 +247,23 @@
         "title": "Solicitamos la supresión de tu cuenta",
         "body": "Cerramos tu sesión en todos tus dispositivos. Completaremos la eliminación a más tardar el {{date}}."
       }
+    },
+    "sessions": {
+      "title": "Sesiones abiertas",
+      "intro": "Estos son los dispositivos donde tienes Saber Uli abierto. Si no reconoces alguno, ciérralo.",
+      "loading": "Cargando tus sesiones…",
+      "current": "este dispositivo",
+      "method": {
+        "entra_id": "Cuenta Unilibre (Microsoft 365)",
+        "guest_link": "Enlace de invitado"
+      },
+      "started": "Inició: {{date}}",
+      "lastActivity": "Última actividad: {{date}}",
+      "closeOne": "Cerrar esta sesión",
+      "closeOneLabel": "Cerrar la sesión de {{method}} con última actividad {{date}}",
+      "closeOthers": "Cerrar todas las demás sesiones",
+      "closedOne": "La sesión se cerró. Ese dispositivo tendrá que volver a ingresar.",
+      "closedOthers": "Se cerraron las demás sesiones. Esos dispositivos tendrán que volver a ingresar."
     }
   },
   "guestLink": {

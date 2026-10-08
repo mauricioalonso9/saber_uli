@@ -15,6 +15,9 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         "startMicrosoftLogin",
         "completeMicrosoftLogin",
         "getMe",
+        "listMySessions",
+        "revokeMySession",
+        "revokeMyOtherSessions",
         # US2 (T090)
         "listMyConsents",
         "decideConsent",

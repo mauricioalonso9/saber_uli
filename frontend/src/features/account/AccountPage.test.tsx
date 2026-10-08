@@ -61,6 +61,7 @@ function renderAccount() {
   server.use(
     http.get("/api/v1/programs", () => HttpResponse.json([DERECHO])),
     http.get("/api/v1/me/profile", () => HttpResponse.json(PROFILE)),
+    http.get("/api/v1/me/sessions", () => HttpResponse.json({ items: [] })),
     http.put("/api/v1/me/profile", async ({ request }) => {
       const body = (await request.json()) as ProfileUpdate;
       saved.push(body);

@@ -106,7 +106,7 @@ cd backend
 uv run pytest --cov=saber_uli --cov-report=term-missing
 uv run ruff check . ; uv run mypy --strict src ; uv run lint-imports
 
-# Contrato (Schemathesis sobre las 52 operaciones contra la app ASGI; requiere Docker)
+# Contrato (Schemathesis sobre las 55 operaciones contra la app ASGI; requiere Docker)
 uv run pytest tests/contract
 
 # Frontend

@@ -25,6 +25,7 @@ import type {
   DeletionRequest,
   ListMyConsents200,
   Me,
+  MySessionList,
   NotFoundResponse,
   PersonalDataExport,
   Problem,
@@ -647,6 +648,281 @@ export const useRevokeConsent = <TError = UnauthorizedResponse | Problem, TConte
   queryClient?: QueryClient,
 ): UseMutationResult<Awaited<ReturnType<typeof revokeConsent>>, TError, void, TContext> => {
   return useMutation(getRevokeConsentMutationOptions(options), queryClient);
+};
+export const getListMySessionsUrl = () => {
+  return `/api/v1/me/sessions`;
+};
+
+/**
+ * @summary Sesiones activas del usuario (FR-037a, escenario 1.5; ASVS 3.3.4)
+ */
+export const listMySessions = async (
+  options?: Parameters<typeof customInstance>[1],
+): Promise<MySessionList> => {
+  return customInstance<MySessionList>(getListMySessionsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListMySessionsQueryKey = () => {
+  return [`/api/v1/me/sessions`] as const;
+};
+
+export const getListMySessionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMySessions>>,
+  TError = UnauthorizedResponse,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMySessions>>, TError, TData>>;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListMySessionsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listMySessions>>> = ({ signal }) =>
+    listMySessions({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMySessions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type ListMySessionsQueryResult = NonNullable<Awaited<ReturnType<typeof listMySessions>>>;
+export type ListMySessionsQueryError = UnauthorizedResponse;
+
+export function useListMySessions<
+  TData = Awaited<ReturnType<typeof listMySessions>>,
+  TError = UnauthorizedResponse,
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMySessions>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMySessions>>,
+          TError,
+          Awaited<ReturnType<typeof listMySessions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListMySessions<
+  TData = Awaited<ReturnType<typeof listMySessions>>,
+  TError = UnauthorizedResponse,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMySessions>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMySessions>>,
+          TError,
+          Awaited<ReturnType<typeof listMySessions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListMySessions<
+  TData = Awaited<ReturnType<typeof listMySessions>>,
+  TError = UnauthorizedResponse,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMySessions>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Sesiones activas del usuario (FR-037a, escenario 1.5; ASVS 3.3.4)
+ */
+
+export function useListMySessions<
+  TData = Awaited<ReturnType<typeof listMySessions>>,
+  TError = UnauthorizedResponse,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listMySessions>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListMySessionsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export const getRevokeMySessionUrl = (sessionId: string) => {
+  return `/api/v1/me/sessions/${sessionId}/revocation`;
+};
+
+/**
+ * @summary Cierra una sesión propia; deja de servir en su siguiente petición (FR-037a)
+ */
+export const revokeMySession = async (
+  sessionId: string,
+  options?: Parameters<typeof customInstance>[1],
+): Promise<void> => {
+  return customInstance<void>(getRevokeMySessionUrl(sessionId), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getRevokeMySessionMutationKey = () => ["revokeMySession"] as const;
+
+export const getRevokeMySessionMutationOptions = <
+  TError = UnauthorizedResponse | NotFoundResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeMySession>>,
+    TError,
+    RevokeMySessionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof revokeMySession>>,
+  TError,
+  RevokeMySessionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getRevokeMySessionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof revokeMySession>>,
+    RevokeMySessionMutationVariables
+  > = (props) => {
+    const { sessionId } = props ?? {};
+
+    return revokeMySession(sessionId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RevokeMySessionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof revokeMySession>>
+>;
+
+export type RevokeMySessionMutationError = UnauthorizedResponse | NotFoundResponse;
+export type RevokeMySessionMutationVariables = { sessionId: string };
+
+/**
+ * @summary Cierra una sesión propia; deja de servir en su siguiente petición (FR-037a)
+ */
+export const useRevokeMySession = <
+  TError = UnauthorizedResponse | NotFoundResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof revokeMySession>>,
+      TError,
+      RevokeMySessionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof revokeMySession>>,
+  TError,
+  RevokeMySessionMutationVariables,
+  TContext
+> => {
+  return useMutation(getRevokeMySessionMutationOptions(options), queryClient);
+};
+export const getRevokeMyOtherSessionsUrl = () => {
+  return `/api/v1/me/sessions/revocation`;
+};
+
+/**
+ * @summary Cierra todas las sesiones propias menos la actual (FR-037a)
+ */
+export const revokeMyOtherSessions = async (
+  options?: Parameters<typeof customInstance>[1],
+): Promise<void> => {
+  return customInstance<void>(getRevokeMyOtherSessionsUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getRevokeMyOtherSessionsMutationKey = () => ["revokeMyOtherSessions"] as const;
+
+export const getRevokeMyOtherSessionsMutationOptions = <
+  TError = UnauthorizedResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeMyOtherSessions>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof revokeMyOtherSessions>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = getRevokeMyOtherSessionsMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof revokeMyOtherSessions>>,
+    void
+  > = () => {
+    return revokeMyOtherSessions(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RevokeMyOtherSessionsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof revokeMyOtherSessions>>
+>;
+
+export type RevokeMyOtherSessionsMutationError = UnauthorizedResponse;
+
+/**
+ * @summary Cierra todas las sesiones propias menos la actual (FR-037a)
+ */
+export const useRevokeMyOtherSessions = <TError = UnauthorizedResponse, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof revokeMyOtherSessions>>,
+      TError,
+      void,
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<Awaited<ReturnType<typeof revokeMyOtherSessions>>, TError, void, TContext> => {
+  return useMutation(getRevokeMyOtherSessionsMutationOptions(options), queryClient);
 };
 export const getExportMyDataUrl = () => {
   return `/api/v1/me/data-export`;

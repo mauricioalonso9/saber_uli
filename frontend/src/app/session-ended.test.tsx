@@ -61,6 +61,7 @@ describe("fin de la sesión por una causa definitiva", () => {
     server.use(
       // La API rechaza el token (época nueva) y la renovación da la causa.
       http.get("/api/v1/me/profile", () => problem(slug)),
+      http.get("/api/v1/me/sessions", () => problem(slug)),
       http.get("/api/v1/programs", () => problem(slug)),
       http.post("/api/auth/refresh", () => {
         session = { kind: "anonymous" };

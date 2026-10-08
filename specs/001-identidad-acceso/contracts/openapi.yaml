@@ -347,6 +347,40 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+  /api/v1/me/sessions:
+    get:
+      tags: [me]
+      operationId: listMySessions
+      summary: Sesiones activas del usuario (FR-037a, escenario 1.5; ASVS 3.3.4)
+      x-consent-exempt: true
+      responses:
+        '200':
+          description: Sesiones activas, la más reciente primero
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MySessionList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /api/v1/me/sessions/{sessionId}/revocation:
+    post:
+      tags: [me]
+      operationId: revokeMySession
+      summary: Cierra una sesión propia; deja de servir en su siguiente petición (FR-037a)
+      x-consent-exempt: true
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '204': { description: Sesión cerrada }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/me/sessions/revocation:
+    post:
+      tags: [me]
+      operationId: revokeMyOtherSessions
+      summary: Cierra todas las sesiones propias menos la actual (FR-037a)
+      x-consent-exempt: true
+      responses:
+        '204': { description: Sesiones cerradas }
+        '401': { $ref: '#/components/responses/Unauthorized' }
   /api/v1/me/data-export:
     get:
       tags: [me]
@@ -1209,6 +1243,8 @@ components:
       { name: batchId, in: path, required: true, schema: { type: string, format: uuid } }
     PolicyVersionId:
       { name: policyVersionId, in: path, required: true, schema: { type: string, format: uuid } }
+    SessionId:
+      { name: sessionId, in: path, required: true, schema: { type: string, format: uuid } }
 
   responses:
     Unauthorized:
@@ -1418,6 +1454,20 @@ components:
         decision: { type: string, enum: [accepted, rejected, revoked] }
         channel: { type: string }
         decided_at: { type: string, format: date-time }
+    MySession:
+      type: object
+      required: [id, auth_method, started_at, last_activity_at, current]
+      properties:
+        id: { type: string, format: uuid }
+        auth_method: { type: string, enum: [entra_id, guest_link] }
+        started_at: { type: string, format: date-time }
+        last_activity_at: { type: string, format: date-time }
+        current: { type: boolean, description: Es la sesión de esta petición }
+    MySessionList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/MySession' } }
     DeletionRequest:
       type: object
       required: [id, status, origin, requested_at, due_date]

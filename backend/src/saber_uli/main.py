@@ -34,6 +34,7 @@ from saber_uli.identity.api.me_router import router as me_router
 from saber_uli.identity.api.microsoft_router import router as microsoft_router
 from saber_uli.identity.api.policy_router import router as policy_router
 from saber_uli.identity.api.profile_router import router as profile_router
+from saber_uli.identity.api.sessions_router import router as sessions_router
 from saber_uli.identity.api.teacher_router import router as teacher_router
 from saber_uli.identity.application.access_guard import AccessGuard
 from saber_uli.identity.application.admin_users import AdminUsersService
@@ -48,6 +49,7 @@ from saber_uli.identity.application.groups import GroupService, TeacherGroups
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
 from saber_uli.identity.application.invitation_batches import InvitationBatchService
 from saber_uli.identity.application.invitations import InvitationService
+from saber_uli.identity.application.my_sessions import MySessions
 from saber_uli.identity.application.profile import ProfileService, ProgramCatalog
 from saber_uli.identity.application.queries.consent_status import ConsentStatusQuery
 from saber_uli.identity.application.queries.get_me import GetMe
@@ -159,6 +161,9 @@ def create_app(
         refresh_tokens=RefreshTokenFactory(),
         revocations=revocations,
     )
+    app.state.my_sessions = MySessions(
+        uow_factory=identity_uow, clock=clock, revocations=revocations
+    )
     app.state.guest_sign_in = GuestSignIn(
         uow_factory=identity_uow,
         clock=clock,
@@ -213,6 +218,7 @@ def create_app(
     # Toda ruta de /api/v1 pasa por la guardia de autorización de datos (FR-014).
     v1 = [Depends(require_consent)]
     app.include_router(me_router, dependencies=v1)
+    app.include_router(sessions_router, dependencies=v1)
     app.include_router(consent_router, dependencies=v1)
     app.include_router(policy_router, dependencies=v1)
     app.include_router(profile_router, dependencies=v1)

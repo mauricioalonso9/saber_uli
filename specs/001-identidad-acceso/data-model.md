@@ -236,6 +236,11 @@ Reglas:
   detectada) y se audita.
 - Al incrementar `users.auth_epoch` se revocan todas las sesiones del usuario.
 - La tarea diaria purga sesiones vencidas o revocadas hace más de 30 días.
+- Sesión activa (FR-037a): `revoked_at` NULL, `absolute_expires_at` futuro y `last_seen_at` de
+  los últimos 7 días. El usuario puede cerrar una o todas las demás: `revoked_reason =
+  'user_revoked'` y su `id` entra en la lista de sesiones revocadas de Redis (como al cerrar
+  sesión). Valores de `revoked_reason`: `logout`, `token_reuse`, `access_changed`,
+  `reauthenticated`, `user_revoked`.
 
 ### 2.14 `audit_events` (solo inserción)
 

@@ -75,6 +75,7 @@ function renderAccount(reply?: () => Response) {
   server.use(
     http.get("/api/v1/programs", () => HttpResponse.json([DERECHO])),
     http.get("/api/v1/me/profile", () => HttpResponse.json(PROFILE)),
+    http.get("/api/v1/me/sessions", () => HttpResponse.json({ items: [] })),
     http.post("/api/v1/me/deletion-request", async ({ request }) => {
       sent.push(await request.json());
       if (reply) return reply();

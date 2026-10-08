@@ -28,7 +28,9 @@ PRIVILEGED_IDLE = timedelta(minutes=30)
 # Margen en el que reutilizar un token recién rotado no se considera robo (R-14).
 REUSE_GRACE = timedelta(seconds=30)
 
-RevocationReason = Literal["logout", "token_reuse", "access_changed", "reauthenticated"]
+RevocationReason = Literal[
+    "logout", "token_reuse", "access_changed", "reauthenticated", "user_revoked"
+]
 
 
 class AuthMethod(StrEnum):
@@ -69,6 +71,11 @@ class Session:
 
     def is_active(self, now: datetime) -> bool:
         return self.revoked_at is None and now < self.absolute_expires_at
+
+    def is_in_use(self, now: datetime) -> bool:
+        """Activa y con actividad en los últimos 7 días: la que el usuario ve en Mi cuenta
+        (FR-037a). Pasado ese plazo ya no se puede renovar (R-14)."""
+        return self.is_active(now) and now - self.last_seen_at < IDLE_TIMEOUT
 
     def is_privileged(self, now: datetime, *, roles: Iterable[Role]) -> bool:
         if not has_privileged_role(roles) or self.last_privileged_activity_at is None:

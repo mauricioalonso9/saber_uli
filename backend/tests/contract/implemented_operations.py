@@ -65,5 +65,7 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         "getMyDeletionRequest",
         "requestMyDeletion",
         "adminListDeletionRequests",
+        # US8 (T168)
+        "exportMyData",
     }
 )

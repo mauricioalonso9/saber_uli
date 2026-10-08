@@ -42,6 +42,7 @@ from saber_uli.identity.application.authenticate_institutional_user import (
 )
 from saber_uli.identity.application.catalogs import AuditQuery, ProgramAdmin, SettingsAdmin
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
+from saber_uli.identity.application.data_export import DataExport
 from saber_uli.identity.application.deletion import DeletionService
 from saber_uli.identity.application.groups import GroupService, TeacherGroups
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
@@ -63,6 +64,7 @@ from saber_uli.shared.api.consent_guard import require_consent
 from saber_uli.shared.api.health import router as health_router
 from saber_uli.shared.api.middleware import PathScopedMiddleware, RequestLoggingMiddleware
 from saber_uli.shared.api.problems import install_problem_handlers
+from saber_uli.shared.application.data_export_registry import DataExportRegistry
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.domain.clock import Clock, SystemClock
 from saber_uli.shared.infrastructure.db import create_engine, create_session_factory
@@ -193,6 +195,11 @@ def create_app(
     app.state.settings_admin = SettingsAdmin(uow_factory=identity_uow, clock=clock)
     app.state.audit_query = AuditQuery(uow_factory=identity_uow)
     app.state.deletion_service = DeletionService(uow_factory=identity_uow, clock=clock)
+    # Los contextos de 002 en adelante registran aquí sus secciones de «Mis datos» (R-26).
+    app.state.data_export_registry = DataExportRegistry()
+    app.state.data_export = DataExport(
+        uow_factory=identity_uow, clock=clock, registry=app.state.data_export_registry
+    )
     app.state.profile_service = ProfileService(uow_factory=identity_uow, clock=clock)
     app.state.program_catalog = ProgramCatalog(uow_factory=identity_uow)
     app.state.privacy_policy_service = PrivacyPolicyService(uow_factory=identity_uow, clock=clock)

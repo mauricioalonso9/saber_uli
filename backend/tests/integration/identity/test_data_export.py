@@ -32,7 +32,8 @@ EXPORT = "/api/v1/me/data-export"
 
 async def sql(engine: AsyncEngine, statement: str, **params: Any) -> Any:
     async with engine.begin() as conn:
-        return (await conn.execute(text(statement), params)).scalar_one_or_none()
+        result = await conn.execute(text(statement), params)
+        return result.scalar_one_or_none() if result.returns_rows else None
 
 
 async def group_with(engine: AsyncEngine, owner: UUID, name: str, *members: UUID) -> UUID:

@@ -1,14 +1,19 @@
-"""`GET /api/v1/me` (contrato: `getMe`, `x-consent-exempt`)."""
+"""`GET /api/v1/me` (contrato: `getMe`, `x-consent-exempt`) y `GET /api/v1/me/data-export`
+(`exportMyData`, FR-031)."""
 
-from datetime import datetime
-from typing import Annotated, Literal
+from datetime import date, datetime
+from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel
 
+from saber_uli.identity.api.consent_router import Consent
+from saber_uli.identity.api.profile_router import ProfileOut
+from saber_uli.identity.application.data_export import DataExport, PersonalData
 from saber_uli.identity.application.public import AuthenticatedUser
 from saber_uli.identity.application.queries.get_me import GetMe
+from saber_uli.identity.domain.business_days import BOGOTA
 from saber_uli.shared.api.auth import current_user
 
 router = APIRouter(prefix="/api/v1", tags=["me"])
@@ -76,3 +81,87 @@ async def get_me(
             privileged_session=view.privileged_session,
         ),
     )
+
+
+# --- Mis datos (FR-031) -------------------------------------------------------------------------
+
+
+class ExportIdentity(BaseModel):
+    id: UUID
+    kind: Literal["institutional", "guest"]
+    display_name: str | None = None
+    email: str | None = None
+    created_at: datetime
+    last_login_at: datetime | None = None
+    source_note: str
+
+
+class ExportInvitation(BaseModel):
+    accepted_at: datetime | None = None
+    access_expires_at: datetime
+
+
+class PersonalDataExport(BaseModel):
+    generated_at: datetime
+    identity: ExportIdentity
+    profile: ProfileOut
+    roles: list[str]
+    groups: list[str]
+    consents: list[Consent]
+    invitation: ExportInvitation | None = None
+    sections: dict[str, Any]
+
+    @classmethod
+    def of(cls, data: PersonalData) -> "PersonalDataExport":
+        user = data.user
+        if user.id is None:
+            raise ValueError("el usuario no está guardado")
+        return cls(
+            generated_at=data.generated_at,
+            identity=ExportIdentity(
+                id=user.id,
+                kind=user.kind.value,
+                display_name=user.display_name,
+                email=user.email,
+                created_at=user.created_at,
+                last_login_at=user.last_login_at,
+                source_note=data.source_note,
+            ),
+            profile=ProfileOut.of(data.profile),
+            roles=data.roles,
+            groups=data.groups,
+            consents=[Consent.of(entry) for entry in data.consents],
+            invitation=(
+                None
+                if data.invitation is None
+                else ExportInvitation(
+                    accepted_at=data.invitation.accepted_at,
+                    access_expires_at=data.invitation.access_expires_at,
+                )
+            ),
+            sections=data.sections,
+        )
+
+
+def _data_export(request: Request) -> DataExport:
+    service: DataExport = request.app.state.data_export
+    return service
+
+
+def export_filename(generated_at: datetime) -> str:
+    day: date = generated_at.astimezone(BOGOTA).date()
+    return f"saber-uli-mis-datos-{day.isoformat()}.json"
+
+
+@router.get("/me/data-export", operation_id="exportMyData", response_model_exclude_none=True)
+async def export_my_data(
+    user: Annotated[AuthenticatedUser, Depends(current_user)],
+    service: Annotated[DataExport, Depends(_data_export)],
+    response: Response,
+) -> PersonalDataExport:
+    data = await service.execute(user.id)
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="{export_filename(data.generated_at)}"'
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return PersonalDataExport.of(data)

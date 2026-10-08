@@ -92,6 +92,17 @@ class SqlAlchemyGroupRepository:
     async def remove_teacher(self, group_id: UUID, user_id: UUID) -> bool:
         return await self._unlink(GroupTeacherRow, group_id, user_id)
 
+    async def group_names_for(self, user_id: UUID) -> list[str]:
+        linked = (
+            select(GroupMemberRow.group_id)
+            .where(GroupMemberRow.user_id == user_id)
+            .union(select(GroupTeacherRow.group_id).where(GroupTeacherRow.user_id == user_id))
+        )
+        rows = await self._db.scalars(
+            select(GroupRow.name).where(GroupRow.id.in_(linked)).order_by(GroupRow.name)
+        )
+        return list(rows)
+
     async def teaching_groups(self, user_id: UUID) -> list[Group]:
         rows = await self._db.scalars(
             select(GroupRow)

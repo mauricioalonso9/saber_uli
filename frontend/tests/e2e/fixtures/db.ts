@@ -167,3 +167,12 @@ export function addToGroup(email: string, groupName: string): void {
     { email, group: groupName },
   );
 }
+
+/** Desactiva la cuenta como lo haría un administrador (V16: reconectar sin acceso). */
+export function disableAccount(email: string): void {
+  psql(
+    `UPDATE identity.users SET status = 'disabled', auth_epoch = auth_epoch + 1
+      WHERE lower(email) = lower(:'email');`,
+    { email },
+  );
+}

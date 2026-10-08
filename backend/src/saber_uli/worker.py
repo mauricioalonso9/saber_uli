@@ -7,8 +7,8 @@ Tareas programadas (zona America/Bogota):
 
 - `dispatch_outbox`: cada 5 s (aquí).
 - `expire_invitations`: cada hora (T131).
-- `process_retention`: diaria a las 02:00 (T156).
-- `process_deletion_requests`: cada 15 min (T157).
+- `process_retention`: diaria a las 02:00 (avisos y supresiones automáticas, US7).
+- `process_deletion_requests`: cada 15 min (respaldo del outbox, US7).
 - `purge_expired_auth_artifacts`: diaria a las 03:30; purga el outbox aquí y las sesiones y
   enlaces vencidos en US4/US7.
 
@@ -21,6 +21,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 import structlog
 from celery import Celery, signals
@@ -92,14 +93,18 @@ class HeartbeatScheduler(PersistentScheduler):
 def outbox_registry(session_factory: Any) -> Any:
     """Manejadores del outbox por tipo de evento. Cada historia agrega los suyos (US4, US7…)."""
     from saber_uli.config import get_settings
+    from saber_uli.identity.application.erase_user import EraseUser
     from saber_uli.identity.infrastructure.handlers.link_emails import LinkEmailHandlers
+    from saber_uli.identity.infrastructure.handlers.retention_notice import (
+        RetentionNoticeHandler,
+    )
     from saber_uli.identity.infrastructure.link_tokens import LinkTokenFactory
     from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
     from saber_uli.notifications.application.public import EmailService
     from saber_uli.notifications.infrastructure.smtp import SmtpEmailSender
     from saber_uli.notifications.infrastructure.templates import JinjaTemplateRenderer
     from saber_uli.shared.application.event_bus import EventBus
-    from saber_uli.shared.infrastructure.outbox import OutboxRegistry
+    from saber_uli.shared.infrastructure.outbox import OutboxMessage, OutboxRegistry
 
     settings = get_settings()
     bus = EventBus()
@@ -123,7 +128,46 @@ def outbox_registry(session_factory: Any) -> Any:
         clock=SystemClock(),
         tokens=LinkTokenFactory(),
     ).register(registry)
+    RetentionNoticeHandler(
+        uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, bus),
+        email=email,
+        clock=SystemClock(),
+    ).register(registry)
+
+    # La supresión publica `UserErased` (outbox) y cambia la época de autorización.
+    erase_bus = identity_task_bus(settings.redis_url.get_secret_value())
+    erase = EraseUser(
+        uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, erase_bus),
+        clock=SystemClock(),
+    )
+
+    async def on_deletion_requested(message: OutboxMessage) -> None:
+        await erase.execute(UUID(str(message.payload["deletion_request_id"])))
+
+    registry.register("identity.DeletionRequested", on_deletion_requested)
     return registry
+
+
+def identity_task_bus(redis_url: str) -> Any:
+    """Bus de las tareas que cambian cuentas: escribe sus eventos en el outbox e invalida la
+    caché de `auth_epoch` tras el commit (R-16)."""
+    from saber_uli.identity.domain.events import UserAccessChanged
+    from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
+    from saber_uli.identity.infrastructure.outbox_events import register_identity_outbox
+    from saber_uli.shared.application.event_bus import EventBus
+
+    bus = EventBus()
+    register_identity_outbox(bus)
+
+    async def invalidate_epoch(event: UserAccessChanged) -> None:
+        epochs = RedisEpochStore(redis_url)
+        try:
+            await epochs.invalidate(event.user_id)
+        finally:
+            await epochs.close()
+
+    bus.subscribe(UserAccessChanged, invalidate_epoch, phase="after_commit")
+    return bus
 
 
 async def _with_dispatcher(action: str) -> int:
@@ -197,11 +241,31 @@ def expire_invitations() -> None:
     asyncio.run(_expire_invitations())
 
 
+async def _identity_task(name: str) -> None:
+    from saber_uli.config import get_settings
+    from saber_uli.identity.infrastructure import tasks
+    from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
+    from saber_uli.shared.infrastructure.db import create_engine, create_session_factory
+
+    settings = get_settings()
+    engine = create_engine(settings.database_url.get_secret_value())
+    try:
+        session_factory = create_session_factory(engine)
+        bus = identity_task_bus(settings.redis_url.get_secret_value())
+        run = getattr(tasks, name)
+        await run(
+            uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, bus),
+            clock=SystemClock(),
+        )
+    finally:
+        await engine.dispose()
+
+
 @celery_app.task(name="saber_uli.process_retention")
 def process_retention() -> None:
-    _log.debug("task_not_implemented_yet", task="process_retention", owner="T156")
+    asyncio.run(_identity_task("process_retention"))
 
 
 @celery_app.task(name="saber_uli.process_deletion_requests")
 def process_deletion_requests() -> None:
-    _log.debug("task_not_implemented_yet", task="process_deletion_requests", owner="T157")
+    asyncio.run(_identity_task("process_deletion_requests"))

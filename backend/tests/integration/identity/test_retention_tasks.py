@@ -25,6 +25,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from saber_uli.identity.domain.retention import institutional_schedule
 from saber_uli.identity.domain.roles import Role
 from saber_uli.identity.infrastructure.handlers.link_emails import long_date
 from saber_uli.identity.infrastructure.handlers.retention_notice import RetentionNoticeHandler
@@ -196,7 +197,7 @@ async def test_aviso_al_institucional_30_dias_antes(
     assert entry.actor_id is None
     assert entry.details == {
         "kind": "institutional",
-        "erase_on": str((login + timedelta(days=365)).date()),
+        "erase_on": institutional_schedule(login).erase_on.isoformat(),  # fecha de Bogotá
     }
 
 

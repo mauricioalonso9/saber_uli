@@ -110,6 +110,15 @@ class SqlAlchemyInvitationRepository:
         )
         return None if row is None else _to_domain(row)
 
+    async def latest_for_guest(self, guest_user_id: UUID) -> Invitation | None:
+        row = await self._db.scalar(
+            select(InvitationRow)
+            .where(InvitationRow.guest_user_id == guest_user_id)
+            .order_by(InvitationRow.created_at.desc())
+            .limit(1)
+        )
+        return None if row is None else _to_domain(row)
+
     async def set_delivery_status(self, invitation_id: UUID, status: str) -> None:
         await self._db.execute(
             update(InvitationRow)

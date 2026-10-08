@@ -10,6 +10,12 @@
    días después de su revocación o, si no fue revocada, del vencimiento de su enlace.
 4. Los lotes pendientes que pasaron sus 24 horas quedan `expired`, y los lotes confirmados o
    vencidos hace más de 30 días se borran (contienen correos).
+
+`process_retention` (diaria, FR-034a a FR-034d): busca las cuentas cuyo plazo de conservación
+llegó al aviso o a la supresión y aplica `apply_retention` a cada una en su propia transacción.
+
+`process_deletion_requests` (cada 15 min, respaldo del outbox): completa las solicitudes
+pendientes con `EraseUser` (SC-006).
 """
 
 from collections.abc import Callable
@@ -18,15 +24,21 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 import structlog
-from sqlalchemy import delete, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy.dialects.postgresql import distinct_on
 
 from saber_uli.identity.application.audit import AuditAction, AuditTarget, record_audit
+from saber_uli.identity.application.erase_user import EraseUser
+from saber_uli.identity.application.retention import RetentionOutcome, apply_retention
 from saber_uli.identity.domain.events import UserAccessChanged
 from saber_uli.identity.domain.invitation import InvitationStatus
+from saber_uli.identity.domain.retention import GUEST_NOTICE_AFTER, INSTITUTIONAL_NOTICE_AFTER
+from saber_uli.identity.domain.user import UserKind, UserStatus
 from saber_uli.identity.infrastructure.orm import (
     AccessLinkRow,
     InvitationBatchRow,
     InvitationRow,
+    UserRow,
 )
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
 from saber_uli.shared.domain.clock import Clock
@@ -156,3 +168,101 @@ async def _end_guest_sessions(
     await uow.users.save(guest)
     await uow.sessions.revoke_all_for_user(guest_user_id, now=now, reason="access_changed")
     uow.record(UserAccessChanged(user_id=guest_user_id, occurred_at=now))
+
+
+# --- Conservación y supresión (US7) ------------------------------------------------------------
+
+_RETAINED = (UserStatus.ACTIVE.value, UserStatus.DISABLED.value)
+DELETION_BATCH = 100
+
+
+@dataclass(frozen=True)
+class RetentionReport:
+    notices: int
+    deletion_requests: int
+    skipped_last_admin: int
+
+
+async def process_retention(
+    *, uow_factory: Callable[[], SqlAlchemyIdentityUnitOfWork], clock: Clock
+) -> RetentionReport:
+    now = clock.now()
+    async with uow_factory() as uow:
+        candidates = await _retention_candidates(uow, now)
+
+    outcomes: list[RetentionOutcome] = []
+    for user_id in candidates:
+        async with uow_factory() as uow:
+            user = await uow.users.get(user_id)
+            if user is None:
+                continue
+            outcome = await apply_retention(uow, user, now=now)
+            if outcome is not RetentionOutcome.NONE:
+                await uow.commit()
+            outcomes.append(outcome)
+
+    report = RetentionReport(
+        notices=outcomes.count(RetentionOutcome.NOTICE_QUEUED),
+        deletion_requests=outcomes.count(RetentionOutcome.DELETION_REQUESTED),
+        skipped_last_admin=outcomes.count(RetentionOutcome.SKIPPED_LAST_ADMIN),
+    )
+    _log.info(
+        "retention_processed",
+        candidates=len(candidates),
+        notices=report.notices,
+        deletion_requests=report.deletion_requests,
+        skipped_last_admin=report.skipped_last_admin,
+    )
+    return report
+
+
+async def _retention_candidates(uow: SqlAlchemyIdentityUnitOfWork, now: datetime) -> list[UUID]:
+    """Cuentas que ya llegaron, al menos, a la fecha de aviso. Es un filtro grueso: la decisión
+    final la toma `apply_retention` con los datos vigentes."""
+    db = uow.session
+    institutional = await db.scalars(
+        select(UserRow.id)
+        .where(UserRow.kind == UserKind.INSTITUTIONAL.value)
+        .where(UserRow.status.in_(_RETAINED))
+        .where(
+            func.coalesce(UserRow.last_login_at, UserRow.created_at)
+            <= now - INSTITUTIONAL_NOTICE_AFTER
+        )
+    )
+    latest = (
+        select(
+            InvitationRow.guest_user_id,
+            InvitationRow.access_expires_at,
+            InvitationRow.revoked_at,
+        )
+        .where(InvitationRow.guest_user_id.is_not(None))
+        .where(InvitationRow.accepted_at.is_not(None))
+        .ext(distinct_on(InvitationRow.guest_user_id))
+        .order_by(InvitationRow.guest_user_id, InvitationRow.created_at.desc())
+        .subquery()
+    )
+    access_end = func.least(
+        latest.c.access_expires_at, func.coalesce(latest.c.revoked_at, latest.c.access_expires_at)
+    )
+    guests = await db.scalars(
+        select(UserRow.id)
+        .join(latest, latest.c.guest_user_id == UserRow.id)
+        .where(UserRow.kind == UserKind.GUEST.value)
+        .where(UserRow.status.in_(_RETAINED))
+        .where(access_end <= now - GUEST_NOTICE_AFTER)
+    )
+    return [*institutional, *guests]
+
+
+async def process_deletion_requests(
+    *, uow_factory: Callable[[], SqlAlchemyIdentityUnitOfWork], clock: Clock
+) -> int:
+    async with uow_factory() as uow:
+        pending = await uow.deletion_requests.pending_ids(limit=DELETION_BATCH)
+    erase = EraseUser(uow_factory=uow_factory, clock=clock)
+    completed = 0
+    for request_id in pending:
+        if await erase.execute(request_id):
+            completed += 1
+    _log.info("deletion_requests_processed", pending=len(pending), completed=completed)
+    return completed

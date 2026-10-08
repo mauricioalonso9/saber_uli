@@ -1,0 +1,11 @@
+{% extends "base.html.j2" %}
+{% block title %}Tus datos en Saber Uli se eliminarán el {{ erase_on }}{% endblock %}
+{% block content %}
+<h1 style="font-size:20px;margin:0 0 16px;">{% if name %}Hola, {{ name }}.{% else %}Hola.{% endif %}</h1>
+<p style="margin:0 0 12px;">Hace casi un año que no ingresas a Saber Uli. Para proteger tus datos personales, el {{ erase_on }} eliminaremos tu cuenta, tu perfil y tu progreso.</p>
+<p style="margin:0 0 12px;">Si quieres conservarlos, ingresa con tu cuenta Unilibre antes de esa fecha. Con eso la eliminación se cancela.</p>
+<p style="margin:24px 0 0;">
+  <a href="{{ sign_in_path | absolute_url }}" style="display:inline-block;padding:12px 20px;background:#15803d;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">Ingresar a Saber Uli</a>
+</p>
+<p style="margin:24px 0 0;font-size:14px;color:#4b5563;">Si no haces nada, la eliminación ocurrirá en la fecha indicada. Las estadísticas de las preguntas se conservan sin datos que te identifiquen.</p>
+{% endblock %}

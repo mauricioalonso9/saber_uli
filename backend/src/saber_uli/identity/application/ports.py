@@ -214,6 +214,10 @@ class InvitationRepository(Protocol):
         """Invitación `sent` o `accepted` del correo, sin distinguir mayúsculas."""
         ...
 
+    async def latest_for_guest(self, guest_user_id: UUID) -> Invitation | None:
+        """Invitación más reciente del invitado; de ella se deriva su acceso (§4.2)."""
+        ...
+
     async def set_delivery_status(self, invitation_id: UUID, status: str) -> None:
         """`queued`, `sent` o `failed` (caso límite de rebote)."""
         ...

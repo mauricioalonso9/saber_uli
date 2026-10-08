@@ -3,10 +3,13 @@
  * Generado, no editar a mano: ejecute `npm run api:generate` (principio III).
  */
 import type { Consent } from "./consent";
+import type { PersonalDataAuditEvent } from "./personalDataAuditEvent";
 import type { PersonalDataExportIdentity } from "./personalDataExportIdentity";
 import type { PersonalDataExportInvitation } from "./personalDataExportInvitation";
 import type { PersonalDataExportSections } from "./personalDataExportSections";
+import type { PersonalDataSession } from "./personalDataSession";
 import type { Profile } from "./profile";
+import type { Program } from "./program";
 import type { Role } from "./role";
 
 export interface PersonalDataExport {
@@ -18,6 +21,15 @@ export interface PersonalDataExport {
   consents: Consent[];
   /** Solo invitados */
   invitation?: PersonalDataExportInvitation;
+  /** Programas que dirige (solo con el rol Director de programa) */
+  director_programs?: Program[];
+  /** Sesiones de la persona, de la más reciente a la más antigua */
+  sessions?: PersonalDataSession[];
+  /**
+   * Eventos de auditoría sobre la persona, del más reciente al más antiguo. No identifican
+   * a quien hizo la acción: `actor` dice solo si fue la persona, el personal o el sistema.
+   */
+  audit_events?: PersonalDataAuditEvent[];
   /** Secciones agregadas por otros contextos en especificaciones futuras */
   sections?: PersonalDataExportSections;
 }

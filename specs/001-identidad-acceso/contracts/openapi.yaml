@@ -1474,10 +1474,42 @@ components:
           properties:
             accepted_at: { type: string, format: date-time }
             access_expires_at: { type: string, format: date-time }
+        director_programs:
+          type: array
+          description: Programas que dirige (solo con el rol Director de programa)
+          items: { $ref: '#/components/schemas/Program' }
+        sessions:
+          type: array
+          description: Sesiones de la persona, de la más reciente a la más antigua
+          items: { $ref: '#/components/schemas/PersonalDataSession' }
+        audit_events:
+          type: array
+          description: |
+            Eventos de auditoría sobre la persona, del más reciente al más antiguo. No identifican
+            a quien hizo la acción: `actor` dice solo si fue la persona, el personal o el sistema.
+          items: { $ref: '#/components/schemas/PersonalDataAuditEvent' }
         sections:
           type: object
           description: Secciones agregadas por otros contextos en especificaciones futuras
           additionalProperties: true
+
+    PersonalDataSession:
+      type: object
+      required: [auth_method, started_at, last_seen_at, expires_at]
+      properties:
+        auth_method: { type: string, enum: [entra_id, guest_link] }
+        started_at: { type: string, format: date-time }
+        last_seen_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        revoked_at: { type: string, format: date-time }
+    PersonalDataAuditEvent:
+      type: object
+      required: [occurred_at, action, actor]
+      properties:
+        occurred_at: { type: string, format: date-time }
+        action: { type: string }
+        actor: { type: string, enum: [self, staff, system] }
+        details: { type: object, additionalProperties: true }
 
     # ---------------------------------------------------------- programas
     Program:

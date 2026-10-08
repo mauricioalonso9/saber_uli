@@ -364,9 +364,11 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 ### R-26. Exportación de "Mis datos" (FR-031)
 
 - **Decisión**: `GET /api/v1/me/data-export` devuelve un JSON legible
-  (`Content-Disposition: attachment`) con identidad, perfil, roles, grupos, historial de
-  autorizaciones e invitación de origen. Las especificaciones futuras agregan sus secciones
-  mediante una interfaz de "proveedores de exportación" por contexto.
+  (`Content-Disposition: attachment`) con identidad, perfil, roles, programas que dirige,
+  grupos, historial de autorizaciones, invitación de origen, sesiones y eventos de auditoría
+  sobre la persona (sin identificar a quien hizo la acción: solo `self`, `staff` o `system`).
+  Las especificaciones futuras agregan sus secciones mediante una interfaz de "proveedores de
+  exportación" por contexto.
 - **Justificación**: un formato legible y estructurado cumple el derecho de consulta.
 
 ### R-27. Política de tratamiento de datos

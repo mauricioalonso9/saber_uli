@@ -324,9 +324,14 @@ async def committed_login(
             "DELETE FROM identity.invitation_batches WHERE created_by = ANY(:ids)",
             "DELETE FROM identity.groups WHERE created_by = ANY(:ids)",
             "UPDATE identity.settings SET updated_by = NULL WHERE updated_by = ANY(:ids)",
+            "DELETE FROM identity.deletion_requests WHERE user_id = ANY(:ids)",
             "DELETE FROM identity.users WHERE id = ANY(:ids)",
         ):
             await conn.execute(text(statement), {"ids": created})
+        await conn.execute(
+            text("DELETE FROM shared.outbox_events WHERE payload->>'user_id' = ANY(:ids)"),
+            {"ids": [str(user_id) for user_id in created]},
+        )
     await cleanup.dispose()
 
 

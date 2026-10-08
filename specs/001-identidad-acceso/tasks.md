@@ -1685,8 +1685,12 @@ dato editable del perfil.
     Revisión de Opus (2026-10-08): aprobada; 52 subpruebas de Schemathesis en verde.
 - [ ] T178 Escribir la verificación ASVS 4.0.3 nivel 2 de la funcionalidad en `docs/security/asvs-001-identidad.md` (requisitos aplicables de V2, V3, V4, V5, V7, V8, V13 con evidencia o justificación, incluida la desviación de V3.3.2 registrada en plan.md) → Opus
   - Terminado: documento completo; ningún requisito aplicable sin evidencia.
-- [ ] T179 [P] Escribir `README.md` en la raíz (qué es Saber Uli, cómo levantar el entorno con enlace a quickstart.md, estructura, flujo SDD con dos modelos) → Qwen
+- [x] T179 [P] Escribir `README.md` en la raíz (qué es Saber Uli, cómo levantar el entorno con enlace a quickstart.md, estructura, flujo SDD con dos modelos) → Qwen
   - Terminado: un recién llegado levanta el stack siguiendo solo el README y el quickstart.
+  - Estado: implementada por Opus (2026-10-08). Al seguir el quickstart para el perfil `e2e`
+    faltaba cómo configurar `.env` (inquilino y autoridad del proveedor de prueba, como en CI) y
+    el comando de contrato no era el que corre CI: ambos corregidos en la sección 4. La
+    comprobación con un `docker compose up` desde cero queda para T180.
 - [ ] T180 Validar de punta a punta los escenarios V1 a V21 de `specs/001-identidad-acceso/quickstart.md` sobre `docker compose up` desde cero, corregir la documentación si algo difiere y confirmar la Definición de Terminado del kit (sección 9) → Opus
   - Terminado: todos los escenarios pasan; cobertura ≥ 80 % en `domain` y `application`; CI en verde; `/speckit.analyze` sin inconsistencias abiertas.
 

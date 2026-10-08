@@ -103,8 +103,8 @@ cd backend
 uv run pytest --cov=saber_uli --cov-report=term-missing
 uv run ruff check . ; uv run mypy --strict src ; uv run lint-imports
 
-# Contrato (con el stack arriba)
-uv run schemathesis run ../specs/001-identidad-acceso/contracts/openapi.yaml --url http://localhost
+# Contrato (Schemathesis sobre las 52 operaciones contra la app ASGI; requiere Docker)
+uv run pytest tests/contract
 
 # Frontend
 cd ../frontend
@@ -112,9 +112,26 @@ npm ci ; npm run lint ; npm run typecheck ; npm test
 
 # Extremo a extremo, accesibilidad y modo sin conexión (stack con proveedor OIDC de prueba)
 cd ..
-docker compose --profile e2e up -d --build
-cd frontend ; npx playwright test
+docker compose --profile e2e up -d --build --wait
+cd frontend ; npx playwright install chromium webkit ; npx playwright test
 ```
+
+Para el perfil `e2e`, `.env` apunta al proveedor OIDC de prueba en lugar de Entra ID (lo mismo
+que hace CI):
+
+```text
+ENTRA_TENANT_ID=11111111-1111-4111-8111-111111111111
+ENTRA_AUTHORITY=http://oidc:8080/11111111-1111-4111-8111-111111111111
+PUBLIC_BASE_URL=http://localhost
+```
+
+El navegador y la API usan el mismo emisor `http://oidc:8080`. Chromium lo resuelve solo
+(`playwright.config.ts`); para WebKit agregue `127.0.0.1 oidc` al archivo hosts y ejecute con
+`E2E_OIDC_RESOLVES=1`, o esas pruebas se omiten.
+
+Rendimiento (T176): `uv run pytest tests/integration/identity/test_performance_budgets.py -s`
+imprime los p95 medidos; con `PERF_BUDGETS_ENFORCE=1` además exige p95 < 300 ms (en el servidor
+de referencia).
 
 Criterios: todas las suites en verde; cobertura ≥ 80 % en `domain` y `application`;
 Schemathesis sin fallos; axe sin infracciones de nivel AA.

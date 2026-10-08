@@ -1,11 +1,40 @@
 import { Link, Outlet, useRouteContext, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
+import type { Permission } from "@/api/model";
 import { cn } from "@/shared/lib/utils";
 import { logout } from "@/features/auth/bootstrap";
 import { useOnlineStatus } from "@/shared/lib/use-online-status";
 import { Button } from "@/shared/ui/button";
 import { InstallHint } from "@/shared/ui/InstallHint";
+
+/** Enlaces de docentes y de administración: se muestran solo con el permiso (FR-030). */
+const STAFF_LINKS: ReadonlyArray<{
+  to:
+    | "/invitaciones"
+    | "/grupos"
+    | "/admin/usuarios"
+    | "/admin/grupos"
+    | "/admin/programas"
+    | "/admin/parametros"
+    | "/admin/auditoria"
+    | "/admin/politica";
+  label: string;
+  permissions: Permission[];
+}> = [
+  {
+    to: "/invitaciones",
+    label: "nav.invitations",
+    permissions: ["invitations:manage_own", "invitations:manage_all"],
+  },
+  { to: "/grupos", label: "nav.myGroups", permissions: ["groups:read_own_students"] },
+  { to: "/admin/usuarios", label: "nav.users", permissions: ["users:manage"] },
+  { to: "/admin/grupos", label: "nav.groups", permissions: ["groups:manage"] },
+  { to: "/admin/programas", label: "nav.programs", permissions: ["programs:manage"] },
+  { to: "/admin/parametros", label: "nav.settings", permissions: ["settings:manage"] },
+  { to: "/admin/auditoria", label: "nav.audit", permissions: ["audit:read"] },
+  { to: "/admin/politica", label: "nav.policy", permissions: ["policy:publish"] },
+];
 
 /**
  * Estructura común: enlace para saltar al contenido (primer elemento enfocable), cabecera con la
@@ -56,7 +85,7 @@ export function AppShell() {
       </header>
       <InstallHint />
       <nav aria-label={t("app.mainNavigation")} className="border-b px-4 py-2">
-        <ul className="flex gap-4">
+        <ul className="flex flex-wrap gap-x-4 gap-y-1">
           <li>
             <Link
               to="/inicio"
@@ -65,18 +94,20 @@ export function AppShell() {
               {t("nav.home")}
             </Link>
           </li>
-          {session?.kind === "authenticated" &&
-          !session.me.onboarding.consent_required &&
-          session.me.permissions.some((p) => p.startsWith("invitations:")) ? (
-            <li>
-              <Link
-                to="/invitaciones"
-                className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
-              >
-                {t("nav.invitations")}
-              </Link>
-            </li>
-          ) : null}
+          {session?.kind === "authenticated" && !session.me.onboarding.consent_required
+            ? STAFF_LINKS.filter(({ permissions }) =>
+                permissions.some((permission) => session.me.permissions.includes(permission)),
+              ).map(({ to, label }) => (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    {t(label)}
+                  </Link>
+                </li>
+              ))
+            : null}
           {session?.kind === "authenticated" && !session.me.onboarding.consent_required ? (
             <li>
               <Link

@@ -64,6 +64,9 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "guest-role-exclusive": "Un invitado no puede tener otros roles.",
   "director-requires-programs": "Asigna al menos un programa al director de programa.",
   "last-admin": "No puedes quitar el rol Administrador al último administrador activo.",
+  "unknown-program": "Uno de los programas elegidos ya no existe. Actualiza la página.",
+  "program-code-exists": "Ya existe un programa con ese código.",
+  "not-institutional-account": "Solo una cuenta institucional puede tener ese rol.",
   "deletion-already-requested": "Ya hay una solicitud de supresión de tu cuenta en curso.",
   // Producidos por el cliente o por el estado HTTP
   "service-unavailable": "El servicio no está disponible en este momento. Intenta más tarde.",

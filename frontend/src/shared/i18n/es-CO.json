@@ -13,7 +13,15 @@
     "home": "Inicio",
     "consent": "Mi autorización de datos",
     "account": "Mi cuenta",
-    "invitations": "Invitaciones"
+    "invitations": "Invitaciones",
+    "myGroups": "Mis grupos",
+    "users": "Cuentas",
+    "groups": "Grupos",
+    "programs": "Programas",
+    "settings": "Parámetros",
+    "audit": "Auditoría",
+    "policy": "Política de datos",
+    "administration": "Administración"
   },
   "home": {
     "title": "Inicio",
@@ -268,5 +276,163 @@
     "count_one": "{{count}} invitación.",
     "count_other": "{{count}} invitaciones.",
     "partial": "Se muestran las {{shown}} más recientes; usa la búsqueda para encontrar otras."
+  },
+  "admin": {
+    "loading": "Cargando…",
+    "roles": {
+      "student": "Estudiante",
+      "guest": "Invitado",
+      "teacher": "Docente",
+      "program_director": "Director de programa",
+      "admin": "Administrador"
+    },
+    "status": {
+      "active": "Activa",
+      "disabled": "Desactivada",
+      "guest_expired": "Acceso vencido",
+      "guest_revoked": "Acceso revocado",
+      "deletion_pending": "Supresión en curso",
+      "deleted": "Eliminada"
+    },
+    "kinds": {
+      "institutional": "Institucional",
+      "guest": "Invitado"
+    },
+    "users": {
+      "title": "Cuentas",
+      "table": "Cuentas",
+      "search": "Buscar por correo o nombre",
+      "role": "Rol",
+      "columns": {
+        "name": "Nombre",
+        "email": "Correo",
+        "kind": "Tipo",
+        "roles": "Roles",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "editRoles": "Editar roles",
+      "editRolesOf": "Editar roles de {{name}}",
+      "rolesOf": "Roles de {{name}}",
+      "directorPrograms": "Programas que dirige",
+      "saveRoles": "Guardar roles",
+      "rolesSaved": "Actualizamos los roles de {{name}}.",
+      "disable": "Desactivar",
+      "disableOf": "Desactivar a {{name}}",
+      "reactivate": "Reactivar",
+      "reactivateOf": "Reactivar a {{name}}",
+      "confirmDisable": "¿Desactivar a {{name}}?",
+      "confirmDisableBody": "No podrá ingresar y sus sesiones abiertas terminarán de inmediato. Puedes reactivarla después.",
+      "confirmYes": "Sí, desactivar",
+      "disabled": "Desactivamos la cuenta de {{name}}.",
+      "reactivated": "Reactivamos la cuenta de {{name}}."
+    },
+    "groups": {
+      "title": "Grupos",
+      "table": "Grupos",
+      "createTitle": "Crear un grupo",
+      "name": "Nombre",
+      "cohort": "Cohorte (opcional)",
+      "description": "Descripción (opcional)",
+      "create": "Crear grupo",
+      "created": "Creamos el grupo {{name}}.",
+      "columns": {
+        "name": "Nombre",
+        "cohort": "Cohorte",
+        "members": "Estudiantes",
+        "teachers": "Docentes",
+        "state": "Estado",
+        "actions": "Acciones"
+      },
+      "active": "Activo",
+      "archived": "Archivado",
+      "manage": "Gestionar",
+      "manageOf": "Gestionar {{name}}",
+      "archive": "Archivar el grupo",
+      "unarchive": "Reactivar el grupo",
+      "archivedDone": "Archivamos el grupo.",
+      "unarchived": "Reactivamos el grupo.",
+      "students": "Estudiantes",
+      "teachers": "Docentes",
+      "searchStudents": "Buscar estudiantes por correo o nombre",
+      "searchTeachers": "Buscar docentes por correo o nombre",
+      "add": "Agregar",
+      "addPerson": "Agregar a {{name}}",
+      "added": "Agregamos a {{name}}.",
+      "remove": "Quitar",
+      "removePerson": "Quitar a {{name}}",
+      "removed": "Quitamos a {{name}}.",
+      "errors": {
+        "name": "El nombre debe tener entre 2 y 120 caracteres."
+      }
+    },
+    "programs": {
+      "title": "Programas",
+      "table": "Programas",
+      "createTitle": "Crear un programa",
+      "code": "Código",
+      "name": "Nombre",
+      "campus": "Seccional",
+      "create": "Crear programa",
+      "created": "Creamos el programa {{name}}.",
+      "columns": {
+        "code": "Código",
+        "name": "Nombre",
+        "campus": "Seccional",
+        "state": "Estado",
+        "actions": "Acciones"
+      },
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "activateOf": "Activar {{label}}",
+      "deactivateOf": "Desactivar {{label}}",
+      "activated": "Activamos {{label}}.",
+      "deactivated": "Desactivamos {{label}}: ya no aparece al completar el perfil.",
+      "errors": {
+        "code": "Usa de 2 a 20 letras mayúsculas, números o guiones, por ejemplo DER-BOG.",
+        "name": "El nombre debe tener entre 3 y 200 caracteres.",
+        "campus": "La seccional debe tener entre 2 y 100 caracteres."
+      }
+    },
+    "settings": {
+      "title": "Parámetros",
+      "fields": {
+        "teacher_max_access_days": "Plazo máximo para docentes al invitar (días)",
+        "default_guest_access_days": "Acceso por defecto de un invitado (días)",
+        "invitation_link_ttl_days": "Vigencia del enlace de invitación (días)",
+        "sign_in_link_ttl_minutes": "Vigencia del enlace de ingreso (minutos)"
+      },
+      "range": "Debe ser un número entero entre {{min}} y {{max}}.",
+      "save": "Guardar parámetros",
+      "saved": "Guardamos los parámetros.",
+      "noChanges": "No hay cambios que guardar."
+    },
+    "audit": {
+      "title": "Auditoría",
+      "table": "Eventos de auditoría",
+      "action": "Acción",
+      "from": "Desde",
+      "to": "Hasta",
+      "filter": "Filtrar",
+      "system": "Sistema",
+      "count_one": "{{count}} evento.",
+      "count_other": "{{count}} eventos.",
+      "columns": {
+        "when": "Fecha",
+        "action": "Acción",
+        "actor": "Quién",
+        "target": "Sobre",
+        "details": "Detalle"
+      }
+    }
+  },
+  "teacher": {
+    "title": "Mis grupos",
+    "empty": "Todavía no tienes grupos asignados. La administración de Saber Uli te los asigna.",
+    "groupButton_one": "{{name}} ({{count}} estudiante)",
+    "groupButton_other": "{{name}} ({{count}} estudiantes)",
+    "studentsOf": "Estudiantes de {{name}}"
   }
 }

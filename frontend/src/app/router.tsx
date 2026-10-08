@@ -21,7 +21,14 @@ import { LoginPage } from "@/features/auth/LoginPage";
 import { createSessionLoader } from "@/features/auth/session-loader";
 import { AccountPage } from "@/features/account/AccountPage";
 import { ConsentSettingsPage } from "@/features/account/ConsentSettingsPage";
+import { AuditPage } from "@/features/admin/AuditPage";
+import { GroupDetail } from "@/features/admin/GroupDetail";
+import { GroupsPage } from "@/features/admin/GroupsPage";
 import { PolicyPage } from "@/features/admin/PolicyPage";
+import { ProgramsPage } from "@/features/admin/ProgramsPage";
+import { SettingsPage } from "@/features/admin/SettingsPage";
+import { UsersPage } from "@/features/admin/UsersPage";
+import { TeacherGroupsPage } from "@/features/teacher/TeacherGroupsPage";
 import { InvitationsPage } from "@/features/invitations/InvitationsPage";
 import { ConsentPage } from "@/features/onboarding/ConsentPage";
 import { ProfilePage } from "@/features/onboarding/ProfilePage";
@@ -160,6 +167,48 @@ const invitationsRoute = createRoute({
   component: InvitationsPage,
 });
 
+const adminUsersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/usuarios",
+  component: UsersPage,
+});
+
+const adminGroupsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/grupos",
+  component: GroupsPage,
+});
+
+const adminGroupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/grupos/$groupId",
+  component: GroupDetail,
+});
+
+const adminProgramsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/programas",
+  component: ProgramsPage,
+});
+
+const adminSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/parametros",
+  component: SettingsPage,
+});
+
+const adminAuditRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/auditoria",
+  component: AuditPage,
+});
+
+const teacherGroupsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/grupos",
+  component: TeacherGroupsPage,
+});
+
 const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sin-conexion",
@@ -176,6 +225,13 @@ export const routeTree = rootRoute.addChildren([
   consentSettingsRoute,
   adminPolicyRoute,
   invitationsRoute,
+  adminUsersRoute,
+  adminGroupsRoute,
+  adminGroupRoute,
+  adminProgramsRoute,
+  adminSettingsRoute,
+  adminAuditRoute,
+  teacherGroupsRoute,
   // Marcador: la supresión (US7) y la consulta y descarga de datos (US8, T169) la completan.
   page("/mi-cuenta/datos", "accountData.title", "accountData.placeholder"),
   profileRoute,

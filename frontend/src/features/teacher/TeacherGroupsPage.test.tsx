@@ -41,7 +41,7 @@ describe("mis grupos", () => {
     const user = userEvent.setup();
 
     expect(await screen.findByRole("heading", { name: "Mis grupos" })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /derecho 2026-2/i }));
+    await user.click(await screen.findByRole("button", { name: /derecho 2026-2/i }));
 
     const list = await screen.findByRole("list", { name: "Estudiantes de Derecho 2026-2" });
     expect(

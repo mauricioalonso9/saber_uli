@@ -1571,21 +1571,43 @@ dato editable del perfil.
 
 ### Tests for User Story 8 ⚠️
 
-- [ ] T166 [P] [US8] Prueba: exportación en `backend/tests/integration/identity/test_data_export.py` (`GET /api/v1/me/data-export` con `Content-Disposition: attachment`; contiene identidad, perfil, roles, nombres de grupos, historial de autorizaciones, invitación (solo invitados) y `source_note`; nunca incluye datos de otras personas; las secciones de otros contextos se agregan por el registro de proveedores; FR-031) → Qwen
+- [x] T166 [P] [US8] Prueba: exportación en `backend/tests/integration/identity/test_data_export.py` (`GET /api/v1/me/data-export` con `Content-Disposition: attachment`; contiene identidad, perfil, roles, nombres de grupos, historial de autorizaciones, invitación (solo invitados) y `source_note`; nunca incluye datos de otras personas; las secciones de otros contextos se agregan por el registro de proveedores; FR-031) → Qwen
   - Terminado: la prueba falla.
-- [ ] T167 [P] [US8] Prueba de componente `frontend/src/features/account/MyDataPage.test.tsx` (muestra los datos, botón de descarga, nota de rectificación en el directorio para institucionales (escenario 8.2), enlace a editar perfil) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Verifica que no aparezcan el nombre ni el UUID de una
+    compañera de grupo, de quien creó el grupo ni de quien invitó al invitado.
+- [x] T167 [P] [US8] Prueba de componente `frontend/src/features/account/MyDataPage.test.tsx` (muestra los datos, botón de descarga, nota de rectificación en el directorio para institucionales (escenario 8.2), enlace a editar perfil) → Qwen
   - Terminado: la prueba falla.
+  - Estado: implementada por Opus (2026-10-07).
 
 ### Implementation for User Story 8
 
-- [ ] T168 [US8] Implementar `backend/src/saber_uli/shared/application/data_export_registry.py`, `backend/src/saber_uli/identity/application/data_export.py` y la ruta en `backend/src/saber_uli/identity/api/me_router.py` para que pase T166; agregar `exportMyData` a `implemented_operations.py` → Qwen
+- [x] T168 [US8] Implementar `backend/src/saber_uli/shared/application/data_export_registry.py`, `backend/src/saber_uli/identity/application/data_export.py` y la ruta en `backend/src/saber_uli/identity/api/me_router.py` para que pase T166; agregar `exportMyData` a `implemented_operations.py` → Qwen
   - Terminado: T166 y la prueba de contrato en verde.
-- [ ] T169 [US8] Implementar `frontend/src/features/account/MyDataPage.tsx` (`/mi-cuenta/datos`, junto con la sección de T163) para que pase T167 → Qwen
+  - Estado: implementada por Opus (2026-10-07). Contrato sin cambios; 52 operaciones en verde.
+    `DataExportRegistry` (shared/application) queda listo para las secciones de 002 en adelante;
+    la respuesta lleva `Cache-Control: no-store`. Nuevo `GroupRepository.group_names_for`.
+- [x] T169 [US8] Implementar `frontend/src/features/account/MyDataPage.tsx` (`/mi-cuenta/datos`, junto con la sección de T163) para que pase T167 → Qwen
   - Terminado: T167 en verde.
-- [ ] T170 [US8] Prueba e2e `frontend/tests/e2e/us8-my-data.spec.ts` (V17: ver, descargar y validar el JSON; editar un dato del perfil) → Qwen
+  - Estado: implementada por Opus (2026-10-07). `/mi-cuenta/datos` reemplaza el marcador; la descarga guarda
+    el JSON tal como lo entrega la API. La sección de supresión aparece aquí y en `/mi-cuenta`.
+- [x] T170 [US8] Prueba e2e `frontend/tests/e2e/us8-my-data.spec.ts` (V17: ver, descargar y validar el JSON; editar un dato del perfil) → Qwen
   - Terminado: pasa contra el stack `e2e`.
-- [ ] T171 [US8] Revisión de US8 (T166–T170) en `specs/001-identidad-acceso/tasks.md`: completitud de la exportación frente a data-model.md y FR-031 → Opus
+  - Estado: implementada por Opus (2026-10-07). En verde 3 corridas completas seguidas (33 pruebas).
+- [x] T171 [US8] Revisión de US8 (T166–T170) en `specs/001-identidad-acceso/tasks.md`: completitud de la exportación frente a data-model.md y FR-031 → Opus
   - Terminado: tareas aprobadas y marcadas.
+  - Revisión de Opus (2026-10-07): T166–T170 aprobadas.
+    - FR-031 frente a data-model.md: la exportación incluye `users` (nombre, correo, tipo,
+      creación, último ingreso), `profiles`, `role_assignments`, nombres de grupos (como
+      estudiante o docente), `consents` y, para invitados, la invitación de origen. No incluye
+      datos de otras personas (T166).
+    - Escenario 8.2: la nota explica que nombre y correo institucionales se corrigen en el
+      directorio de Unilibre y enlaza a Mi cuenta para el perfil; al invitado no le habla del
+      directorio.
+    - Decisión pendiente (cambio de contrato): el esquema `PersonalDataExport` no tiene campos
+      para los programas que dirige un director (`director_programs`), las sesiones abiertas
+      (método y fechas) ni los eventos de auditoría sobre la persona. Se proponen como campos
+      nuevos del contrato antes del lanzamiento; no se agregaron en esta revisión.
+    - Durante US8 se corrigió una regla de lint que dejó T164 (región desplazable con foco).
 
 **Checkpoint**: las 8 historias están completas.
 

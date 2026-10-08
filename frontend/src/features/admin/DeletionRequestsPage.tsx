@@ -54,10 +54,12 @@ export function DeletionRequestsPage() {
           <p className="mb-2 text-sm text-muted-foreground">
             {t("admin.deletions.count", { count: list.data.total })}
           </p>
-          {/* En el celular la tabla se desplaza: el contenedor recibe el foco del teclado. */}
+          {/* En el celular la tabla se desplaza: el contenedor recibe el foco del teclado para
+              desplazarla con las flechas (WCAG 2.1.1; axe scrollable-region-focusable). */}
           <div
             role="region"
             aria-label={t("admin.deletions.table")}
+            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- región desplazable
             tabIndex={0}
             className="overflow-x-auto"
           >

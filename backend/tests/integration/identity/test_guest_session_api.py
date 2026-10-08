@@ -6,6 +6,7 @@ aceptar la invitación, abre la sesión y fija la cookie `su_refresh`.
 """
 
 import io
+import json
 from typing import Any
 from uuid import UUID
 
@@ -198,3 +199,30 @@ async def test_limite_de_60_por_minuto_por_ip(
 
     assert statuses[:60] == [400] * 60
     assert statuses[60] == 429
+
+
+async def test_el_ingreso_del_invitado_queda_registrado_sin_datos_personales(
+    migrated_database: dict[str, str],
+    redis_url: str,
+    redis_client: Redis,
+    guests: Guests,
+    teacher: UUID,
+) -> None:
+    # ASVS 7.2.1 (T178): toda decisión de autenticación se registra, como con Microsoft.
+    stream = io.StringIO()
+    app = create_app(settings_for(migrated_database, redis_url), log_stream=stream)
+    invitation_id, email = await guests.invitation(teacher)
+    token = await guests.link(invitation_id)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        assert (await sign_in(client, token)).status_code == 200
+        assert (await sign_in(client, token)).status_code == 400
+
+    events = [json.loads(line) for line in stream.getvalue().splitlines()]
+    logins = [e for e in events if e["event"].startswith("auth.login_")]
+    assert [(e["event"], e["provider"]) for e in logins] == [
+        ("auth.login_succeeded", "guest_link"),
+        ("auth.login_rejected", "guest_link"),
+    ]
+    assert logins[1]["cause"] == "access-link-invalid"
+    assert email not in stream.getvalue() and token not in stream.getvalue()

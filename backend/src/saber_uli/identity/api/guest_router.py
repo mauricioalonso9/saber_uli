@@ -9,6 +9,7 @@
 
 from typing import Annotated
 
+import structlog
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,6 +19,7 @@ from saber_uli.identity.application.sessions import SessionService
 from saber_uli.identity.domain.invitation import GuestAccessExpiredError, GuestAccessRevokedError
 from saber_uli.shared.api.problems import ProblemException
 from saber_uli.shared.api.rate_limit import Guard, per_ip
+from saber_uli.shared.domain.errors import DomainError
 from saber_uli.shared.infrastructure.rate_limit import (
     GUEST_LINK_PER_EMAIL,
     GUEST_LINK_PER_IP,
@@ -25,6 +27,7 @@ from saber_uli.shared.infrastructure.rate_limit import (
 )
 
 router = APIRouter(prefix="/api/auth/guest", tags=["auth"])
+_log = structlog.get_logger(__name__)
 
 LINK_REQUEST_MESSAGE = (
     "Si el correo corresponde a un invitado con acceso vigente, en unos minutos recibirá un "
@@ -77,9 +80,14 @@ async def create_guest_session(
 ) -> SessionTokens:
     try:
         issued = await service.execute(body.token)
-    except (GuestAccessExpiredError, GuestAccessRevokedError) as error:
-        # En la renovación estas causas son 401; aquí la persona aún no tiene sesión: 403.
-        raise ProblemException(403, error.slug, detail=error.message) from error
+    except DomainError as error:
+        # Toda decisión de autenticación queda registrada (ASVS 7.2.1), sin token ni correo.
+        _log.info("auth.login_rejected", provider="guest_link", cause=error.slug)
+        if isinstance(error, GuestAccessExpiredError | GuestAccessRevokedError):
+            # En la renovación estas causas son 401; aquí la persona aún no tiene sesión: 403.
+            raise ProblemException(403, error.slug, detail=error.message) from error
+        raise
+    _log.info("auth.login_succeeded", provider="guest_link")
     response.headers["Set-Cookie"] = refresh_cookie(
         request, issued, sessions.seconds_until(issued.refresh_expires_at)
     )

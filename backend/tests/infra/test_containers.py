@@ -218,6 +218,22 @@ def test_cabeceras_de_seguridad_del_proxy(infra_stack: list[str]) -> None:
     assert headers["X-Frame-Options"] == "DENY"
 
 
+def test_el_proxy_no_registra_consultas_ni_ip(infra_stack: list[str]) -> None:
+    # Las búsquedas de los listados (`?q=`) pueden llevar correos o nombres (T178).
+    marker = f"t178-{secrets.token_hex(4)}"
+    httpx.get(f"{PROXY_URL}/api/v1/invitations", params={"q": f"{marker}@correo.co"}, timeout=10)
+    httpx.get(f"{PROXY_URL}/ingresar", params={"q": marker}, timeout=10)
+
+    result = run([*infra_stack, "logs", "--no-log-prefix", "proxy"], timeout=60)
+
+    assert result.returncode == 0, result.stderr
+    assert marker not in result.stdout + result.stderr
+    lines = [json.loads(line) for line in result.stdout.splitlines() if "proxy_request" in line]
+    assert any(line["path"] == "/api/v1/invitations" for line in lines)
+    fields = {"time", "event", "method", "path", "status", "bytes", "duration_s"}
+    assert all(set(line) == fields for line in lines)
+
+
 def test_service_worker_allowed(infra_stack: list[str]) -> None:
     # Hasta T068 no existe sw.js (404), pero las cabeceras se envían con `always`.
     headers = httpx.get(f"{PROXY_URL}/sw.js", timeout=10).headers

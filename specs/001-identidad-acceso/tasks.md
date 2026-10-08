@@ -777,10 +777,16 @@ consentimiento, correo y base del frontend. Ninguna historia empieza antes de te
       vencimiento natural del acceso de invitado puede tardar hasta 10 min en surtir efecto en un
       token de acceso ya emitido (lo resuelven la renovación y T126).
     - Hallazgos abiertos (tareas nuevas T070a y T070b).
-- [ ] T070a [P] Redis con contraseña en producción: `requirepass` en `compose.prod.yaml` y `REDIS_URL` con credenciales armada por Compose desde una variable nueva `REDIS_PASSWORD` (documentada en `.env.example`); prueba en T007 de que `redis-cli ping` sin contraseña falla con el archivo de producción → Qwen
+- [x] T070a [P] Redis con contraseña en producción: `requirepass` en `compose.prod.yaml` y `REDIS_URL` con credenciales armada por Compose desde una variable nueva `REDIS_PASSWORD` (documentada en `.env.example`); prueba en T007 de que `redis-cli ping` sin contraseña falla con el archivo de producción → Qwen
   - Terminado: T007 en verde con la comprobación nueva.
-- [ ] T070b [P] Alertas operativas: documentar en quickstart.md (operación) que los eventos `rate_limit_unavailable`, `epoch_cache_unavailable`, `session_revocation_unavailable`, `outbox_delivery_failed` y `readiness_check_failed` deben generar alerta, con un ejemplo de consulta sobre los logs JSON → Qwen
+  - Estado: implementada por Opus (2026-10-07). Revisión de Opus (2026-10-08): aprobada. La
+    contraseña llega a `redis-server` por la entrada estándar (no aparece en `/proc/1/cmdline`);
+    `test_redis_de_produccion_exige_contrasena` y la validación de Compose en verde.
+- [x] T070b [P] Alertas operativas: documentar en quickstart.md (operación) que los eventos `rate_limit_unavailable`, `epoch_cache_unavailable`, `session_revocation_unavailable`, `outbox_delivery_failed` y `readiness_check_failed` deben generar alerta, con un ejemplo de consulta sobre los logs JSON → Qwen
   - Terminado: sección nueva en quickstart.md revisada por Opus.
+  - Estado: implementada por Opus (2026-10-07). Revisión de Opus (2026-10-08): aprobada. Los
+    cinco eventos de la tabla existen en `backend/src`; incluye consulta con `jq` y la de eventos
+    del outbox atascados.
 
 **Checkpoint**: base lista; las historias pueden empezar (en paralelo si hay capacidad).
 
@@ -1617,18 +1623,29 @@ dato editable del perfil.
 
 **Purpose**: verificaciones transversales y Definición de Terminado (kit, sección 9).
 
-- [ ] T172 [P] Prueba e2e de uso sin conexión `frontend/tests/e2e/offline-access.spec.ts` (V16: app instalada en modo avión funciona hasta el día 7 con el reloj de Playwright; el día 8 pide reconectarse; al reconectar con acceso revocado no sincroniza y muestra la causa; FR-038, FR-039) → Qwen
+- [x] T172 [P] Prueba e2e de uso sin conexión `frontend/tests/e2e/offline-access.spec.ts` (V16: app instalada en modo avión funciona hasta el día 7 con el reloj de Playwright; el día 8 pide reconectarse; al reconectar con acceso revocado no sincroniza y muestra la causa; FR-038, FR-039) → Qwen
   - Terminado: pasa contra el stack `e2e`.
-- [ ] T173 [P] Prueba e2e de accesibilidad `frontend/tests/e2e/a11y.spec.ts` (axe nivel WCAG 2.2 AA en todas las rutas de research R-35, en viewport móvil, con navegación por teclado y foco visible) → Qwen
+  - Estado: implementada por Opus (2026-10-08). Nuevo `disableAccount` en `fixtures/db.ts`
+    (estado `disabled` y `auth_epoch` + 1, como un administrador). En verde 4 corridas seguidas en
+    pixel-7; en WebKit se omite sin `E2E_OIDC_RESOLVES`, como el resto de la suite.
+- [x] T173 [P] Prueba e2e de accesibilidad `frontend/tests/e2e/a11y.spec.ts` (axe nivel WCAG 2.2 AA en todas las rutas de research R-35, en viewport móvil, con navegación por teclado y foco visible) → Qwen
   - Terminado: cero infracciones.
+  - Estado: implementada por Opus (2026-10-07). Revisión de Opus (2026-10-08): aprobada. Las
+    tablas de administración usan `ScrollRegion` (región desplazable enfocable con nombre); suite
+    e2e completa en verde (38 pruebas) y 202 pruebas unitarias en verde.
 - [ ] T174 [P] Configurar Lighthouse CI en `frontend/lighthouserc.json` (rendimiento ≥ 90 en `/ingresar`, criterios de PWA instalable, sin errores de consola) → Qwen
   - Terminado: el trabajo `lighthouse` de CI pasa.
-- [ ] T175 [P] Prueba de registros `backend/tests/integration/test_no_pii_in_logs.py` (ejecuta los flujos de US1 a US8 capturando los logs de API y worker y verifica que no aparecen correos, nombres ni tokens; V21) → Opus
+- [x] T175 [P] Prueba de registros `backend/tests/integration/test_no_pii_in_logs.py` (ejecuta los flujos de US1 a US8 capturando los logs de API y worker y verifica que no aparecen correos, nombres ni tokens; V21) → Opus
   - Terminado: la prueba pasa.
+  - Estado: implementada por Opus (2026-10-07). Revisión de Opus (2026-10-08): aprobada; la
+    prueba pasa.
 - [ ] T176 [P] Prueba de presupuesto de rendimiento `backend/tests/integration/identity/test_performance_budgets.py` (p95 < 300 ms en `/api/v1/me`, `/api/auth/refresh` e invitaciones con 200 peticiones concurrentes sobre datos de 40 000 usuarios sembrados; validación de lote de 500 filas < 2 s) → Qwen
   - Terminado: los presupuestos se cumplen o se registra una decisión pendiente con mediciones.
-- [ ] T177 Ejecutar Schemathesis completo con las 51 operaciones en `backend/tests/contract/implemented_operations.py` → Qwen
+- [x] T177 Ejecutar Schemathesis completo con las 52 operaciones en `backend/tests/contract/implemented_operations.py` → Qwen
   - Terminado: cero fallos; la lista coincide con todos los `operationId` del contrato.
+  - Estado: implementada por Opus (2026-10-07). Son 52, no 51: `adminListGroupMembers` (US6) se
+    agregó después de generar esta tarea. La prueba exige ahora igualdad exacta en ambos sentidos.
+    Revisión de Opus (2026-10-08): aprobada; 52 subpruebas de Schemathesis en verde.
 - [ ] T178 Escribir la verificación ASVS 4.0.3 nivel 2 de la funcionalidad en `docs/security/asvs-001-identidad.md` (requisitos aplicables de V2, V3, V4, V5, V7, V8, V13 con evidencia o justificación, incluida la desviación de V3.3.2 registrada en plan.md) → Opus
   - Terminado: documento completo; ningún requisito aplicable sin evidencia.
 - [ ] T179 [P] Escribir `README.md` en la raíz (qué es Saber Uli, cómo levantar el entorno con enlace a quickstart.md, estructura, flujo SDD con dos modelos) → Qwen

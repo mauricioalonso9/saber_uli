@@ -20,8 +20,8 @@ export interface Invitation {
   access_expires_at: string;
   link_expires_at?: string;
   /**
-   * `null` si la creó el sistema (comando `invite-guest`). `display_name` es `null` si
-   * quien invitó fue suprimido.
+   * `null` si la creó el sistema (comando de operación invite-guest). `display_name` es
+   * `null` si quien invitó fue suprimido.
    * @nullable
    */
   invited_by: InvitationInvitedBy;

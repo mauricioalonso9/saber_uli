@@ -21,6 +21,7 @@ import type {
 import type {
   AdminListAuditEventsParams,
   AdminListDeletionRequestsParams,
+  AdminListGroupMembersParams,
   AdminListGroupsParams,
   AdminListProgramsParams,
   AdminListUsersParams,
@@ -34,6 +35,7 @@ import type {
   ForbiddenResponse,
   Group,
   GroupInput,
+  GroupMemberPage,
   GroupPage,
   GroupPatch,
   NotFoundResponse,
@@ -808,7 +810,8 @@ export const adminUpdateUserStatus = async (
 export const getAdminUpdateUserStatusMutationKey = () => ["adminUpdateUserStatus"] as const;
 
 export const getAdminUpdateUserStatusMutationOptions = <
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -848,7 +851,7 @@ export type AdminUpdateUserStatusMutationResult = NonNullable<
 >;
 export type AdminUpdateUserStatusMutationBody = AdminUpdateUserStatusBody;
 export type AdminUpdateUserStatusMutationError =
-  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem;
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse;
 export type AdminUpdateUserStatusMutationVariables = {
   userId: string;
   data: AdminUpdateUserStatusBody;
@@ -858,7 +861,8 @@ export type AdminUpdateUserStatusMutationVariables = {
  * @summary Desactiva o reactiva una cuenta (FR-029)
  */
 export const useAdminUpdateUserStatus = <
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(
   options?: {
@@ -921,7 +925,8 @@ export const adminSetUserRoles = async (
 export const getAdminSetUserRolesMutationKey = () => ["adminSetUserRoles"] as const;
 
 export const getAdminSetUserRolesMutationOptions = <
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -961,14 +966,15 @@ export type AdminSetUserRolesMutationResult = NonNullable<
 >;
 export type AdminSetUserRolesMutationBody = AdminSetUserRolesBody;
 export type AdminSetUserRolesMutationError =
-  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem;
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse;
 export type AdminSetUserRolesMutationVariables = { userId: string; data: AdminSetUserRolesBody };
 
 /**
  * @summary Define los roles y programas dirigidos de un usuario (FR-023…FR-026)
  */
 export const useAdminSetUserRoles = <
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(
   options?: {
@@ -1239,7 +1245,7 @@ export const getAdminGetGroupQueryKey = (groupId: string) => {
 
 export const getAdminGetGroupQueryOptions = <
   TData = Awaited<ReturnType<typeof adminGetGroup>>,
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
 >(
   groupId: string,
   options?: {
@@ -1265,11 +1271,11 @@ export const getAdminGetGroupQueryOptions = <
 };
 
 export type AdminGetGroupQueryResult = NonNullable<Awaited<ReturnType<typeof adminGetGroup>>>;
-export type AdminGetGroupQueryError = UnauthorizedResponse | NotFoundResponse;
+export type AdminGetGroupQueryError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse;
 
 export function useAdminGetGroup<
   TData = Awaited<ReturnType<typeof adminGetGroup>>,
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
 >(
   groupId: string,
   options: {
@@ -1288,7 +1294,7 @@ export function useAdminGetGroup<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useAdminGetGroup<
   TData = Awaited<ReturnType<typeof adminGetGroup>>,
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
 >(
   groupId: string,
   options?: {
@@ -1307,7 +1313,7 @@ export function useAdminGetGroup<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useAdminGetGroup<
   TData = Awaited<ReturnType<typeof adminGetGroup>>,
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
 >(
   groupId: string,
   options?: {
@@ -1319,7 +1325,7 @@ export function useAdminGetGroup<
 
 export function useAdminGetGroup<
   TData = Awaited<ReturnType<typeof adminGetGroup>>,
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
 >(
   groupId: string,
   options?: {
@@ -1376,7 +1382,7 @@ export const adminUpdateGroup = async (
 export const getAdminUpdateGroupMutationKey = () => ["adminUpdateGroup"] as const;
 
 export const getAdminUpdateGroupMutationOptions = <
-  TError = UnauthorizedResponse | NotFoundResponse | ValidationErrorResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1416,11 +1422,11 @@ export type AdminUpdateGroupMutationResult = NonNullable<
 >;
 export type AdminUpdateGroupMutationBody = GroupPatch;
 export type AdminUpdateGroupMutationError =
-  UnauthorizedResponse | NotFoundResponse | ValidationErrorResponse;
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse;
 export type AdminUpdateGroupMutationVariables = { groupId: string; data: GroupPatch };
 
 export const useAdminUpdateGroup = <
-  TError = UnauthorizedResponse | NotFoundResponse | ValidationErrorResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse,
   TContext = unknown,
 >(
   options?: {
@@ -1441,6 +1447,167 @@ export const useAdminUpdateGroup = <
 > => {
   return useMutation(getAdminUpdateGroupMutationOptions(options), queryClient);
 };
+export const getAdminListGroupMembersUrl = (
+  groupId: string,
+  params?: AdminListGroupMembersParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/v1/admin/groups/${groupId}/members?${stringifiedParams}`
+    : `/api/v1/admin/groups/${groupId}/members`;
+};
+
+/**
+ * @summary Miembros de un grupo para el administrador (nombre y correo) (FR-027)
+ */
+export const adminListGroupMembers = async (
+  groupId: string,
+  params?: AdminListGroupMembersParams,
+  options?: Parameters<typeof customInstance>[1],
+): Promise<GroupMemberPage> => {
+  return customInstance<GroupMemberPage>(getAdminListGroupMembersUrl(groupId, params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminListGroupMembersQueryKey = (
+  groupId: string,
+  params?: AdminListGroupMembersParams,
+) => {
+  return [`/api/v1/admin/groups/${groupId}/members`, ...(params ? [params] : [])] as const;
+};
+
+export const getAdminListGroupMembersQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminListGroupMembers>>,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+>(
+  groupId: string,
+  params?: AdminListGroupMembersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListGroupMembers>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminListGroupMembersQueryKey(groupId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminListGroupMembers>>> = ({ signal }) =>
+    adminListGroupMembers(groupId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: groupId !== null && groupId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof adminListGroupMembers>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type AdminListGroupMembersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminListGroupMembers>>
+>;
+export type AdminListGroupMembersQueryError =
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse;
+
+export function useAdminListGroupMembers<
+  TData = Awaited<ReturnType<typeof adminListGroupMembers>>,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+>(
+  groupId: string,
+  params: undefined | AdminListGroupMembersParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListGroupMembers>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListGroupMembers>>,
+          TError,
+          Awaited<ReturnType<typeof adminListGroupMembers>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListGroupMembers<
+  TData = Awaited<ReturnType<typeof adminListGroupMembers>>,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+>(
+  groupId: string,
+  params?: AdminListGroupMembersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListGroupMembers>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof adminListGroupMembers>>,
+          TError,
+          Awaited<ReturnType<typeof adminListGroupMembers>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useAdminListGroupMembers<
+  TData = Awaited<ReturnType<typeof adminListGroupMembers>>,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+>(
+  groupId: string,
+  params?: AdminListGroupMembersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListGroupMembers>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary Miembros de un grupo para el administrador (nombre y correo) (FR-027)
+ */
+
+export function useAdminListGroupMembers<
+  TData = Awaited<ReturnType<typeof adminListGroupMembers>>,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+>(
+  groupId: string,
+  params?: AdminListGroupMembersParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof adminListGroupMembers>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAdminListGroupMembersQueryOptions(groupId, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
 export const getAdminAddGroupMembersUrl = (groupId: string) => {
   return `/api/v1/admin/groups/${groupId}/members`;
 };
@@ -1480,7 +1647,8 @@ export const adminAddGroupMembers = async (
 export const getAdminAddGroupMembersMutationKey = () => ["adminAddGroupMembers"] as const;
 
 export const getAdminAddGroupMembersMutationOptions = <
-  TError = UnauthorizedResponse | NotFoundResponse | Problem,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1519,11 +1687,13 @@ export type AdminAddGroupMembersMutationResult = NonNullable<
   Awaited<ReturnType<typeof adminAddGroupMembers>>
 >;
 export type AdminAddGroupMembersMutationBody = UserIdList;
-export type AdminAddGroupMembersMutationError = UnauthorizedResponse | NotFoundResponse | Problem;
+export type AdminAddGroupMembersMutationError =
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse;
 export type AdminAddGroupMembersMutationVariables = { groupId: string; data: UserIdList };
 
 export const useAdminAddGroupMembers = <
-  TError = UnauthorizedResponse | NotFoundResponse | Problem,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(
   options?: {
@@ -1562,7 +1732,7 @@ export const adminRemoveGroupMember = async (
 export const getAdminRemoveGroupMemberMutationKey = () => ["adminRemoveGroupMember"] as const;
 
 export const getAdminRemoveGroupMemberMutationOptions = <
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1601,11 +1771,12 @@ export type AdminRemoveGroupMemberMutationResult = NonNullable<
   Awaited<ReturnType<typeof adminRemoveGroupMember>>
 >;
 
-export type AdminRemoveGroupMemberMutationError = UnauthorizedResponse | NotFoundResponse;
+export type AdminRemoveGroupMemberMutationError =
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse;
 export type AdminRemoveGroupMemberMutationVariables = { groupId: string; userId: string };
 
 export const useAdminRemoveGroupMember = <
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
   TContext = unknown,
 >(
   options?: {
@@ -1665,7 +1836,8 @@ export const adminAddGroupTeachers = async (
 export const getAdminAddGroupTeachersMutationKey = () => ["adminAddGroupTeachers"] as const;
 
 export const getAdminAddGroupTeachersMutationOptions = <
-  TError = UnauthorizedResponse | NotFoundResponse | Problem,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1704,11 +1876,13 @@ export type AdminAddGroupTeachersMutationResult = NonNullable<
   Awaited<ReturnType<typeof adminAddGroupTeachers>>
 >;
 export type AdminAddGroupTeachersMutationBody = UserIdList;
-export type AdminAddGroupTeachersMutationError = UnauthorizedResponse | NotFoundResponse | Problem;
+export type AdminAddGroupTeachersMutationError =
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse;
 export type AdminAddGroupTeachersMutationVariables = { groupId: string; data: UserIdList };
 
 export const useAdminAddGroupTeachers = <
-  TError = UnauthorizedResponse | NotFoundResponse | Problem,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | Problem | ValidationErrorResponse,
   TContext = unknown,
 >(
   options?: {
@@ -1747,7 +1921,7 @@ export const adminRemoveGroupTeacher = async (
 export const getAdminRemoveGroupTeacherMutationKey = () => ["adminRemoveGroupTeacher"] as const;
 
 export const getAdminRemoveGroupTeacherMutationOptions = <
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1786,11 +1960,12 @@ export type AdminRemoveGroupTeacherMutationResult = NonNullable<
   Awaited<ReturnType<typeof adminRemoveGroupTeacher>>
 >;
 
-export type AdminRemoveGroupTeacherMutationError = UnauthorizedResponse | NotFoundResponse;
+export type AdminRemoveGroupTeacherMutationError =
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse;
 export type AdminRemoveGroupTeacherMutationVariables = { groupId: string; userId: string };
 
 export const useAdminRemoveGroupTeacher = <
-  TError = UnauthorizedResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
   TContext = unknown,
 >(
   options?: {

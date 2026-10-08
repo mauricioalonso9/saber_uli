@@ -4,8 +4,8 @@
  */
 
 /**
- * `null` si la creó el sistema (comando `invite-guest`). `display_name` es `null` si
- * quien invitó fue suprimido.
+ * `null` si la creó el sistema (comando de operación invite-guest). `display_name` es
+ * `null` si quien invitó fue suprimido.
  * @nullable
  */
 export type InvitationInvitedBy = {

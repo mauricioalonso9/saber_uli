@@ -78,4 +78,4 @@ def test_la_fecha_limite_usa_la_fecha_de_bogota() -> None:
 
 def test_la_fecha_limite_exige_hora_con_zona() -> None:
     with pytest.raises(ValueError, match="zona"):
-        deletion_due_date(datetime(2026, 10, 6, 12, 0))  # noqa: DTZ001
+        deletion_due_date(datetime(2026, 10, 6, 12, 0))

@@ -317,6 +317,10 @@ class FakeDeletionRequests:
     """Solicitudes de supresión: sus pruebas son de integración (T154 a T156)."""
 
 
+class FakeErasure:
+    """Borrado de datos personales: sus pruebas son de integración (T155)."""
+
+
 class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     """Comparte los repositorios entre aperturas (como una base de datos) y cuenta los commits."""
 
@@ -336,6 +340,7 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
         self._access_links = FakeAccessLinks()
         self._settings = FakeSettings()
         self._deletion_requests = FakeDeletionRequests()
+        self._erasure = FakeErasure()
         self.commits = 0
 
     def __call__(self) -> "FakeIdentityUnitOfWork":
@@ -396,6 +401,10 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     @property
     def deletion_requests(self) -> FakeDeletionRequests:
         return self._deletion_requests
+
+    @property
+    def erasure(self) -> FakeErasure:
+        return self._erasure
 
     async def _commit(self) -> None:
         self.commits += 1

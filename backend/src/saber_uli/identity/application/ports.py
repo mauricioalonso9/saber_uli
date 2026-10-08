@@ -435,3 +435,11 @@ class DeletionRequestRepository(Protocol):
     ) -> tuple[list[DeletionRequest], int]:
         """Página de solicitudes, de la más reciente a la más antigua (FR-034)."""
         ...
+
+
+class PersonalDataEraser(Protocol):
+    async def erase(self, user_id: UUID) -> None:
+        """Borra lo que identifica al usuario fuera de su fila (FR-033): perfil, membresías de
+        grupos, sesiones y, de sus invitaciones como invitado, correo, nombre y enlaces. Los
+        roles y los datos de la fila los limpia la lápida del agregado `User`."""
+        ...

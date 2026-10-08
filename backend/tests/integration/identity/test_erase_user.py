@@ -60,7 +60,8 @@ async def sql(engine: AsyncEngine, statement: str, **params: Any) -> None:
 
 
 async def scalar(engine: AsyncEngine, statement: str, **params: Any) -> Any:
-    async with engine.connect() as conn:
+    """Un valor; confirma, así sirve también para `INSERT … RETURNING`."""
+    async with engine.begin() as conn:
         return (await conn.execute(text(statement), params)).scalar_one()
 
 
@@ -132,10 +133,14 @@ async def test_deja_una_lapida_sin_datos_personales(
     program = await new_program()
     await sql(
         app_engine,
-        """INSERT INTO identity.director_programs (user_id, program_id) VALUES (:u, :p);
-           INSERT INTO identity.role_assignments (user_id, role) VALUES (:u, 'program_director')""",
+        "INSERT INTO identity.director_programs (user_id, program_id) VALUES (:u, :p)",
         u=user.id,
         p=program,
+    )
+    await sql(
+        app_engine,
+        "INSERT INTO identity.role_assignments (user_id, role) VALUES (:u, 'program_director')",
+        u=user.id,
     )
     await sql(
         app_engine,
@@ -154,13 +159,13 @@ async def test_deja_una_lapida_sin_datos_personales(
         "INSERT INTO identity.groups (name, created_by) VALUES ('Suyo T155', :u) RETURNING id",
         u=user.id,
     )
-    await sql(
-        app_engine,
-        """INSERT INTO identity.group_members (group_id, user_id) VALUES (:g, :u);
-           INSERT INTO identity.group_teachers (group_id, user_id) VALUES (:g, :u)""",
-        g=group,
-        u=user.id,
-    )
+    for table in ("group_members", "group_teachers"):
+        await sql(
+            app_engine,
+            f"INSERT INTO identity.{table} (group_id, user_id) VALUES (:g, :u)",  # noqa: S608
+            g=group,
+            u=user.id,
+        )
     sent = await scalar(
         app_engine,
         """INSERT INTO identity.invitations (email, invited_by, status, access_expires_at)

@@ -11,6 +11,7 @@ from saber_uli.identity.application.ports import (
     GuestAccessReader,
     InvitationBatchRepository,
     InvitationRepository,
+    PersonalDataEraser,
     PolicyRepository,
     ProfileRepository,
     ProgramRepository,
@@ -77,3 +78,7 @@ class IdentityUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def deletion_requests(self) -> DeletionRequestRepository: ...
+
+    @property
+    @abstractmethod
+    def erasure(self) -> PersonalDataEraser: ...

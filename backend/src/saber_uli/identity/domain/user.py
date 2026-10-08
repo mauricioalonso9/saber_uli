@@ -150,6 +150,7 @@ class User:
         self.display_name = None
         self.entra_identity = None
         self.roles = set()
+        self.director_program_ids = set()
         self.retention_notice_sent_at = None
 
     def record_login(

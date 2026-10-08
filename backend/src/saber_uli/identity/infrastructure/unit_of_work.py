@@ -11,6 +11,7 @@ from saber_uli.identity.application.ports import (
     GuestAccessReader,
     InvitationBatchRepository,
     InvitationRepository,
+    PersonalDataEraser,
     PolicyRepository,
     ProfileRepository,
     ProgramRepository,
@@ -27,6 +28,7 @@ from saber_uli.identity.infrastructure.repositories.consents import SqlAlchemyCo
 from saber_uli.identity.infrastructure.repositories.deletion_requests import (
     SqlAlchemyDeletionRequestRepository,
 )
+from saber_uli.identity.infrastructure.repositories.erasure import SqlAlchemyPersonalDataEraser
 from saber_uli.identity.infrastructure.repositories.groups import SqlAlchemyGroupRepository
 from saber_uli.identity.infrastructure.repositories.guest_access import (
     SqlAlchemyGuestAccessReader,
@@ -106,3 +108,7 @@ class SqlAlchemyIdentityUnitOfWork(SqlAlchemyUnitOfWork, IdentityUnitOfWork):
     @property
     def deletion_requests(self) -> DeletionRequestRepository:
         return SqlAlchemyDeletionRequestRepository(self.session)
+
+    @property
+    def erasure(self) -> PersonalDataEraser:
+        return SqlAlchemyPersonalDataEraser(self.session)

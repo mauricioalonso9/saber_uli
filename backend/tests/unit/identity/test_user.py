@@ -1,7 +1,7 @@
 """T041: agregado `User` (data-model §2.1 y §4.1; FR-003, FR-005, FR-024, FR-029, FR-033; R-16)."""
 
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -106,6 +106,7 @@ def test_solicitar_supresion_desde_activo_o_desactivado(start: str) -> None:
 
 def test_la_lapida_no_tiene_datos_personales_ni_roles() -> None:
     user = institutional()
+    user.director_program_ids = {uuid4()}
     user.request_deletion()
 
     user.to_tombstone()
@@ -114,6 +115,7 @@ def test_la_lapida_no_tiene_datos_personales_ni_roles() -> None:
     assert (user.email, user.display_name) == (None, None)
     assert user.entra_identity is None
     assert user.roles == set()
+    assert user.director_program_ids == set()
 
 
 def test_solo_se_suprime_tras_la_solicitud() -> None:

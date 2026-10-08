@@ -5,6 +5,7 @@ from saber_uli.identity.domain.events import (
     InvitationCreated,
     InvitationResent,
     SignInLinkRequested,
+    UserErased,
 )
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.infrastructure.outbox import register_outbox
@@ -19,5 +20,6 @@ def register_identity_outbox(bus: EventBus) -> None:
         InvitationResent,
         SignInLinkRequested,
         DeletionRequested,
+        UserErased,
         context="identity",
     )

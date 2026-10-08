@@ -313,6 +313,10 @@ class FakeGroups:
     """Grupos: las pruebas unitarias de grupos usan solo el dominio (T138)."""
 
 
+class FakeDeletionRequests:
+    """Solicitudes de supresión: sus pruebas son de integración (T154 a T156)."""
+
+
 class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     """Comparte los repositorios entre aperturas (como una base de datos) y cuenta los commits."""
 
@@ -331,6 +335,7 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
         self._invitation_batches = FakeInvitationBatches()
         self._access_links = FakeAccessLinks()
         self._settings = FakeSettings()
+        self._deletion_requests = FakeDeletionRequests()
         self.commits = 0
 
     def __call__(self) -> "FakeIdentityUnitOfWork":
@@ -387,6 +392,10 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     @property
     def audit(self) -> FakeAudit:
         return self._audit
+
+    @property
+    def deletion_requests(self) -> FakeDeletionRequests:
+        return self._deletion_requests
 
     async def _commit(self) -> None:
         self.commits += 1

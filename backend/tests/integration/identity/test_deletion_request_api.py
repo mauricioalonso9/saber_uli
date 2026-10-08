@@ -223,4 +223,3 @@ async def test_solo_administradores_con_sesion_privilegiada(
 async def test_requiere_sesion(api_client: httpx.AsyncClient) -> None:
     assert (await api_client.post(MINE, json=CONFIRM)).status_code == 401
     assert (await api_client.get(MINE)).status_code == 401
-

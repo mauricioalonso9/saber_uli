@@ -6,6 +6,7 @@ from saber_uli.identity.application.ports import (
     AccessLinkRepository,
     AuditRepository,
     ConsentRepository,
+    DeletionRequestRepository,
     GroupRepository,
     GuestAccessReader,
     InvitationBatchRepository,
@@ -72,3 +73,7 @@ class IdentityUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def audit(self) -> AuditRepository: ...
+
+    @property
+    @abstractmethod
+    def deletion_requests(self) -> DeletionRequestRepository: ...

@@ -38,3 +38,30 @@ class InvitationResent(DomainEvent):
 
     event_type: ClassVar[str] = "identity.InvitationResent"
     invitation_id: UUID
+
+
+@dataclass(frozen=True, kw_only=True)
+class DeletionRequested(DomainEvent):
+    """Se abrió una solicitud de supresión (voluntaria o por conservación): el worker la procesa
+    sin esperar a la tarea periódica (R-25)."""
+
+    event_type: ClassVar[str] = "identity.DeletionRequested"
+    user_id: UUID
+    deletion_request_id: UUID
+
+
+@dataclass(frozen=True, kw_only=True)
+class UserErased(DomainEvent):
+    """Terminó la supresión: los demás contextos anonimizan lo suyo (consumidores en 002+)."""
+
+    event_type: ClassVar[str] = "identity.UserErased"
+    user_id: UUID
+
+
+@dataclass(frozen=True, kw_only=True)
+class RetentionNoticeDue(DomainEvent):
+    """Toca el aviso de supresión automática en 30 días (FR-034c). El correo destino y las
+    fechas se leen en el manejador, justo antes de enviar."""
+
+    event_type: ClassVar[str] = "identity.RetentionNoticeDue"
+    user_id: UUID

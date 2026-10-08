@@ -6,6 +6,7 @@ from saber_uli.identity.application.ports import (
     AccessLinkRepository,
     AuditRepository,
     ConsentRepository,
+    DeletionRequestRepository,
     GroupRepository,
     GuestAccessReader,
     InvitationBatchRepository,
@@ -23,6 +24,9 @@ from saber_uli.identity.infrastructure.repositories.access_links import (
 )
 from saber_uli.identity.infrastructure.repositories.audit import SqlAlchemyAuditRepository
 from saber_uli.identity.infrastructure.repositories.consents import SqlAlchemyConsentRepository
+from saber_uli.identity.infrastructure.repositories.deletion_requests import (
+    SqlAlchemyDeletionRequestRepository,
+)
 from saber_uli.identity.infrastructure.repositories.groups import SqlAlchemyGroupRepository
 from saber_uli.identity.infrastructure.repositories.guest_access import (
     SqlAlchemyGuestAccessReader,
@@ -98,3 +102,7 @@ class SqlAlchemyIdentityUnitOfWork(SqlAlchemyUnitOfWork, IdentityUnitOfWork):
     @property
     def audit(self) -> AuditRepository:
         return SqlAlchemyAuditRepository(self.session)
+
+    @property
+    def deletion_requests(self) -> DeletionRequestRepository:
+        return SqlAlchemyDeletionRequestRepository(self.session)

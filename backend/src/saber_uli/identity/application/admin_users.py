@@ -89,7 +89,7 @@ class AdminUsersService:
             user = await _existing(uow, user_id)
             if status == "disabled" and user.status is UserStatus.ACTIVE:
                 if Role.ADMIN in user.roles:
-                    await _ensure_other_admin(uow, user_id)
+                    await ensure_other_admin(uow, user_id)
                 user.disable()
                 await uow.sessions.revoke_all_for_user(user_id, now=now, reason="access_changed")
                 uow.record(UserAccessChanged(user_id=user_id, occurred_at=now))
@@ -127,7 +127,7 @@ class AdminUsersService:
             before_roles = sorted(role.value for role in user.roles)
             before_programs = set(user.director_program_ids)
             if Role.ADMIN in user.roles and Role.ADMIN not in roles:
-                await _ensure_other_admin(uow, user_id)
+                await ensure_other_admin(uow, user_id)
             if Role.PROGRAM_DIRECTOR in roles:
                 for program_id in director_program_ids:
                     if await uow.programs.get(program_id) is None:
@@ -230,12 +230,21 @@ async def _existing(uow: IdentityUnitOfWork, user_id: UUID) -> User:
     return user
 
 
-async def _ensure_other_admin(uow: IdentityUnitOfWork, user_id: UUID) -> None:
+async def ensure_other_admin(
+    uow: IdentityUnitOfWork,
+    user_id: UUID,
+    *,
+    message: str = "No puedes quitar el rol Administrador al último administrador activo.",
+) -> None:
+    """FR-025 y FR-034d: bloquea a los administradores activos y exige otro además de
+    `user_id`. Comparten el bloqueo los cambios de roles, la desactivación y la supresión."""
+    if not await has_other_active_admin(uow, user_id):
+        raise LastAdminError(message)
+
+
+async def has_other_active_admin(uow: IdentityUnitOfWork, user_id: UUID) -> bool:
     admins = await uow.users.lock_active_admins()
-    if not any(admin != user_id for admin in admins):
-        raise LastAdminError(
-            "No puedes quitar el rol Administrador al último administrador activo."
-        )
+    return any(admin != user_id for admin in admins)
 
 
 async def _visible_status(uow: IdentityUnitOfWork, user: User, clock: Clock) -> VisibleStatus:

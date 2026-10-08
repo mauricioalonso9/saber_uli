@@ -25,6 +25,8 @@ from saber_uli.identity.api.admin_catalogs_router import router as admin_catalog
 from saber_uli.identity.api.admin_users_router import router as admin_users_router
 from saber_uli.identity.api.auth_router import router as auth_router
 from saber_uli.identity.api.consent_router import router as consent_router
+from saber_uli.identity.api.deletion_router import admin_router as deletion_admin_router
+from saber_uli.identity.api.deletion_router import router as deletion_router
 from saber_uli.identity.api.groups_router import router as groups_router
 from saber_uli.identity.api.guest_router import router as guest_router
 from saber_uli.identity.api.invitations_router import router as invitations_router
@@ -40,6 +42,7 @@ from saber_uli.identity.application.authenticate_institutional_user import (
 )
 from saber_uli.identity.application.catalogs import AuditQuery, ProgramAdmin, SettingsAdmin
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
+from saber_uli.identity.application.deletion import DeletionService
 from saber_uli.identity.application.groups import GroupService, TeacherGroups
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
 from saber_uli.identity.application.invitation_batches import InvitationBatchService
@@ -189,6 +192,7 @@ def create_app(
     app.state.program_admin = ProgramAdmin(uow_factory=identity_uow, clock=clock)
     app.state.settings_admin = SettingsAdmin(uow_factory=identity_uow, clock=clock)
     app.state.audit_query = AuditQuery(uow_factory=identity_uow)
+    app.state.deletion_service = DeletionService(uow_factory=identity_uow, clock=clock)
     app.state.profile_service = ProfileService(uow_factory=identity_uow, clock=clock)
     app.state.program_catalog = ProgramCatalog(uow_factory=identity_uow)
     app.state.privacy_policy_service = PrivacyPolicyService(uow_factory=identity_uow, clock=clock)
@@ -210,6 +214,8 @@ def create_app(
     app.include_router(groups_router, dependencies=v1)
     app.include_router(teacher_router, dependencies=v1)
     app.include_router(admin_catalogs_router, dependencies=v1)
+    app.include_router(deletion_router, dependencies=v1)
+    app.include_router(deletion_admin_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

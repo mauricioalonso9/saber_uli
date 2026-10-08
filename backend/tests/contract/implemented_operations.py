@@ -61,5 +61,9 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         "adminGetSettings",
         "adminUpdateSettings",
         "adminListAuditEvents",
+        # US7 (T160)
+        "getMyDeletionRequest",
+        "requestMyDeletion",
+        "adminListDeletionRequests",
     }
 )

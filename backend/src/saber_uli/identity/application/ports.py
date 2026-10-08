@@ -9,6 +9,7 @@ from uuid import UUID
 
 from saber_uli.identity.domain.access_link import AccessLink, LinkPurpose
 from saber_uli.identity.domain.consent import ConsentDecision, ConsentRecord
+from saber_uli.identity.domain.deletion_request import DeletionRequest, DeletionStatus
 from saber_uli.identity.domain.group import Group
 from saber_uli.identity.domain.invitation import Invitation, InvitationStatus
 from saber_uli.identity.domain.invitation_batch import InvitationBatch
@@ -406,4 +407,31 @@ class SessionRepository(Protocol):
         self, user_id: UUID, *, now: datetime, reason: RevocationReason
     ) -> int:
         """Revoca las sesiones activas del usuario (al incrementar `auth_epoch`, R-16)."""
+        ...
+
+
+class DeletionRequestRepository(Protocol):
+    async def add(self, request: DeletionRequest) -> DeletionRequest:
+        """Guarda la solicitud; lanza `DeletionAlreadyRequestedError` si ya hay una en curso."""
+        ...
+
+    async def save(self, request: DeletionRequest) -> None: ...
+
+    async def open_for_user(self, user_id: UUID) -> DeletionRequest | None:
+        """Solicitud del usuario que aún no se completa."""
+        ...
+
+    async def get_for_update(self, request_id: UUID) -> DeletionRequest | None:
+        """Solicitud bloqueada hasta el fin de la transacción (`None` si otro proceso la tiene
+        bloqueada o no existe)."""
+        ...
+
+    async def pending_ids(self, *, limit: int) -> list[UUID]:
+        """Solicitudes sin completar, de la más antigua a la más reciente."""
+        ...
+
+    async def search(
+        self, *, status: DeletionStatus | None, offset: int, limit: int
+    ) -> tuple[list[DeletionRequest], int]:
+        """Página de solicitudes, de la más reciente a la más antigua (FR-034)."""
         ...

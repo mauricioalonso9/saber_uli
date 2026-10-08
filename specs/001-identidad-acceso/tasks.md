@@ -1360,43 +1360,97 @@ administrador.
 
 ### Tests for User Story 6 ⚠️
 
-- [ ] T135 [P] [US6] Prueba: reglas de roles en `backend/tests/unit/identity/test_role_rules.py` (un institucional conserva siempre `student` (`student-role-required`); `guest` es exclusivo (`guest-role-exclusive`); `program_director` exige al menos un programa (`director-requires-programs`); retirar `admin` o desactivar al último administrador activo → `last-admin`; retirar roles incrementa `auth_epoch`) → Qwen
+- [x] T135 [P] [US6] Prueba: reglas de roles en `backend/tests/unit/identity/test_role_rules.py` (un institucional conserva siempre `student` (`student-role-required`); `guest` es exclusivo (`guest-role-exclusive`); `program_director` exige al menos un programa (`director-requires-programs`); retirar `admin` o desactivar al último administrador activo → `last-admin`; retirar roles incrementa `auth_epoch`) → Qwen
   - Terminado: la prueba falla.
-- [ ] T136 [P] [US6] Prueba de concurrencia en `backend/tests/integration/identity/test_last_admin_concurrency.py` (dos administradores se quitan el rol mutuamente en transacciones simultáneas: exactamente una falla; FR-025) → Opus
+  - Estado: implementada por Opus (2026-10-07). Reglas en `User.set_roles` (devuelve roles otorgados y
+    retirados); `director-requires-programs` también exige que los programas existan
+    (`unknown-program`).
+- [x] T136 [P] [US6] Prueba de concurrencia en `backend/tests/integration/identity/test_last_admin_concurrency.py` (dos administradores se quitan el rol mutuamente en transacciones simultáneas: exactamente una falla; FR-025) → Opus
   - Terminado: la prueba falla.
-- [ ] T137 [P] [US6] Prueba: API de usuarios en `backend/tests/integration/identity/test_admin_users_api.py` (listar con filtros `q`, `kind`, `role` y `status`; obtener; `PATCH` de estado desactiva, termina sesiones y audita `user.disabled|reactivated`; `PUT /roles` audita `user.role_granted|role_revoked` con roles antes y después y `user.director_programs_changed`; solo administradores con sesión privilegiada) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Dos transacciones simultáneas: exactamente una falla con
+    `last-admin`, en 6 rondas seguidas.
+- [x] T137 [P] [US6] Prueba: API de usuarios en `backend/tests/integration/identity/test_admin_users_api.py` (listar con filtros `q`, `kind`, `role` y `status`; obtener; `PATCH` de estado desactiva, termina sesiones y audita `user.disabled|reactivated`; `PUT /roles` audita `user.role_granted|role_revoked` con roles antes y después y `user.director_programs_changed`; solo administradores con sesión privilegiada) → Qwen
   - Terminado: la prueba falla.
-- [ ] T138 [P] [US6] Prueba: grupos en `backend/tests/unit/identity/test_group.py` (miembros solo estudiantes institucionales (`not-institutional-student`), docentes solo con rol `teacher` (`not-a-teacher`), nombre de 2 a 120 caracteres, `cohort_label` hasta 20) y `backend/tests/integration/identity/test_groups_api.py` (CRUD y archivado, agregar y quitar miembros y docentes, auditoría `group.*`) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Incluye `NotInstitutionalAccountError` al intentar roles
+    institucionales sobre un invitado.
+- [x] T138 [P] [US6] Prueba: grupos en `backend/tests/unit/identity/test_group.py` (miembros solo estudiantes institucionales (`not-institutional-student`), docentes solo con rol `teacher` (`not-a-teacher`), nombre de 2 a 120 caracteres, `cohort_label` hasta 20) y `backend/tests/integration/identity/test_groups_api.py` (CRUD y archivado, agregar y quitar miembros y docentes, auditoría `group.*`) → Qwen
   - Terminado: las pruebas fallan.
-- [ ] T139 [P] [US6] Prueba: vista del docente y del director en `backend/tests/integration/identity/test_teacher_groups_api.py` (`GET /api/v1/teacher/groups` solo grupos propios; `GET /teacher/groups/{id}/students` devuelve `display_name` sin correo y 404 en grupos ajenos (FR-027); un usuario solo `program_director` recibe 403 en endpoints que exponen nombres o correos (FR-026); la fachada `director_program_ids(user_id)` devuelve sus programas) → Opus
+  - Estado: implementada por Opus (2026-10-07). Unidad y API de grupos; auditoría `group.created|updated|archived`
+    y `group.member_added|member_removed|teacher_added|teacher_removed`.
+- [x] T139 [P] [US6] Prueba: vista del docente y del director en `backend/tests/integration/identity/test_teacher_groups_api.py` (`GET /api/v1/teacher/groups` solo grupos propios; `GET /teacher/groups/{id}/students` devuelve `display_name` sin correo y 404 en grupos ajenos (FR-027); un usuario solo `program_director` recibe 403 en endpoints que exponen nombres o correos (FR-026); la fachada `director_program_ids(user_id)` devuelve sus programas) → Opus
   - Terminado: la prueba falla.
-- [ ] T140 [P] [US6] Prueba: programas, parámetros y auditoría en `backend/tests/integration/identity/test_admin_catalogs_api.py` (programas: `code` con patrón `^[A-Z0-9-]{2,20}$` único, `name` 3–200, `campus` 2–100, auditoría `program.*`; parámetros: rangos del contrato y auditoría `setting.changed`; auditoría: filtros `action`, `actor_id`, `subject_user_id`, `from`, `to` y orden descendente, solo lectura) → Qwen
+  - Estado: implementada por Opus (2026-10-07). El director sin rol Docente recibe 403 en usuarios, grupos,
+    invitaciones y la vista del docente.
+- [x] T140 [P] [US6] Prueba: programas, parámetros y auditoría en `backend/tests/integration/identity/test_admin_catalogs_api.py` (programas: `code` con patrón `^[A-Z0-9-]{2,20}$` único, `name` 3–200, `campus` 2–100, auditoría `program.*`; parámetros: rangos del contrato y auditoría `setting.changed`; auditoría: filtros `action`, `actor_id`, `subject_user_id`, `from`, `to` y orden descendente, solo lectura) → Qwen
   - Terminado: la prueba falla.
-- [ ] T141 [P] [US6] Prueba: comando `saber-uli identity grant-admin --email` en `backend/tests/integration/identity/test_cli_grant_admin.py` (solo sobre un institucional existente; audita con actor `system`; mensaje claro si no existe) → Qwen
+  - Estado: implementada por Opus (2026-10-07). `setting.changed` guarda `{key, before, after}`.
+- [x] T141 [P] [US6] Prueba: comando `saber-uli identity grant-admin --email` en `backend/tests/integration/identity/test_cli_grant_admin.py` (solo sobre un institucional existente; audita con actor `system`; mensaje claro si no existe) → Qwen
   - Terminado: la prueba falla.
-- [ ] T142 [P] [US6] Pruebas de componente en `frontend/src/features/admin/UsersPage.test.tsx` (lista, editor de roles con programas del director, desactivar y reactivar, error `last-admin`), `frontend/src/features/admin/GroupsPage.test.tsx`, `frontend/src/features/admin/CatalogPages.test.tsx` (programas, parámetros, auditoría) y `frontend/src/features/teacher/TeacherGroupsPage.test.tsx` (nombres sin correo) → Qwen
+  - Estado: implementada por Opus (2026-10-07). Mensaje claro si el correo no existe.
+- [x] T142 [P] [US6] Pruebas de componente en `frontend/src/features/admin/UsersPage.test.tsx` (lista, editor de roles con programas del director, desactivar y reactivar, error `last-admin`), `frontend/src/features/admin/GroupsPage.test.tsx`, `frontend/src/features/admin/CatalogPages.test.tsx` (programas, parámetros, auditoría) y `frontend/src/features/teacher/TeacherGroupsPage.test.tsx` (nombres sin correo) → Qwen
   - Terminado: las pruebas fallan.
+  - Estado: implementada por Opus (2026-10-07). 188 pruebas de frontend en verde al cerrar T149.
 
 ### Implementation for User Story 6
 
-- [ ] T143 [US6] Completar `backend/src/saber_uli/identity/domain/user.py` (asignación de roles y programas del director) y el bloqueo de administradores en `backend/src/saber_uli/identity/infrastructure/repositories/users.py` para que pasen T135 y T136 → Qwen
+- [x] T143 [US6] Completar `backend/src/saber_uli/identity/domain/user.py` (asignación de roles y programas del director) y el bloqueo de administradores en `backend/src/saber_uli/identity/infrastructure/repositories/users.py` para que pasen T135 y T136 → Qwen
   - Terminado: T135 y T136 en verde (T136 revisada por Opus).
-- [ ] T144 [US6] Implementar `backend/src/saber_uli/identity/application/admin_users.py` y `backend/src/saber_uli/identity/api/admin_users_router.py` para que pase T137 → Qwen
+  - Estado: implementada por Opus (2026-10-07). El bloqueo de administradores es en dos pasos:
+    `SELECT … FOR UPDATE` y luego una consulta nueva que cuenta los activos. Con un solo paso,
+    T136 falló en 5 de 6 rondas (la segunda transacción contaba con la fila vieja).
+- [x] T144 [US6] Implementar `backend/src/saber_uli/identity/application/admin_users.py` y `backend/src/saber_uli/identity/api/admin_users_router.py` para que pase T137 → Qwen
   - Terminado: T137 en verde.
-- [ ] T145 [US6] Implementar `backend/src/saber_uli/identity/domain/group.py`, `backend/src/saber_uli/identity/application/groups.py`, `backend/src/saber_uli/identity/api/groups_router.py` y `backend/src/saber_uli/identity/api/teacher_router.py`, y `director_program_ids` en `backend/src/saber_uli/identity/application/public.py`, para que pasen T138 y T139 → Qwen
+  - Estado: implementada por Opus (2026-10-07). Contrato: se agregó 422 a `adminUpdateUserStatus` y
+    `adminSetUserRoles` (registrado en b76b0c2).
+- [x] T145 [US6] Implementar `backend/src/saber_uli/identity/domain/group.py`, `backend/src/saber_uli/identity/application/groups.py`, `backend/src/saber_uli/identity/api/groups_router.py` y `backend/src/saber_uli/identity/api/teacher_router.py`, y `director_program_ids` en `backend/src/saber_uli/identity/application/public.py`, para que pasen T138 y T139 → Qwen
   - Terminado: T138 y T139 en verde.
-- [ ] T146 [US6] Implementar `backend/src/saber_uli/identity/api/admin_catalogs_router.py` (programas, parámetros, auditoría) con sus casos de uso en `backend/src/saber_uli/identity/application/catalogs.py` para que pase T140; agregar las operaciones de usuarios, grupos, docente, programas, parámetros y auditoría a `implemented_operations.py` → Qwen
+  - Estado: implementada por Opus (2026-10-07). Contrato: 403 en las operaciones de grupos y 422 en
+    `adminAddGroupMembers` y `adminAddGroupTeachers` (b76b0c2). Nueva operación
+    `adminListGroupMembers` con `GroupMember`/`GroupMemberPage` (ee42b48), necesaria para que el
+    administrador vea y quite miembros.
+- [x] T146 [US6] Implementar `backend/src/saber_uli/identity/api/admin_catalogs_router.py` (programas, parámetros, auditoría) con sus casos de uso en `backend/src/saber_uli/identity/application/catalogs.py` para que pase T140; agregar las operaciones de usuarios, grupos, docente, programas, parámetros y auditoría a `implemented_operations.py` → Qwen
   - Terminado: T140 y la prueba de contrato en verde.
-- [ ] T147 [US6] Implementar el comando `grant-admin` en `backend/src/saber_uli/cli.py` para que pase T141 → Qwen
+  - Estado: implementada por Opus (2026-10-07). Contrato en verde con 48 operaciones. Programas con código único
+    (`program-code-exists`).
+- [x] T147 [US6] Implementar el comando `grant-admin` en `backend/src/saber_uli/cli.py` para que pase T141 → Qwen
   - Terminado: T141 en verde.
-- [ ] T148 [P] [US6] Implementar `frontend/src/features/admin/{UsersPage.tsx,UserRolesEditor.tsx,GroupsPage.tsx,GroupDetail.tsx}` para que pasen sus pruebas de T142 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `saber-uli identity grant-admin --email`; audita
+    `user.role_granted` con actor `system`.
+- [x] T148 [P] [US6] Implementar `frontend/src/features/admin/{UsersPage.tsx,UserRolesEditor.tsx,GroupsPage.tsx,GroupDetail.tsx}` para que pasen sus pruebas de T142 → Qwen
   - Terminado: pruebas de usuarios y grupos en verde.
-- [ ] T149 [P] [US6] Implementar `frontend/src/features/admin/{ProgramsPage.tsx,SettingsPage.tsx,AuditPage.tsx}` y `frontend/src/features/teacher/TeacherGroupsPage.tsx` para que pasen sus pruebas de T142 → Qwen
+  - Estado: implementada por Opus (2026-10-07). `/admin/usuarios` con editor de roles y programas del director,
+    desactivar y reactivar; `/admin/grupos` y `/admin/grupos/$groupId` con estudiantes y
+    docentes. Sin sesión privilegiada ofrecen «Confirmar mi identidad».
+- [x] T149 [P] [US6] Implementar `frontend/src/features/admin/{ProgramsPage.tsx,SettingsPage.tsx,AuditPage.tsx}` y `frontend/src/features/teacher/TeacherGroupsPage.tsx` para que pasen sus pruebas de T142 → Qwen
   - Terminado: pruebas de catálogos y docente en verde.
-- [ ] T150 [US6] Prueba e2e `frontend/tests/e2e/us6-roles-groups.spec.ts` (V13 a V15: unión de permisos, último administrador, vista del docente y del director, reautenticación tras 31 minutos de inactividad privilegiada sin interrumpir la práctica personal) → Qwen
+  - Estado: implementada por Opus (2026-10-07). `/admin/programas`, `/admin/parametros`, `/admin/auditoria` y
+    `/grupos` (nombres sin correo). El menú muestra cada enlace solo con su permiso.
+- [x] T150 [US6] Prueba e2e `frontend/tests/e2e/us6-roles-groups.spec.ts` (V13 a V15: unión de permisos, último administrador, vista del docente y del director, reautenticación tras 31 minutos de inactividad privilegiada sin interrumpir la práctica personal) → Qwen
   - Terminado: pasa contra el stack `e2e`.
-- [ ] T151 [US6] Revisión de US6 (T135–T150) en `specs/001-identidad-acceso/tasks.md`: autorización y alcance (FR-023 a FR-030), datos visibles por rol, auditoría (SC-004) → Opus
+  - Estado: implementada por Opus (2026-10-07). V13 (unión de permisos), V14 y V15 en
+    `us6-roles-groups.spec.ts`; el último administrador en `us6-last-admin.global.spec.ts`
+    (proyecto `estado-global`). En verde 3 corridas completas seguidas.
+- [x] T151 [US6] Revisión de US6 (T135–T150) en `specs/001-identidad-acceso/tasks.md`: autorización y alcance (FR-023 a FR-030), datos visibles por rol, auditoría (SC-004) → Opus
   - Terminado: tareas aprobadas y marcadas.
+  - Revisión de Opus (2026-10-07): T135–T150 aprobadas.
+    - Autorización (FR-023 a FR-025): roles combinables con la unión de permisos; Estudiante
+      fijo para el institucional e Invitado exclusivo; retirar un rol incrementa `auth_epoch` y
+      la sesión pierde el permiso en la siguiente acción. El último administrador activo no
+      puede perder el rol ni ser desactivado, también con transacciones concurrentes (T136).
+    - Datos visibles por rol (FR-026, FR-027): el docente solo ve sus grupos y los nombres sin
+      correo (404 en grupos ajenos); el director de programa sin otro rol no llega a ningún
+      endpoint con nombres o correos (403), y la fachada `director_program_ids` queda para los
+      reportes agregados.
+    - FR-028 a FR-030: programas, parámetros y auditoría solo para administradores con sesión
+      privilegiada (R-15: 30 minutos sin actividad privilegiada piden autenticarse de nuevo sin
+      cortar la práctica personal, V15).
+    - Auditoría (SC-004): `user.role_granted|role_revoked|director_programs_changed|disabled|
+      reactivated`, `group.*`, `program.created|updated` y `setting.changed`, con actor y sin
+      datos personales en los registros.
+    - Cambios de contrato registrados: 403/422 adicionales (b76b0c2) y `adminListGroupMembers`
+      (ee42b48).
+    - Riesgo aceptado: los listados de administración cargan hasta 100 programas o miembros por
+      página en el editor; basta mientras el catálogo sea pequeño.
 
 **Checkpoint**: roles, grupos y administración completos.
 

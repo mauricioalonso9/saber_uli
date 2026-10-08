@@ -153,3 +153,17 @@ export function deletionRequestStatus(userId: string): string {
     { id: userId },
   );
 }
+
+/** Crea un grupo (si no existe) y agrega a la persona como estudiante (US8). */
+export function addToGroup(email: string, groupName: string): void {
+  psql(
+    `INSERT INTO identity.groups (name, created_by)
+       SELECT :'group', id FROM identity.users WHERE lower(email) = lower(:'email')
+         AND NOT EXISTS (SELECT 1 FROM identity.groups WHERE name = :'group');
+     INSERT INTO identity.group_members (group_id, user_id)
+       SELECT g.id, u.id FROM identity.groups g, identity.users u
+       WHERE g.name = :'group' AND lower(u.email) = lower(:'email')
+       ON CONFLICT DO NOTHING;`,
+    { email, group: groupName },
+  );
+}

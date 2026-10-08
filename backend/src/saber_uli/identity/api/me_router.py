@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel
 
 from saber_uli.identity.api.consent_router import Consent
-from saber_uli.identity.api.profile_router import ProfileOut
+from saber_uli.identity.api.profile_router import ProfileOut, ProgramOut
 from saber_uli.identity.application.data_export import DataExport, PersonalData
 from saber_uli.identity.application.public import AuthenticatedUser
 from saber_uli.identity.application.queries.get_me import GetMe
@@ -101,6 +101,21 @@ class ExportInvitation(BaseModel):
     access_expires_at: datetime
 
 
+class ExportSession(BaseModel):
+    auth_method: Literal["entra_id", "guest_link"]
+    started_at: datetime
+    last_seen_at: datetime
+    expires_at: datetime
+    revoked_at: datetime | None = None
+
+
+class ExportAuditEvent(BaseModel):
+    occurred_at: datetime
+    action: str
+    actor: Literal["self", "staff", "system"]
+    details: dict[str, Any]
+
+
 class PersonalDataExport(BaseModel):
     generated_at: datetime
     identity: ExportIdentity
@@ -109,6 +124,9 @@ class PersonalDataExport(BaseModel):
     groups: list[str]
     consents: list[Consent]
     invitation: ExportInvitation | None = None
+    director_programs: list[ProgramOut]
+    sessions: list[ExportSession]
+    audit_events: list[ExportAuditEvent]
     sections: dict[str, Any]
 
     @classmethod
@@ -139,6 +157,26 @@ class PersonalDataExport(BaseModel):
                     access_expires_at=data.invitation.access_expires_at,
                 )
             ),
+            director_programs=[ProgramOut.of(program) for program in data.director_programs],
+            sessions=[
+                ExportSession(
+                    auth_method=session.auth_method.value,
+                    started_at=session.auth_time,
+                    last_seen_at=session.last_seen_at,
+                    expires_at=session.absolute_expires_at,
+                    revoked_at=session.revoked_at,
+                )
+                for session in data.sessions
+            ],
+            audit_events=[
+                ExportAuditEvent(
+                    occurred_at=event.occurred_at,
+                    action=event.action,
+                    actor=event.actor,  # type: ignore[arg-type]
+                    details=event.details,
+                )
+                for event in data.audit_events
+            ],
             sections=data.sections,
         )
 

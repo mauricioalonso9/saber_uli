@@ -81,6 +81,32 @@ async def test_descarga_todos_los_datos_del_institucional(
     )
     await group_with(app_engine, owner.id, "Grupo de Mis Datos", me.id, classmate.id)
     await group_with(app_engine, owner.id, "Grupo ajeno", classmate.id)
+    # Director de un programa y eventos de auditoría hechos por otra persona y por el sistema.
+    await sql(
+        app_engine,
+        "INSERT INTO identity.role_assignments (user_id, role) VALUES (:u, 'program_director')",
+        u=me.id,
+    )
+    await sql(
+        app_engine,
+        "INSERT INTO identity.director_programs (user_id, program_id) VALUES (:u, :p)",
+        u=me.id,
+        p=program,
+    )
+    for actor, action in (
+        (owner.id, "user.role_granted"),
+        (None, "retention.notice_sent"),
+        (me.id, "consent.accepted"),
+    ):
+        await sql(
+            app_engine,
+            """INSERT INTO identity.audit_events
+                   (action, actor_id, target_type, target_id, subject_user_id, details)
+               VALUES (:a, :actor, 'user', :u, :u, '{"roles": ["program_director"]}')""",
+            a=action,
+            actor=actor,
+            u=me.id,
+        )
 
     response = await api_client.get(EXPORT, headers=me.headers)
 
@@ -97,7 +123,16 @@ async def test_descarga_todos_los_datos_del_institucional(
     assert identity["display_name"] == me.display_name
     assert identity["email"].endswith("@unilibre.edu.co")
     assert "directorio" in identity["source_note"]
-    assert sorted(data["roles"]) == ["student", "teacher"]
+    assert sorted(data["roles"]) == ["program_director", "student", "teacher"]
+    assert [p["name"] for p in data["director_programs"]] == ["Derecho"]
+    (session,) = data["sessions"]
+    assert session["auth_method"] == "entra_id"
+    assert {"started_at", "last_seen_at", "expires_at"} <= set(session)
+    events = {event["action"]: event for event in data["audit_events"]}
+    assert events["user.role_granted"]["actor"] == "staff"
+    assert events["user.role_granted"]["details"] == {"roles": ["program_director"]}
+    assert events["retention.notice_sent"]["actor"] == "system"
+    assert events["consent.accepted"]["actor"] == "self"
     assert data["profile"]["program"]["name"] == "Derecho"
     assert (data["profile"]["semester"], data["profile"]["daily_goal"]) == (7, "intense")
     assert data["groups"] == ["Grupo de Mis Datos"]

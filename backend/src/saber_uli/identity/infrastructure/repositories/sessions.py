@@ -74,6 +74,14 @@ class SqlAlchemySessionRepository:
         row = await self._db.get(SessionRow, session_id)
         return _session_to_domain(row) if row else None
 
+    async def list_for_user(self, user_id: UUID) -> list[Session]:
+        rows = await self._db.scalars(
+            select(SessionRow)
+            .where(SessionRow.user_id == user_id)
+            .order_by(SessionRow.auth_time.desc(), SessionRow.id.desc())
+        )
+        return [_session_to_domain(row) for row in rows]
+
     async def add_refresh_token(self, token: RefreshToken) -> RefreshToken:
         row = RefreshTokenRow(
             session_id=token.session_id,

@@ -2,8 +2,8 @@
 
 Schemathesis genera peticiones desde `specs/001-identidad-acceso/contracts/openapi.yaml` (la app
 no publica su propio esquema) y las envía a la app ASGI completa, con PostgreSQL y Redis reales.
-Solo se prueban las operaciones de `implemented_operations.py`. Las rutas con `bearerAuth` usan
-el token de un administrador con sesión privilegiada.
+Se prueban las operaciones de `implemented_operations.py`, que desde T177 deben ser todas las del
+contrato. Las rutas con `bearerAuth` usan el token de un administrador con sesión privilegiada.
 """
 
 import io
@@ -92,7 +92,7 @@ async def contract_headers(
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_todas_las_operaciones_implementadas_existen_en_el_contrato() -> None:
+def test_todas_las_operaciones_del_contrato_estan_implementadas() -> None:
     schema = schemathesis.openapi.from_path(CONTRACT)
     known = {
         op["operationId"]
@@ -101,7 +101,8 @@ def test_todas_las_operaciones_implementadas_existen_en_el_contrato() -> None:
         if isinstance(op, dict) and "operationId" in op
     }
 
-    assert known >= IMPLEMENTED_OPERATIONS
+    assert sorted(known - IMPLEMENTED_OPERATIONS) == [], "operaciones del contrato sin implementar"
+    assert sorted(IMPLEMENTED_OPERATIONS - known) == [], "operaciones que el contrato no tiene"
 
 
 schema = schemathesis.pytest.from_fixture("contract_schema").include(

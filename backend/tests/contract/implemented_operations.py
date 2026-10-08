@@ -1,7 +1,7 @@
 """Operaciones del contrato ya implementadas (T059). Cada historia agrega sus `operationId`.
 
-El arnés de contrato (`test_openapi_contract.py`) solo prueba estas operaciones; T179 exige al
-final que la lista coincida con todas las del contrato.
+El arnés de contrato (`test_openapi_contract.py`) prueba estas operaciones y, desde T177, exige
+que la lista coincida con todas las del contrato.
 """
 
 IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(

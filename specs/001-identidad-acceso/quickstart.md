@@ -165,3 +165,36 @@ docker compose -f compose.yaml -f compose.prod.yaml up -d --build
 - Verificar V1, V2, V5 y V20 tras cada despliegue.
 - Renovar el secreto de Entra ID antes de su vencimiento y rotar `JWT_SIGNING_KEY` con un `kid`
   nuevo (los tokens anteriores siguen válidos hasta 10 minutos).
+- `REDIS_PASSWORD` es obligatoria con `compose.prod.yaml`: Redis exige contraseña y Compose arma
+  `REDIS_URL` con ella (T070a).
+
+### Alertas operativas (T070b)
+
+La API y el worker escriben un JSON por línea (`event`, `level`, `timestamp` y campos sin datos
+personales). Estos eventos deben generar una alerta en el sistema de monitoreo:
+
+| Evento | Origen | Qué significa | Qué revisar |
+|--------|--------|---------------|-------------|
+| `rate_limit_unavailable` | API | Redis no responde y los límites de peticiones quedan sin aplicar (falla abierta) | Estado de `redis`, `REDIS_URL` y `REDIS_PASSWORD` |
+| `epoch_cache_unavailable` | API, worker | La caché de `auth_epoch` no responde; cada petición consulta PostgreSQL | Estado de `redis`; carga de `db` |
+| `session_revocation_unavailable` | API | No se pudo registrar o consultar una sesión revocada; un token ya emitido podría valer hasta su vencimiento (10 min) | Estado de `redis` |
+| `outbox_delivery_failed` | worker | Un evento del outbox falló (`event_type`, `attempts`, `error_type`); se reintenta con espera creciente | SMTP (`SMTP_*`) si es un correo; alerta si `attempts` ≥ 5 |
+| `readiness_check_failed` | API | `/api/ready` falló para `check` (`database` o `redis`) | El servicio indicado en `check` |
+
+Ejemplo con los registros de Compose y `jq` (cuenta los eventos de los últimos 15 minutos):
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml logs --no-log-prefix --since 15m api worker \
+  | jq -Rr 'fromjson? | select(.event | IN("rate_limit_unavailable", "epoch_cache_unavailable",
+      "session_revocation_unavailable", "outbox_delivery_failed", "readiness_check_failed"))
+      | .event' \
+  | sort | uniq -c
+```
+
+Eventos del outbox atascados (pendientes con 5 intentos o más):
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml exec db psql -U postgres -d saber_uli -c \
+  "SELECT event_type, attempts, last_error, available_at FROM shared.outbox_events
+   WHERE processed_at IS NULL AND attempts >= 5 ORDER BY occurred_at"
+```

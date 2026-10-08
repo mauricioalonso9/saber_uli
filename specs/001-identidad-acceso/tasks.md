@@ -1648,8 +1648,36 @@ dato editable del perfil.
   - Terminado: la prueba pasa.
   - Estado: implementada por Opus (2026-10-07). Revisión de Opus (2026-10-08): aprobada; la
     prueba pasa.
-- [ ] T176 [P] Prueba de presupuesto de rendimiento `backend/tests/integration/identity/test_performance_budgets.py` (p95 < 300 ms en `/api/v1/me`, `/api/auth/refresh` e invitaciones con 200 peticiones concurrentes sobre datos de 40 000 usuarios sembrados; validación de lote de 500 filas < 2 s) → Qwen
+- [x] T176 [P] Prueba de presupuesto de rendimiento `backend/tests/integration/identity/test_performance_budgets.py` (p95 < 300 ms en `/api/v1/me`, `/api/auth/refresh` e invitaciones con 200 peticiones concurrentes sobre datos de 40 000 usuarios sembrados; validación de lote de 500 filas < 2 s) → Qwen
   - Terminado: los presupuestos se cumplen o se registra una decisión pendiente con mediciones.
+  - Estado: implementada por Opus (2026-10-08). Siembra 40 000 usuarios (10 000 invitados con
+    su invitación aceptada) y mide cada ruta en serie (20 peticiones) y con 200 a la vez sobre la
+    app ASGI completa en un solo proceso. El lote siempre se exige; los p95 solo con
+    `PERF_BUDGETS_ENFORCE=1`. Mediciones en Windows 11 + Docker Desktop (2026-10-08):
+
+    | Ruta | p95 sin carga | p95 con 200 a la vez |
+    |------|---------------|----------------------|
+    | `GET /api/v1/me` | 14 ms | 1 765 ms |
+    | `POST /api/auth/refresh` | 172 ms | 5 500 ms |
+    | `GET /api/v1/invitations` (administrador) | 79 ms | 6 023 ms |
+    | Lote de 500 filas | 0.14 s (presupuesto 2 s: **cumple**) | — |
+
+    - Por qué no cumplen con 200 a la vez: un solo proceso atiende las peticiones de a una (en
+      serie `/me` cuesta ~8 ms, así que la última de 200 espera ~1.6 s aunque el código fuera
+      perfecto); el pool de la app es de 5 + 10 conexiones; y en Docker Desktop cada viaje a
+      PostgreSQL y Redis cruza la VM, y el PostgreSQL de Testcontainers espera el fsync en
+      cada commit (el de Compose de desarrollo no, desde `1689272`). Un perfil con cProfile
+      muestra ~70 % del tiempo esperando E/S.
+    - Hallazgos de código (no bloquean): cada petición privilegiada lee la sesión dos veces y
+      escribe `last_privileged_activity_at` (un commit por petición); `refresh` hace varias
+      escrituras por rotación. Candidatos si la medición de referencia no cumple.
+    - Decisión pendiente: la meta del plan ("p95 < 300 ms; 2 000 concurrentes en pico; 4
+      procesos Uvicorn en 4 vCPU", research J) habla de usuarios activos, no de 200 peticiones
+      que llegan en el mismo instante a un proceso. Propuesta: medir la meta con una prueba de
+      carga sostenida (k6 o Locust) contra `compose.prod.yaml` en el servidor de referencia,
+      con una tasa de llegada derivada de los 2 000 usuarios activos, y correr esta prueba con
+      `PERF_BUDGETS_ENFORCE=1` en ese mismo servidor. Requiere decidir la tasa de llegada y
+      tener el servidor.
 - [x] T177 Ejecutar Schemathesis completo con las 52 operaciones en `backend/tests/contract/implemented_operations.py` → Qwen
   - Terminado: cero fallos; la lista coincide con todos los `operationId` del contrato.
   - Estado: implementada por Opus (2026-10-07). Son 52, no 51: `adminListGroupMembers` (US6) se

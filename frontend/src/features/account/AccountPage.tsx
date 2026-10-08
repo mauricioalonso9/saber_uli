@@ -6,12 +6,16 @@ import { useTranslation } from "react-i18next";
 import type { ProfileUpdate } from "@/api/model";
 import { getGetMyProfileQueryKey, useGetMyProfile, useUpdateMyProfile } from "@/api/me";
 import { useListActivePrograms } from "@/api/programs";
+import { DeleteAccountSection } from "@/features/account/DeleteAccountSection";
 import { DirectoryData } from "@/features/profile/DirectoryData";
 import { ProfileForm } from "@/features/profile/ProfileForm";
 import { ApiProblem } from "@/shared/api/http";
 import { GENERIC_MESSAGE } from "@/shared/api/problem-messages";
 
-/** Mi cuenta (FR-021): editar el perfil y llegar a la autorización y a mis datos. */
+/**
+ * Mi cuenta (FR-021, FR-032): editar el perfil, llegar a la autorización y a mis datos, y
+ * solicitar la supresión de la cuenta.
+ */
 export function AccountPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -85,6 +89,8 @@ export function AccountPage() {
           </Link>
         </li>
       </ul>
+
+      <DeleteAccountSection />
     </section>
   );
 }

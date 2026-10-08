@@ -32,6 +32,7 @@ const ROUTE_PERMISSIONS: ReadonlyArray<readonly [string, readonly Permission[]]>
   ["/admin/politica", ["policy:publish"]],
   ["/admin/parametros", ["settings:manage"]],
   ["/admin/auditoria", ["audit:read"]],
+  ["/admin/supresiones", ["deletions:read"]],
 ];
 
 function matches(path: string, prefix: string): boolean {

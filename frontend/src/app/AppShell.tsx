@@ -18,6 +18,7 @@ const STAFF_LINKS: ReadonlyArray<{
     | "/admin/programas"
     | "/admin/parametros"
     | "/admin/auditoria"
+    | "/admin/supresiones"
     | "/admin/politica";
   label: string;
   permissions: Permission[];
@@ -33,6 +34,7 @@ const STAFF_LINKS: ReadonlyArray<{
   { to: "/admin/programas", label: "nav.programs", permissions: ["programs:manage"] },
   { to: "/admin/parametros", label: "nav.settings", permissions: ["settings:manage"] },
   { to: "/admin/auditoria", label: "nav.audit", permissions: ["audit:read"] },
+  { to: "/admin/supresiones", label: "nav.deletions", permissions: ["deletions:read"] },
   { to: "/admin/politica", label: "nav.policy", permissions: ["policy:publish"] },
 ];
 

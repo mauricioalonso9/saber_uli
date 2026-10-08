@@ -22,6 +22,7 @@ import { createSessionLoader } from "@/features/auth/session-loader";
 import { AccountPage } from "@/features/account/AccountPage";
 import { ConsentSettingsPage } from "@/features/account/ConsentSettingsPage";
 import { AuditPage } from "@/features/admin/AuditPage";
+import { DeletionRequestsPage } from "@/features/admin/DeletionRequestsPage";
 import { GroupDetail } from "@/features/admin/GroupDetail";
 import { GroupsPage } from "@/features/admin/GroupsPage";
 import { PolicyPage } from "@/features/admin/PolicyPage";
@@ -203,6 +204,12 @@ const adminAuditRoute = createRoute({
   component: AuditPage,
 });
 
+const adminDeletionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/supresiones",
+  component: DeletionRequestsPage,
+});
+
 const teacherGroupsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/grupos",
@@ -231,8 +238,9 @@ export const routeTree = rootRoute.addChildren([
   adminProgramsRoute,
   adminSettingsRoute,
   adminAuditRoute,
+  adminDeletionsRoute,
   teacherGroupsRoute,
-  // Marcador: la supresión (US7) y la consulta y descarga de datos (US8, T169) la completan.
+  // Marcador: la consulta y descarga de datos (US8, T169) la completa.
   page("/mi-cuenta/datos", "accountData.title", "accountData.placeholder"),
   profileRoute,
   accountRoute,

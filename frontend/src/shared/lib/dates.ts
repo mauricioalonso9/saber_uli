@@ -16,3 +16,8 @@ export function formatDateTime(iso: string): string {
 export function formatDate(iso: string): string {
   return DATE.format(new Date(iso));
 }
+
+/** Fecha sin hora del contrato (`2026-10-28`): es un día de Colombia, no medianoche en UTC. */
+export function formatDay(isoDate: string): string {
+  return DATE.format(new Date(`${isoDate}T12:00:00-05:00`));
+}

@@ -21,7 +21,8 @@
     "settings": "Parámetros",
     "audit": "Auditoría",
     "policy": "Política de datos",
-    "administration": "Administración"
+    "administration": "Administración",
+    "deletions": "Supresiones"
   },
   "home": {
     "title": "Inicio",
@@ -176,7 +177,27 @@
     "title": "Mi cuenta",
     "profile": "Tu perfil",
     "save": "Guardar cambios",
-    "saved": "Guardamos tus cambios."
+    "saved": "Guardamos tus cambios.",
+    "deletion": {
+      "title": "Eliminar mi cuenta",
+      "intro": "Puedes pedir que eliminemos tu cuenta y tus datos personales.",
+      "erased": "Se borran tu nombre, correo, perfil, roles, grupos y sesiones.",
+      "kept": "Las estadísticas de tus respuestas, tus autorizaciones de datos y la auditoría se conservan sin datos que te identifiquen.",
+      "irreversible": "La eliminación no se puede deshacer: pierdes el acceso de inmediato y la completamos en un máximo de 15 días hábiles. Si vuelves a ingresar, se creará una cuenta nueva, sin tu historial.",
+      "open": "Eliminar mi cuenta",
+      "lastAdmin": "Eres el último administrador activo: asigna el rol Administrador a otra persona antes de eliminar tu cuenta.",
+      "confirm": {
+        "title": "¿Eliminar tu cuenta?",
+        "body": "Esta acción no se puede deshacer. Para confirmar, escribe ELIMINAR.",
+        "label": "Escribe ELIMINAR para confirmar",
+        "yes": "Eliminar definitivamente",
+        "cancel": "Cancelar"
+      },
+      "done": {
+        "title": "Solicitamos la supresión de tu cuenta",
+        "body": "Cerramos tu sesión en todos tus dispositivos. Completaremos la eliminación a más tardar el {{date}}."
+      }
+    }
   },
   "guestLink": {
     "title": "Ingresar como invitado",
@@ -425,6 +446,33 @@
         "actor": "Quién",
         "target": "Sobre",
         "details": "Detalle"
+      }
+    },
+    "deletions": {
+      "title": "Solicitudes de supresión",
+      "table": "Solicitudes de supresión",
+      "status": "Estado",
+      "all": "Todas",
+      "empty": "No hay solicitudes de supresión.",
+      "count_one": "{{count}} solicitud.",
+      "count_other": "{{count}} solicitudes.",
+      "columns": {
+        "requested": "Solicitada",
+        "status": "Estado",
+        "origin": "Origen",
+        "due": "Fecha límite",
+        "completed": "Completada el",
+        "account": "Cuenta"
+      },
+      "statuses": {
+        "received": "Recibida",
+        "in_progress": "En proceso",
+        "completed": "Completada"
+      },
+      "origins": {
+        "user_request": "Solicitud de la persona",
+        "guest_retention": "Conservación de invitado",
+        "institutional_retention": "Conservación institucional"
       }
     }
   },

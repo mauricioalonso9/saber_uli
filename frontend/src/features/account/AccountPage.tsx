@@ -11,6 +11,7 @@ import { DirectoryData } from "@/features/profile/DirectoryData";
 import { ProfileForm } from "@/features/profile/ProfileForm";
 import { ApiProblem } from "@/shared/api/http";
 import { GENERIC_MESSAGE } from "@/shared/api/problem-messages";
+import { refreshQueries } from "@/shared/api/refresh";
 
 /**
  * Mi cuenta (FR-021, FR-032): editar el perfil, llegar a la autorización y a mis datos, y
@@ -38,7 +39,7 @@ export function AccountPage() {
       setError(problem instanceof ApiProblem ? problem.message : GENERIC_MESSAGE);
       return;
     }
-    await queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+    await refreshQueries(queryClient, getGetMyProfileQueryKey());
     // El nombre de un invitado es su nombre visible: `/me` cambia.
     getSession.invalidate?.();
     setSaved(true);

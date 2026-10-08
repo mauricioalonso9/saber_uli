@@ -15,6 +15,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { PolicyMarkdown } from "@/shared/ui/PolicyMarkdown";
+import { refreshQueries } from "@/shared/api/refresh";
 
 /** Mismos límites que el contrato (`publishPolicyVersion`). */
 const BODY_MIN = 200;
@@ -88,7 +89,7 @@ export function PolicyPage() {
       setDone({ version: version.version, from: formatDateTime(version.effective_from) });
       form.reset({ ...form.getValues(), version: "", body_markdown: "" });
       setPreview(false);
-      await queryClient.invalidateQueries({ queryKey: getGetCurrentPolicyQueryKey() });
+      await refreshQueries(queryClient, getGetCurrentPolicyQueryKey());
       // Quien publica también debe aceptar la versión nueva cuando empiece a regir.
       getSession.invalidate?.();
     } catch (problem) {

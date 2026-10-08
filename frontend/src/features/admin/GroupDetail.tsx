@@ -18,6 +18,7 @@ import {
 } from "@/api/admin";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
+import { refreshQueries } from "@/shared/api/refresh";
 
 import { Feedback, ReauthAlert, problemText } from "./common";
 
@@ -126,8 +127,8 @@ export function GroupDetail() {
       return;
     }
     setMessage(success);
-    void queryClient.invalidateQueries({ queryKey: getAdminGetGroupQueryKey(groupId) });
-    void queryClient.invalidateQueries({ queryKey: getAdminListGroupMembersQueryKey(groupId) });
+    void refreshQueries(queryClient, getAdminGetGroupQueryKey(groupId));
+    void refreshQueries(queryClient, getAdminListGroupMembersQueryKey(groupId));
   }
 
   if (group.isError) {

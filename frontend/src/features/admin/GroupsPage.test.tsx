@@ -111,6 +111,37 @@ describe("grupos", () => {
     );
   });
 
+  it("el grupo creado aparece aunque la primera carga del listado aún no termine", async () => {
+    const created: Group = { ...GROUP, id: "0192f3c4-0000-7000-8000-0000000000f2", name: "Nuevo" };
+    let groups = [GROUP];
+    let release: () => void = () => {};
+    const firstLoad = new Promise<void>((resolve) => (release = resolve));
+    let loads = 0;
+    server.use(
+      http.get("/api/v1/admin/groups", async () => {
+        loads += 1;
+        const snapshot = groups; // lo que había cuando llegó la petición
+        if (loads === 1) await firstLoad;
+        return HttpResponse.json(page(snapshot));
+      }),
+      http.post("/api/v1/admin/groups", () => {
+        groups = [created, GROUP];
+        return HttpResponse.json(created, { status: 201 });
+      }),
+    );
+    renderAt("/admin/grupos");
+    const user = userEvent.setup();
+
+    const form = await screen.findByRole("form", { name: "Crear un grupo" });
+    await user.type(within(form).getByRole("textbox", { name: "Nombre" }), "Nuevo");
+    await user.click(within(form).getByRole("button", { name: "Crear grupo" }));
+    await screen.findByText(/creamos el grupo nuevo/i);
+    release();
+
+    const table = await screen.findByRole("table", { name: "Grupos" });
+    await vi.waitFor(() => expect(table).toHaveTextContent("Nuevo"));
+  });
+
   it("el detalle muestra miembros y docentes y permite quitar un miembro", async () => {
     mockApi();
     renderAt(`/admin/grupos/${GROUP.id}`);

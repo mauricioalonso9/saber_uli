@@ -11,6 +11,7 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { refreshQueries } from "@/shared/api/refresh";
 
 import { Feedback, ReauthAlert, isReauth, problemText } from "./common";
 
@@ -73,7 +74,7 @@ export function SettingsPage() {
       return;
     }
     setMessage(t("admin.settings.saved"));
-    void queryClient.invalidateQueries({ queryKey: getAdminGetSettingsQueryKey() });
+    void refreshQueries(queryClient, getAdminGetSettingsQueryKey());
   }
 
   return (

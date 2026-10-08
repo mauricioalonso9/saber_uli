@@ -10,6 +10,7 @@ import { DirectoryData } from "@/features/profile/DirectoryData";
 import { ProfileForm } from "@/features/profile/ProfileForm";
 import { ApiProblem } from "@/shared/api/http";
 import { GENERIC_MESSAGE } from "@/shared/api/problem-messages";
+import { refreshQueries } from "@/shared/api/refresh";
 
 /**
  * Perfil del primer ingreso (FR-019, FR-020): el último paso antes de `/inicio`. El institucional
@@ -37,7 +38,7 @@ export function ProfilePage() {
       setError(problem instanceof ApiProblem ? problem.message : GENERIC_MESSAGE);
       return;
     }
-    await queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+    await refreshQueries(queryClient, getGetMyProfileQueryKey());
     getSession.invalidate?.();
     await router.navigate({ to: "/inicio" });
   }

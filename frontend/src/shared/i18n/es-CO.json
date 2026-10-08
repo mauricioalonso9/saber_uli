@@ -178,7 +178,26 @@
     "fix": {
       "title": "¿Algún dato está mal?",
       "editProfile": "Editar mi perfil"
-    }
+    },
+    "directorPrograms": "Programas que diriges",
+    "sessions": "Sesiones",
+    "activity": "Actividad sobre tu cuenta",
+    "noActivity": "No hay actividad registrada.",
+    "session": {
+      "methods": {
+        "entra_id": "Ingreso con tu cuenta Unilibre",
+        "guest_link": "Ingreso con enlace de invitado"
+      },
+      "detail": "{{method}} el {{started}}; última actividad el {{lastSeen}}.",
+      "revoked": "Cerrada el {{date}}.",
+      "expires": "Vence el {{date}}."
+    },
+    "actors": {
+      "self": "tú",
+      "staff": "el personal de la universidad",
+      "system": "el sistema"
+    },
+    "event": "{{date}}: {{action}}, por {{actor}}."
   },
   "policyAdmin": {
     "title": "Política de tratamiento de datos",

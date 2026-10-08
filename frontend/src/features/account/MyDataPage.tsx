@@ -176,6 +176,16 @@ export function MyDataPage() {
             <p>{data.roles.map(roleLabel).join(", ")}</p>
           </Section>
 
+          {data.director_programs?.length ? (
+            <Section title={t("accountData.directorPrograms")}>
+              <ul className="list-disc pl-6">
+                {data.director_programs.map((program) => (
+                  <li key={program.id}>{`${program.name} (${program.campus})`}</li>
+                ))}
+              </ul>
+            </Section>
+          ) : null}
+
           <Section title={t("accountData.groups")}>
             {data.groups?.length ? (
               <ul className="list-disc pl-6">
@@ -185,6 +195,41 @@ export function MyDataPage() {
               </ul>
             ) : (
               <p>{t("accountData.noGroups")}</p>
+            )}
+          </Section>
+
+          <Section title={t("accountData.sessions")}>
+            <ul className="list-disc pl-6">
+              {(data.sessions ?? []).map((session) => (
+                <li key={session.started_at}>
+                  {t("accountData.session.detail", {
+                    method: t(`accountData.session.methods.${session.auth_method}`),
+                    started: formatDateTime(session.started_at),
+                    lastSeen: formatDateTime(session.last_seen_at),
+                  })}{" "}
+                  {session.revoked_at
+                    ? t("accountData.session.revoked", { date: formatDateTime(session.revoked_at) })
+                    : t("accountData.session.expires", { date: formatDate(session.expires_at) })}
+                </li>
+              ))}
+            </ul>
+          </Section>
+
+          <Section title={t("accountData.activity")}>
+            {data.audit_events?.length ? (
+              <ul className="list-disc pl-6">
+                {data.audit_events.map((event, index) => (
+                  <li key={`${event.occurred_at}-${index}`}>
+                    {t("accountData.event", {
+                      date: formatDateTime(event.occurred_at),
+                      action: event.action,
+                      actor: t(`accountData.actors.${event.actor}`),
+                    })}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>{t("accountData.noActivity")}</p>
             )}
           </Section>
 

@@ -64,6 +64,8 @@ test("V17: ver, descargar y validar mis datos, y corregir el perfil", async ({ p
     roles: string[];
     groups: string[];
     consents: { decision: string }[];
+    sessions: { auth_method: string }[];
+    audit_events: { action: string; actor: string }[];
   };
   expect(data.identity).toMatchObject({
     email: user.email,
@@ -76,4 +78,10 @@ test("V17: ver, descargar y validar mis datos, y corregir el perfil", async ({ p
   expect(data.roles).toEqual(["student"]);
   expect(data.groups).toEqual([group]);
   expect(data.consents.map((consent) => consent.decision)).toEqual(["accepted"]);
+  expect(data.sessions.length).toBeGreaterThan(0);
+  expect(data.sessions.every((session) => session.auth_method === "entra_id")).toBe(true);
+  const actions = data.audit_events.map((event) => event.action);
+  expect(actions).toEqual(expect.arrayContaining(["user.created", "consent.accepted"]));
+  // Sin identificadores de quien actuó (FR-031: solo self, staff o system).
+  expect(JSON.stringify(data.audit_events)).not.toContain("actor_id");
 });

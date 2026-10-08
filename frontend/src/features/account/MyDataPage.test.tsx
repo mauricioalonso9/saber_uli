@@ -59,8 +59,33 @@ const EXPORT: PersonalDataExport = {
     daily_goal: "regular",
     complete: true,
   },
-  roles: ["student", "teacher"],
+  roles: ["student", "teacher", "program_director"],
   groups: ["Saber Pro 2027-1"],
+  director_programs: [
+    {
+      id: "0192f3c4-0000-7000-8000-0000000000b2",
+      code: "ING-CAL",
+      name: "Ingeniería",
+      campus: "Cali",
+      active: true,
+    },
+  ],
+  sessions: [
+    {
+      auth_method: "entra_id",
+      started_at: "2026-10-08T14:00:00Z",
+      last_seen_at: "2026-10-08T14:30:00Z",
+      expires_at: "2026-11-07T14:00:00Z",
+    },
+  ],
+  audit_events: [
+    {
+      occurred_at: "2026-10-05T16:00:00Z",
+      action: "user.role_granted",
+      actor: "staff",
+      details: { roles: ["program_director"] },
+    },
+  ],
   consents: [
     {
       id: "0192f3c4-0000-7000-8000-0000000000c1",
@@ -107,6 +132,15 @@ describe("mis datos", () => {
     expect(profile).toHaveTextContent("8");
     expect(screen.getByRole("region", { name: "Roles" })).toHaveTextContent(/estudiante.*docente/i);
     expect(screen.getByRole("region", { name: "Grupos" })).toHaveTextContent("Saber Pro 2027-1");
+    expect(screen.getByRole("region", { name: "Programas que diriges" })).toHaveTextContent(
+      "Ingeniería (Cali)",
+    );
+    const sessions = screen.getByRole("region", { name: "Sesiones" });
+    expect(sessions).toHaveTextContent(/cuenta Unilibre/i);
+    expect(sessions).toHaveTextContent(/8 de octubre de 2026/);
+    const activity = screen.getByRole("region", { name: "Actividad sobre tu cuenta" });
+    expect(activity).toHaveTextContent("user.role_granted");
+    expect(activity).toHaveTextContent(/el personal de la universidad/i);
     const consents = screen.getByRole("region", { name: "Historial de autorizaciones" });
     expect(within(consents).getAllByRole("listitem")[0]).toHaveTextContent(/aceptaste/i);
   });

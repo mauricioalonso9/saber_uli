@@ -10,6 +10,8 @@ import {
 } from "@/api/admin";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
+import { ScrollRegion } from "@/shared/ui/ScrollRegion";
+import { refreshQueries } from "@/shared/api/refresh";
 
 import { UserRolesEditor } from "./UserRolesEditor";
 import {
@@ -51,8 +53,7 @@ export function UsersPage() {
     if (confirming) confirmButton.current?.focus();
   }, [confirming]);
 
-  const refresh = () =>
-    void queryClient.invalidateQueries({ queryKey: getAdminListUsersQueryKey() });
+  const refresh = () => void refreshQueries(queryClient, getAdminListUsersQueryKey());
   const done = (text: string) => {
     setError(null);
     setMessage(text);
@@ -130,7 +131,7 @@ export function UsersPage() {
       {list.isPending ? <p role="status">{t("admin.loading")}</p> : null}
       {list.isError && !isReauth(list.error) ? <p role="alert">{problemText(list.error)}</p> : null}
       {list.data ? (
-        <div className="overflow-x-auto">
+        <ScrollRegion label={t("admin.users.table")}>
           <table aria-label={t("admin.users.table")} className="w-full text-left text-sm">
             <thead>
               <tr className="border-b">
@@ -236,7 +237,7 @@ export function UsersPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       ) : null}
     </section>
   );

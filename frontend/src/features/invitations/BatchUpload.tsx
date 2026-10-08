@@ -6,6 +6,7 @@ import { getValidateInvitationBatchUrl, useConfirmInvitationBatch } from "@/api/
 import { customInstance } from "@/shared/api/http";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
+import { ScrollRegion } from "@/shared/ui/ScrollRegion";
 
 import { problemText } from "./InviteForm";
 
@@ -105,7 +106,7 @@ export function BatchUpload({ onConfirmed }: { onConfirmed: () => void }) {
               invalid: batch.invalid_count,
             })}
           </p>
-          <div className="overflow-x-auto">
+          <ScrollRegion label={t("invitations.batch.report")}>
             <table aria-label={t("invitations.batch.report")} className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b">
@@ -134,7 +135,7 @@ export function BatchUpload({ onConfirmed }: { onConfirmed: () => void }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
           {batch.status === "pending_confirmation" ? (
             <Button
               type="button"

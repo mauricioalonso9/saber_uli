@@ -7,6 +7,7 @@ import { formatDateTime } from "@/shared/lib/dates";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { ScrollRegion } from "@/shared/ui/ScrollRegion";
 
 import { ReauthAlert, isReauth, problemText } from "./common";
 
@@ -80,7 +81,7 @@ export function AuditPage() {
           <p className="mb-2 text-sm text-muted-foreground">
             {t("admin.audit.count", { count: list.data.total })}
           </p>
-          <div className="overflow-x-auto">
+          <ScrollRegion label={t("admin.audit.table")}>
             <table aria-label={t("admin.audit.table")} className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b">
@@ -109,7 +110,7 @@ export function AuditPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
         </>
       ) : null}
     </section>

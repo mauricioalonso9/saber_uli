@@ -11,6 +11,8 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { ScrollRegion } from "@/shared/ui/ScrollRegion";
+import { refreshQueries } from "@/shared/api/refresh";
 
 import { Feedback, ReauthAlert, isReauth, problemText } from "./common";
 
@@ -29,8 +31,7 @@ export function ProgramsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = () =>
-    void queryClient.invalidateQueries({ queryKey: getAdminListProgramsQueryKey() });
+  const refresh = () => void refreshQueries(queryClient, getAdminListProgramsQueryKey());
 
   async function submit() {
     setMessage(null);
@@ -120,7 +121,7 @@ export function ProgramsPage() {
 
       {list.isError && !isReauth(list.error) ? <p role="alert">{problemText(list.error)}</p> : null}
       {list.data ? (
-        <div className="overflow-x-auto">
+        <ScrollRegion label={t("admin.programs.table")}>
           <table aria-label={t("admin.programs.table")} className="w-full text-left text-sm">
             <thead>
               <tr className="border-b">
@@ -165,7 +166,7 @@ export function ProgramsPage() {
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       ) : null}
     </section>
   );

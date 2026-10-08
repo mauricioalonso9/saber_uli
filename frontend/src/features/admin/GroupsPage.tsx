@@ -8,6 +8,8 @@ import { getAdminListGroupsQueryKey, useAdminCreateGroup, useAdminListGroups } f
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { ScrollRegion } from "@/shared/ui/ScrollRegion";
+import { refreshQueries } from "@/shared/api/refresh";
 
 import { Feedback, ReauthAlert, isReauth, problemText } from "./common";
 
@@ -45,7 +47,7 @@ export function GroupsPage() {
     setName("");
     setCohort("");
     setDescription("");
-    void queryClient.invalidateQueries({ queryKey: getAdminListGroupsQueryKey() });
+    void refreshQueries(queryClient, getAdminListGroupsQueryKey());
   }
 
   return (
@@ -104,7 +106,7 @@ export function GroupsPage() {
       {list.isPending ? <p role="status">{t("admin.loading")}</p> : null}
       {list.isError && !isReauth(list.error) ? <p role="alert">{problemText(list.error)}</p> : null}
       {list.data ? (
-        <div className="overflow-x-auto">
+        <ScrollRegion label={t("admin.groups.table")}>
           <table aria-label={t("admin.groups.table")} className="w-full text-left text-sm">
             <thead>
               <tr className="border-b">
@@ -141,7 +143,7 @@ export function GroupsPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
       ) : null}
     </section>
   );

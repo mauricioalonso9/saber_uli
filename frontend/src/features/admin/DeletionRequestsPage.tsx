@@ -5,6 +5,7 @@ import type { AdminListDeletionRequestsStatus } from "@/api/model";
 import { useAdminListDeletionRequests } from "@/api/admin";
 import { formatDateTime, formatDay } from "@/shared/lib/dates";
 import { Label } from "@/shared/ui/label";
+import { ScrollRegion } from "@/shared/ui/ScrollRegion";
 
 import { ReauthAlert, isReauth, problemText } from "./common";
 
@@ -54,15 +55,7 @@ export function DeletionRequestsPage() {
           <p className="mb-2 text-sm text-muted-foreground">
             {t("admin.deletions.count", { count: list.data.total })}
           </p>
-          {/* En el celular la tabla se desplaza: el contenedor recibe el foco del teclado para
-              desplazarla con las flechas (WCAG 2.1.1; axe scrollable-region-focusable). */}
-          <div
-            role="region"
-            aria-label={t("admin.deletions.table")}
-            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- región desplazable
-            tabIndex={0}
-            className="overflow-x-auto"
-          >
+          <ScrollRegion label={t("admin.deletions.table")}>
             <table aria-label={t("admin.deletions.table")} className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b">
@@ -92,7 +85,7 @@ export function DeletionRequestsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
         </>
       ) : null}
     </section>

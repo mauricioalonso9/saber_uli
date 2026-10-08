@@ -10,6 +10,8 @@ import { ApiProblem } from "@/shared/api/http";
 import { formatDate } from "@/shared/lib/dates";
 import { Button } from "@/shared/ui/button";
 import { Label } from "@/shared/ui/label";
+import { ScrollRegion } from "@/shared/ui/ScrollRegion";
+import { refreshQueries } from "@/shared/api/refresh";
 
 import { BatchUpload } from "./BatchUpload";
 import { InvitationActions } from "./InvitationActions";
@@ -42,8 +44,7 @@ export function InvitationsPage() {
   if (isAdmin && mine && me) params.invited_by = me.id;
   const list = useListInvitations(params);
 
-  const refresh = () =>
-    void queryClient.invalidateQueries({ queryKey: getListInvitationsQueryKey() });
+  const refresh = () => void refreshQueries(queryClient, getListInvitationsQueryKey());
 
   const reauth =
     list.error instanceof ApiProblem && list.error.slug === "reauthentication-required";
@@ -147,7 +148,7 @@ export function InvitationsPage() {
         list.data.items.length === 0 ? (
           <p>{t("invitations.empty")}</p>
         ) : (
-          <div className="overflow-x-auto">
+          <ScrollRegion label={t("invitations.listTitle")}>
             <table aria-label={t("invitations.listTitle")} className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b">
@@ -207,7 +208,7 @@ export function InvitationsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
         )
       ) : null}
     </section>

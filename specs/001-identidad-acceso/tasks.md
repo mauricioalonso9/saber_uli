@@ -1728,6 +1728,23 @@ dato editable del perfil.
     comprobación con un `docker compose up` desde cero queda para T180.
 - [ ] T180 Validar de punta a punta los escenarios V1 a V21 de `specs/001-identidad-acceso/quickstart.md` sobre `docker compose up` desde cero, corregir la documentación si algo difiere y confirmar la Definición de Terminado del kit (sección 9) → Opus
   - Terminado: todos los escenarios pasan; cobertura ≥ 80 % en `domain` y `application`; CI en verde; `/speckit.analyze` sin inconsistencias abiertas.
+  - Estado (Opus, 2026-10-08): todo verificado salvo CI, que no se puede comprobar: el
+    repositorio no tiene remoto. Falta publicarlo y ver el flujo en verde para marcar la casilla.
+    - Stack desde cero (proyecto Compose aparte, volúmenes nuevos, perfil `e2e` con los valores
+      de quickstart.md §4): todos los servicios `healthy`, `migrate` con código 0.
+    - V1–V18: suite e2e completa contra ese stack, 40 en verde (las 23 de WebKit se omiten sin
+      `oidc` en el archivo hosts). V19 en `test_retention_tasks.py`. V20: 301 eventos de
+      auditoría de 18 acciones; `UPDATE` con `saber_app` → `permission denied`. V21: 4 585
+      líneas de api, worker, beat y proxy sin correos, nombres, tokens, IP ni consultas;
+      `tenant_not_allowed` registrado (V2).
+    - Backend: 790 pruebas y 55 de contrato; cobertura dominio 97.9 % y aplicación 85.5 %. La
+      corrida encontró una prueba que seguía esperando 15 minutos (T178a), ya corregida.
+    - Equivalentes locales de CI: ruff, formato, mypy, import-linter (5 contratos), ESLint,
+      tipos, Vitest (206; se subió la espera de `findBy` por las rutas bajo demanda), cliente
+      Orval sin diferencias, Lighthouse (mediana 0.92), infraestructura (13).
+    - `/speckit.analyze`: sin críticos. Abiertos: el rendimiento de T176 se medirá en el
+      servidor de referencia; FR-024, FR-029 y FR-037 están implementados pero ninguna tarea
+      los cita; T177 dice 52 operaciones y hoy son 55.
 
 ---
 

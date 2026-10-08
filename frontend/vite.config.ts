@@ -8,11 +8,12 @@ export default defineConfig({
     react(),
     tailwindcss(),
     // PWA instalable (T068; ADR 0006). El registro va en un script externo (`registerSW.js`):
-    // la CSP de Nginx no permite scripts en línea. La API nunca se precachea ni se usa como
+    // la CSP de Nginx no permite scripts en línea. Se carga con `defer` para no bloquear el
+    // primer render (T174). La API nunca se precachea ni se usa como
     // fallback de navegación (los tokens y datos personales no se guardan en caché).
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "script",
+      injectRegister: "script-defer",
       filename: "sw.js",
       manifestFilename: "manifest.webmanifest",
       includeAssets: ["icons/apple-touch-icon-180.png"],

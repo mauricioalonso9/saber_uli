@@ -1,6 +1,9 @@
 /**
  * T069: prueba de humo contra el stack con perfil e2e. Sin sesión, `/` lleva al ingreso; la
  * página está en es-CO, es accesible (WCAG 2.2 AA) y la PWA publica su manifiesto.
+ *
+ * T174: Lighthouse 12 ya no tiene la categoría PWA, así que la instalabilidad se comprueba aquí con
+ * el mismo criterio de Chrome (`Page.getInstallabilityErrors`).
  */
 import { expect, test } from "@playwright/test";
 
@@ -22,6 +25,19 @@ test("la PWA publica su manifiesto en es-CO", async ({ request }) => {
   expect(response.ok()).toBe(true);
   const manifest = (await response.json()) as { lang: string; name: string; display: string };
   expect(manifest).toMatchObject({ lang: "es-CO", name: "Saber Uli", display: "standalone" });
+});
+
+test("Chrome considera instalable la PWA", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "solo Chromium expone los criterios de instalación");
+  await page.goto("/ingresar");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+
+  const cdp = await page.context().newCDPSession(page);
+  const { installabilityErrors } = await cdp.send("Page.getInstallabilityErrors");
+
+  expect(installabilityErrors).toEqual([]);
 });
 
 test("la API responde a través del proxy", async ({ request }) => {

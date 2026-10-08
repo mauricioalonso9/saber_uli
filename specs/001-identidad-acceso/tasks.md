@@ -1633,8 +1633,17 @@ dato editable del perfil.
   - Estado: implementada por Opus (2026-10-07). Revisión de Opus (2026-10-08): aprobada. Las
     tablas de administración usan `ScrollRegion` (región desplazable enfocable con nombre); suite
     e2e completa en verde (38 pruebas) y 202 pruebas unitarias en verde.
-- [ ] T174 [P] Configurar Lighthouse CI en `frontend/lighthouserc.json` (rendimiento ≥ 90 en `/ingresar`, criterios de PWA instalable, sin errores de consola) → Qwen
+- [x] T174 [P] Configurar Lighthouse CI en `frontend/lighthouserc.json` (rendimiento ≥ 90 en `/ingresar`, criterios de PWA instalable, sin errores de consola) → Qwen
   - Terminado: el trabajo `lighthouse` de CI pasa.
+  - Estado: implementada por Opus (2026-10-08). `lighthouserc.json` sirve `dist` como SPA y exige
+    rendimiento ≥ 0.9 (mediana de 3 corridas) y cero errores de consola en `/ingresar`.
+    - Lighthouse 12 (el de `@lhci/cli` 0.15) eliminó la categoría PWA: la instalabilidad se
+      comprueba en `smoke.spec.ts` con `Page.getInstallabilityErrors` de Chrome (cero errores).
+    - Rendimiento medido al empezar: 0.90–0.94 (LCP 2.7 s), al límite. Para dar margen:
+      `registerSW.js` con `defer` y todas las páginas salvo `/ingresar` con `lazyRouteComponent`
+      (el paquete inicial pasa de 262 KB a 114 KB comprimido). Resultado: 0.94–0.95 (LCP 2.5 s).
+      El service worker precachea los fragmentos nuevos; la suite e2e (incluido V16 sin
+      conexión) y las 202 pruebas unitarias siguen en verde.
 - [x] T175 [P] Prueba de registros `backend/tests/integration/test_no_pii_in_logs.py` (ejecuta los flujos de US1 a US8 capturando los logs de API y worker y verifica que no aparecen correos, nombres ni tokens; V21) → Opus
   - Terminado: la prueba pasa.
   - Estado: implementada por Opus (2026-10-07). Revisión de Opus (2026-10-08): aprobada; la

@@ -1,6 +1,8 @@
 /**
  * Rutas de la interfaz (research R-35). La ruta raíz aplica las guardias (T067) antes de cargar
- * cualquier página. Cada historia agrega aquí sus rutas.
+ * cualquier página. Cada historia agrega aquí sus rutas. Las páginas distintas de `/ingresar` se
+ * cargan bajo demanda para que el ingreso descargue solo lo necesario (T174); el service worker
+ * las precachea igual, así que siguen disponibles sin conexión.
  */
 import {
   Link,
@@ -8,6 +10,7 @@ import {
   createRootRouteWithContext,
   createRoute,
   createRouter,
+  lazyRouteComponent,
   redirect,
 } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -15,25 +18,8 @@ import { useTranslation } from "react-i18next";
 import { AppShell } from "@/app/AppShell";
 import { type SessionState, decideNavigation } from "@/app/guards";
 import { OFFLINE_EXPIRED_MESSAGE } from "@/features/auth/offline-access";
-import { GuestAccessPage } from "@/features/auth/GuestAccessPage";
-import { GuestLinkRequestPage } from "@/features/auth/GuestLinkRequestPage";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { createSessionLoader } from "@/features/auth/session-loader";
-import { AccountPage } from "@/features/account/AccountPage";
-import { ConsentSettingsPage } from "@/features/account/ConsentSettingsPage";
-import { MyDataPage } from "@/features/account/MyDataPage";
-import { AuditPage } from "@/features/admin/AuditPage";
-import { DeletionRequestsPage } from "@/features/admin/DeletionRequestsPage";
-import { GroupDetail } from "@/features/admin/GroupDetail";
-import { GroupsPage } from "@/features/admin/GroupsPage";
-import { PolicyPage } from "@/features/admin/PolicyPage";
-import { ProgramsPage } from "@/features/admin/ProgramsPage";
-import { SettingsPage } from "@/features/admin/SettingsPage";
-import { UsersPage } from "@/features/admin/UsersPage";
-import { TeacherGroupsPage } from "@/features/teacher/TeacherGroupsPage";
-import { InvitationsPage } from "@/features/invitations/InvitationsPage";
-import { ConsentPage } from "@/features/onboarding/ConsentPage";
-import { ProfilePage } from "@/features/onboarding/ProfilePage";
 
 export interface SessionGetter {
   (): Promise<SessionState>;
@@ -124,103 +110,118 @@ const loginRoute = createRoute({
 const consentRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/bienvenida/datos",
-  component: ConsentPage,
+  component: lazyRouteComponent(() => import("@/features/onboarding/ConsentPage"), "ConsentPage"),
 });
 
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/bienvenida/perfil",
-  component: ProfilePage,
+  component: lazyRouteComponent(() => import("@/features/onboarding/ProfilePage"), "ProfilePage"),
 });
 
 const accountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/mi-cuenta",
-  component: AccountPage,
+  component: lazyRouteComponent(() => import("@/features/account/AccountPage"), "AccountPage"),
 });
 
 const consentSettingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/mi-cuenta/autorizacion",
-  component: ConsentSettingsPage,
+  component: lazyRouteComponent(
+    () => import("@/features/account/ConsentSettingsPage"),
+    "ConsentSettingsPage",
+  ),
 });
 
 const myDataRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/mi-cuenta/datos",
-  component: MyDataPage,
+  component: lazyRouteComponent(() => import("@/features/account/MyDataPage"), "MyDataPage"),
 });
 
 const adminPolicyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/politica",
-  component: PolicyPage,
+  component: lazyRouteComponent(() => import("@/features/admin/PolicyPage"), "PolicyPage"),
 });
 
 const guestAccessRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/acceso",
-  component: GuestAccessPage,
+  component: lazyRouteComponent(() => import("@/features/auth/GuestAccessPage"), "GuestAccessPage"),
 });
 
 const guestLinkRequestRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/ingresar/invitado",
-  component: GuestLinkRequestPage,
+  component: lazyRouteComponent(
+    () => import("@/features/auth/GuestLinkRequestPage"),
+    "GuestLinkRequestPage",
+  ),
 });
 
 const invitationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/invitaciones",
-  component: InvitationsPage,
+  component: lazyRouteComponent(
+    () => import("@/features/invitations/InvitationsPage"),
+    "InvitationsPage",
+  ),
 });
 
 const adminUsersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/usuarios",
-  component: UsersPage,
+  component: lazyRouteComponent(() => import("@/features/admin/UsersPage"), "UsersPage"),
 });
 
 const adminGroupsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/grupos",
-  component: GroupsPage,
+  component: lazyRouteComponent(() => import("@/features/admin/GroupsPage"), "GroupsPage"),
 });
 
 const adminGroupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/grupos/$groupId",
-  component: GroupDetail,
+  component: lazyRouteComponent(() => import("@/features/admin/GroupDetail"), "GroupDetail"),
 });
 
 const adminProgramsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/programas",
-  component: ProgramsPage,
+  component: lazyRouteComponent(() => import("@/features/admin/ProgramsPage"), "ProgramsPage"),
 });
 
 const adminSettingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/parametros",
-  component: SettingsPage,
+  component: lazyRouteComponent(() => import("@/features/admin/SettingsPage"), "SettingsPage"),
 });
 
 const adminAuditRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/auditoria",
-  component: AuditPage,
+  component: lazyRouteComponent(() => import("@/features/admin/AuditPage"), "AuditPage"),
 });
 
 const adminDeletionsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin/supresiones",
-  component: DeletionRequestsPage,
+  component: lazyRouteComponent(
+    () => import("@/features/admin/DeletionRequestsPage"),
+    "DeletionRequestsPage",
+  ),
 });
 
 const teacherGroupsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/grupos",
-  component: TeacherGroupsPage,
+  component: lazyRouteComponent(
+    () => import("@/features/teacher/TeacherGroupsPage"),
+    "TeacherGroupsPage",
+  ),
 });
 
 const offlineRoute = createRoute({

@@ -25,6 +25,9 @@ _DOMAIN = re.compile(r"^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+
 _EMAIL = re.compile(r"^[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+$")
 _SENDER = re.compile(r"^(?:[^<>]*<(?P<bracketed>[^<>]+)>|(?P<plain>[^<>\s]+))$")
 _MIN_SECRET_LENGTH = 32  # 256 bits (R-14)
+# Contraseña de ejemplo de `.env.example`: se admite en localhost (desarrollo, e2e y CI) pero no
+# en producción (ASVS 2.10.2, T178c).
+_EXAMPLE_PASSWORD = "cambie-esta-contrasena"  # noqa: S105 - valor a rechazar, no una credencial
 
 
 class ConfigError(Exception):
@@ -56,9 +59,17 @@ def _check_secret_length(value: SecretStr) -> SecretStr:
     return value
 
 
-def _check_dsn(value: SecretStr | None, prefixes: tuple[str, ...]) -> SecretStr | None:
-    if value is not None and not value.get_secret_value().startswith(prefixes):
+def _check_dsn(
+    value: SecretStr | None, prefixes: tuple[str, ...], info: ValidationInfo
+) -> SecretStr | None:
+    if value is None:
+        return value
+    if not value.get_secret_value().startswith(prefixes):
         raise ValueError(f"debe empezar con {' o '.join(prefixes)}")
+    public_url = info.data.get("public_base_url", "")
+    production = isinstance(public_url, str) and public_url.startswith("https://")
+    if production and urlsplit(value.get_secret_value()).password == _EXAMPLE_PASSWORD:
+        raise ValueError("usa la contraseña de ejemplo de .env.example; genere una propia")
     return value
 
 
@@ -156,13 +167,13 @@ class Settings(BaseSettings):
 
     @field_validator("database_url", "migration_database_url")
     @classmethod
-    def _postgres_dsn(cls, value: SecretStr | None) -> SecretStr | None:
-        return _check_dsn(value, ("postgresql+asyncpg://",))
+    def _postgres_dsn(cls, value: SecretStr | None, info: ValidationInfo) -> SecretStr | None:
+        return _check_dsn(value, ("postgresql+asyncpg://",), info)
 
     @field_validator("redis_url")
     @classmethod
-    def _redis_dsn(cls, value: SecretStr) -> SecretStr:
-        _check_dsn(value, ("redis://", "rediss://"))
+    def _redis_dsn(cls, value: SecretStr, info: ValidationInfo) -> SecretStr:
+        _check_dsn(value, ("redis://", "rediss://"), info)
         return value
 
     @field_validator("smtp_from")

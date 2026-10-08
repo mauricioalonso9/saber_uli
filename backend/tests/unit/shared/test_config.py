@@ -260,3 +260,40 @@ def test_ningun_secreto_aparece_en_repr_str_ni_json(env: pytest.MonkeyPatch) -> 
     for rendered in (repr(settings), str(settings), settings.model_dump_json()):
         for secret in secrets:
             assert secret not in rendered
+
+
+EXAMPLE_PASSWORD = "cambie-esta-contrasena"  # el de .env.example
+
+
+@pytest.mark.parametrize(
+    ("name", "url"),
+    [
+        ("DATABASE_URL", f"postgresql+asyncpg://saber_app:{EXAMPLE_PASSWORD}@db:5432/saber_uli"),
+        (
+            "MIGRATION_DATABASE_URL",
+            f"postgresql+asyncpg://saber_migrator:{EXAMPLE_PASSWORD}@db:5432/saber_uli",
+        ),
+        ("REDIS_URL", f"redis://:{EXAMPLE_PASSWORD}@redis:6379/0"),
+    ],
+)
+def test_produccion_rechaza_la_contrasena_de_ejemplo(
+    env: pytest.MonkeyPatch, name: str, url: str
+) -> None:
+    # ASVS 2.10.2 (T178c): con https (producción) no se arranca con la contraseña de ejemplo.
+    message = config_error(env, **{name: url})
+
+    assert name in message
+    assert "contraseña de ejemplo" in message
+    assert EXAMPLE_PASSWORD not in message
+
+
+def test_en_localhost_se_admite_la_contrasena_de_ejemplo(env: pytest.MonkeyPatch) -> None:
+    # Desarrollo, e2e y CI copian .env.example tal cual.
+    settings = load(
+        env,
+        PUBLIC_BASE_URL="http://localhost",
+        DATABASE_URL=f"postgresql+asyncpg://saber_app:{EXAMPLE_PASSWORD}@db:5432/saber_uli",
+        REDIS_URL=f"redis://:{EXAMPLE_PASSWORD}@redis:6379/0",
+    )
+
+    assert EXAMPLE_PASSWORD in settings.database_url.get_secret_value()

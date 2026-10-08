@@ -1702,8 +1702,12 @@ dato editable del perfil.
 - [ ] T178b Ver las sesiones activas y cerrar las demás desde Mi cuenta (ASVS 3.3.4) → Opus
   - Decisión pendiente: operación nueva en el contrato (listar mis sesiones y cerrar una o todas las demás) y requisito nuevo en spec.md. Requiere una enmienda de la especificación.
   - Terminado: la persona ve el tipo de ingreso y la última actividad de cada sesión y puede cerrarlas; la sesión cerrada deja de servir en la siguiente petición.
-- [ ] T178c [P] Negarse a arrancar en producción con contraseñas de ejemplo (ASVS 2.10.2): si `PUBLIC_BASE_URL` es https y la contraseña de `DATABASE_URL`, `MIGRATION_DATABASE_URL` o `REDIS_URL` es `cambie-esta-contrasena`, `Settings` falla sin mostrar valores → Qwen
+- [x] T178c [P] Negarse a arrancar en producción con contraseñas de ejemplo (ASVS 2.10.2): si `PUBLIC_BASE_URL` es https y la contraseña de `DATABASE_URL`, `MIGRATION_DATABASE_URL` o `REDIS_URL` es `cambie-esta-contrasena`, `Settings` falla sin mostrar valores → Qwen
   - Terminado: prueba unitaria en `tests/unit/shared/test_config.py`; desarrollo, e2e y CI siguen funcionando con `.env.example`.
+  - Estado: implementada por Opus (2026-10-08). `config.py` compara la contraseña de cada URL
+    con la de ejemplo solo si `PUBLIC_BASE_URL` es https; el error nombra la variable sin el
+    valor. `POSTGRES_PASSWORD` (superusuario) solo la usa el contenedor `db` y no pasa por
+    `Settings`: la lista de producción de quickstart.md ya pide generarla.
 - [x] T179 [P] Escribir `README.md` en la raíz (qué es Saber Uli, cómo levantar el entorno con enlace a quickstart.md, estructura, flujo SDD con dos modelos) → Qwen
   - Terminado: un recién llegado levanta el stack siguiendo solo el README y el quickstart.
   - Estado: implementada por Opus (2026-10-08). Al seguir el quickstart para el perfil `e2e`

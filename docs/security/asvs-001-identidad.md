@@ -45,7 +45,7 @@ entran con enlaces de un solo uso enviados a su correo (R-18). No hay contraseñ
 | 2.7.6 Código generado con CSPRNG (≥ 20 bits) | Cumple | 256 bits de `secrets.token_urlsafe`. |
 | 2.8.x, 2.9.x OTP y criptografía | N/A | No se usan. |
 | 2.10.1 Secretos entre servicios no estáticos | Desviación | PostgreSQL y Redis usan contraseñas por rol, desde variables de entorno, en la red interna de Compose (riesgo aceptado: no hay gestor de identidades de servicio). Cada servicio recibe solo su URL; `saber_bi` sin acceso a `identity` (T029). |
-| 2.10.2 Sin credenciales por defecto | **Hallazgo** | Las claves de firma y cookies exigen ≥ 256 bits (`config.py`), pero las contraseñas de PostgreSQL y Redis aceptarían el valor de ejemplo de `.env.example`. Tarea T178c. |
+| 2.10.2 Sin credenciales por defecto | Cumple | Las claves de firma y cookies exigen ≥ 256 bits, y con `PUBLIC_BASE_URL` https la API y el worker no arrancan si la contraseña de PostgreSQL o Redis es la de `.env.example` (T178c). `config.py`; `unit/shared/test_config.py::test_produccion_rechaza_la_contrasena_de_ejemplo`. |
 | 2.10.3, 2.10.4 Secretos fuera del código | Cumple | `${VAR:?}` en Compose, `.env` ignorado por Git, detect-secrets en pre-commit, Trivy en CI; `ConfigError` sin valores. `infra/test_containers.py::test_las_variables_de_la_prueba_cubren_env_example`. |
 
 Cuentas institucionales: `tid` y `iss` validados contra el inquilino de Unilibre (además del
@@ -185,7 +185,6 @@ otro origen no puede leer las respuestas.
 |-------|-----------|-----------|--------------|
 | T178a | 2.7.2 | Enlace de ingreso de invitados de 10 minutos como máximo (hoy 15 por defecto y configurable de 5 a 60). Cambia un supuesto de spec.md, data-model.md, la migración de valores por defecto y el rango de `identity.settings`. | Producto (spec) |
 | T178b | 3.3.4 | Que cada persona vea sus sesiones activas y pueda cerrar las demás. Es una operación nueva del contrato y una sección en Mi cuenta. | Producto (spec y contrato) |
-| T178c | 2.10.2 | Que la API y el worker se nieguen a arrancar en producción (`PUBLIC_BASE_URL` https) si las contraseñas de PostgreSQL o Redis son el valor de ejemplo de `.env.example`. | Implementación |
 
 ## Desviaciones aceptadas
 

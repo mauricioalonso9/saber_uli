@@ -1683,8 +1683,27 @@ dato editable del perfil.
   - Estado: implementada por Opus (2026-10-07). Son 52, no 51: `adminListGroupMembers` (US6) se
     agregó después de generar esta tarea. La prueba exige ahora igualdad exacta en ambos sentidos.
     Revisión de Opus (2026-10-08): aprobada; 52 subpruebas de Schemathesis en verde.
-- [ ] T178 Escribir la verificación ASVS 4.0.3 nivel 2 de la funcionalidad en `docs/security/asvs-001-identidad.md` (requisitos aplicables de V2, V3, V4, V5, V7, V8, V13 con evidencia o justificación, incluida la desviación de V3.3.2 registrada en plan.md) → Opus
+- [x] T178 Escribir la verificación ASVS 4.0.3 nivel 2 de la funcionalidad en `docs/security/asvs-001-identidad.md` (requisitos aplicables de V2, V3, V4, V5, V7, V8, V13 con evidencia o justificación, incluida la desviación de V3.3.2 registrada en plan.md) → Opus
   - Terminado: documento completo; ningún requisito aplicable sin evidencia.
+  - Revisión de Opus (2026-10-08): `docs/security/asvs-001-identidad.md` con V2, V3, V4, V5,
+    V7, V8 y V13 (niveles 1 y 2), cada requisito con evidencia, desviación justificada o N/A.
+    - **Corregido**: Nginx registraba la IP y la consulta completa (`?q=` de los listados puede
+      llevar un correo) y su registro de errores copiaba la petición: formato `saber` sin IP ni
+      consulta y `error_log … crit` (`infra/nginx/logging.conf`; prueba nueva en T007).
+    - **Corregido**: el ingreso de invitados no registraba `auth.login_succeeded` ni
+      `auth.login_rejected` (ASVS 7.2.1); ahora sí, con `provider=guest_link` y la causa.
+    - Pedido a TI en quickstart.md (sección 2): acceso condicional con MFA (ASVS 4.3.1).
+    - Desviaciones aceptadas: 2.2.2/2.7.1 (invitados por correo, FR-007), 2.10.1, 3.3.2
+      (registrada en plan.md), 3.4.4 (`Path=/api/auth`), 8.2.2 (instantánea sin conexión).
+    - Hallazgos abiertos: T178a, T178b y T178c.
+- [ ] T178a Enlace de ingreso de invitados de 10 minutos como máximo (ASVS 2.7.2): hoy 15 por defecto y configurable de 5 a 60 → Opus
+  - Decisión pendiente: cambia un supuesto de spec.md ("enlaces de ingreso … a los 15 minutos"), data-model.md (`sign_in_link_ttl_minutes`), la migración de valores por defecto y el rango de `identity.settings` (5 a 10). Requiere aprobar el cambio de la especificación.
+  - Terminado: valor por defecto 10 y máximo 10; pruebas de ajustes y del enlace actualizadas.
+- [ ] T178b Ver las sesiones activas y cerrar las demás desde Mi cuenta (ASVS 3.3.4) → Opus
+  - Decisión pendiente: operación nueva en el contrato (listar mis sesiones y cerrar una o todas las demás) y requisito nuevo en spec.md. Requiere una enmienda de la especificación.
+  - Terminado: la persona ve el tipo de ingreso y la última actividad de cada sesión y puede cerrarlas; la sesión cerrada deja de servir en la siguiente petición.
+- [ ] T178c [P] Negarse a arrancar en producción con contraseñas de ejemplo (ASVS 2.10.2): si `PUBLIC_BASE_URL` es https y la contraseña de `DATABASE_URL`, `MIGRATION_DATABASE_URL` o `REDIS_URL` es `cambie-esta-contrasena`, `Settings` falla sin mostrar valores → Qwen
+  - Terminado: prueba unitaria en `tests/unit/shared/test_config.py`; desarrollo, e2e y CI siguen funcionando con `.env.example`.
 - [x] T179 [P] Escribir `README.md` en la raíz (qué es Saber Uli, cómo levantar el entorno con enlace a quickstart.md, estructura, flujo SDD con dos modelos) → Qwen
   - Terminado: un recién llegado levanta el stack siguiendo solo el README y el quickstart.
   - Estado: implementada por Opus (2026-10-08). Al seguir el quickstart para el perfil `e2e`

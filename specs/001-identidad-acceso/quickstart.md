@@ -33,6 +33,9 @@ Pedir a TI que registre la aplicación con estos datos:
 4. **Permisos delegados**: `openid`, `profile`, `email`. No se requieren permisos de Microsoft
    Graph ni consentimiento de administrador adicional.
 5. **Claims opcionales** del ID token: `email`.
+6. **Acceso condicional con MFA** para la aplicación, al menos para quienes tengan rol de
+   docente, director de programa o administrador (ASVS 4.3.1; la app no pide un segundo factor
+   propio: lo impone Entra ID).
 
 TI entrega: *Tenant ID*, *Client ID* y *Client Secret*. Se cargan solo en `.env`, nunca en el
 repositorio.

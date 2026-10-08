@@ -142,4 +142,4 @@ def test_renovar_el_acceso_del_invitado_cancela_la_supresion() -> None:
 
 def test_las_horas_deben_tener_zona() -> None:
     with pytest.raises(ValueError, match="zona"):
-        institutional_schedule(datetime(2026, 1, 10, 15, 0))  # noqa: DTZ001
+        institutional_schedule(datetime(2026, 1, 10, 15, 0))

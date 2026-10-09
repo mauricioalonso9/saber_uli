@@ -19,7 +19,11 @@ RUN npm run build
 # ---------------------------------------------------------------------------------------------
 # runtime: Nginx sin privilegios (UID 101, puerto 8080).
 # ---------------------------------------------------------------------------------------------
-FROM nginxinc/nginx-unprivileged:1.29-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runtime
+
+# Parches de Alpine publicados después de la imagen base (Trivy en CI).
+USER root
+RUN apk upgrade --no-cache
 
 # Disposición descrita en infra/nginx/default.conf. En producción, compose.prod.yaml monta
 # tls.conf sobre conf.d/default.conf.
@@ -28,5 +32,8 @@ COPY infra/nginx/logging.conf /etc/nginx/conf.d/00-logging.conf
 COPY infra/nginx/security-headers.conf infra/nginx/locations.conf infra/nginx/tls.conf \
      /etc/nginx/saber/
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
+
+# La imagen base ya corre como nginx (UID 101); declararlo aquí lo deja verificable (Trivy DS002).
+USER 101
 
 EXPOSE 8080

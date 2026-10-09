@@ -13,9 +13,11 @@ import { newMockUser } from "./fixtures/auth";
 import { onboardedUser } from "./fixtures/consent";
 import { disableAccount } from "./fixtures/db";
 
+// Playwright solo controla service workers en Chromium: en WebKit, recargar sin conexión termina en
+// "WebKit encountered an internal error". El uso sin conexión se valida en `pixel-7`.
 test.skip(
-  ({ browserName }) => browserName === "webkit" && !process.env.E2E_OIDC_RESOLVES,
-  "WebKit necesita `127.0.0.1 oidc` en el archivo hosts",
+  ({ browserName }) => browserName === "webkit",
+  "Playwright no soporta service workers en WebKit",
 );
 
 const DAY = 24 * 60 * 60 * 1000;

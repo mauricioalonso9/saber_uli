@@ -34,7 +34,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ---------------------------------------------------------------------------------------------
 FROM ${PYTHON_IMAGE} AS runtime
 
-RUN groupadd --system --gid 10001 saber \
+# pip no se usa al correr y arrastra dependencias propias (urllib3, msgpack) que Trivy reporta.
+RUN python -m pip uninstall --yes --root-user-action=ignore pip \
+    && rm -rf /usr/local/lib/python3.13/ensurepip \
+    && groupadd --system --gid 10001 saber \
     && useradd --system --uid 10001 --gid 10001 --home-dir /app --no-create-home \
        --shell /usr/sbin/nologin saber
 

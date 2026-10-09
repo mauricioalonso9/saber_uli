@@ -1,0 +1,229 @@
+# Saber Uli: servicios base (T012; plan.md "Servicios de Docker Compose"; research R-07, R-32).
+#
+#   desarrollo:  docker compose up                     (incluye compose.override.yaml)
+#   producción:  docker compose -f compose.yaml -f compose.prod.yaml up -d
+#   e2e:         docker compose --profile e2e up -d --wait
+#
+# Las variables vienen de `.env` (ver .env.example). Las obligatorias usan `${VAR:?…}` para que
+# Compose falle con un mensaje claro si faltan; ningún secreto tiene valor por defecto.
+
+name: saber-uli
+
+# Imagen única del backend; cada servicio elige su comando (infra/docker/backend-entrypoint.sh).
+x-backend: &backend
+  build:
+    context: .
+    dockerfile: backend/Dockerfile
+  image: saber-uli/backend:${SABER_IMAGE_TAG:-local}
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  restart: unless-stopped
+
+# Entorno de api, worker y beat: rol saber_app (DML). migrate NO recibe estos secretos.
+x-app-env: &app-env
+  ENTRA_TENANT_ID: ${ENTRA_TENANT_ID:?Defina ENTRA_TENANT_ID en .env}
+  ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID:?Defina ENTRA_CLIENT_ID en .env}
+  ENTRA_CLIENT_SECRET: ${ENTRA_CLIENT_SECRET:?Defina ENTRA_CLIENT_SECRET en .env}
+  ENTRA_AUTHORITY: ${ENTRA_AUTHORITY:-}
+  PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:?Defina PUBLIC_BASE_URL en .env}
+  INSTITUTIONAL_EMAIL_DOMAINS: ${INSTITUTIONAL_EMAIL_DOMAINS:?Defina INSTITUTIONAL_EMAIL_DOMAINS en .env}
+  JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:?Defina JWT_SIGNING_KEY en .env}
+  JWT_KEY_ID: ${JWT_KEY_ID:?Defina JWT_KEY_ID en .env}
+  SESSION_COOKIE_SECRET: ${SESSION_COOKIE_SECRET:?Defina SESSION_COOKIE_SECRET en .env}
+  DATABASE_URL: postgresql+asyncpg://saber_app:${SABER_APP_PASSWORD:?Defina SABER_APP_PASSWORD en .env}@db:5432/${POSTGRES_DB:-saber_uli}
+  REDIS_URL: redis://redis:6379/0
+  SMTP_HOST: ${SMTP_HOST:?Defina SMTP_HOST en .env}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM: ${SMTP_FROM:?Defina SMTP_FROM en .env}
+  SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+  OTEL_ENABLED: ${OTEL_ENABLED:-false}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+  VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+
+x-after-migrate: &after-migrate
+  migrate:
+    condition: service_completed_successfully
+  redis:
+    condition: service_healthy
+
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: saber-uli/proxy:${SABER_IMAGE_TAG:-local}
+    # Sin depends_on de api: Nginx resuelve `api` en cada petición (infra/nginx/locations.conf).
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  api:
+    <<: *backend
+    command: ["api"]
+    environment:
+      <<: *app-env
+    depends_on: *after-migrate
+    expose:
+      - "8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=4)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  worker:
+    <<: *backend
+    command: ["worker"]
+    environment:
+      <<: *app-env
+    depends_on: *after-migrate
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A saber_uli.worker inspect ping -d celery@$$HOSTNAME --timeout 5"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+
+  beat:
+    <<: *backend
+    command: ["beat"]
+    environment:
+      <<: *app-env
+    depends_on: *after-migrate
+    healthcheck:
+      # La app Celery (T034) actualiza este archivo; más de 2 minutos sin latido = enfermo.
+      test: ["CMD-SHELL", "find /tmp/beat-heartbeat -mmin -2 | grep -q ."]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  migrate:
+    <<: *backend
+    command: ["migrate"]
+    restart: "no"
+    # Solo la URL del rol saber_migrator (mínimo privilegio, R-07).
+    environment:
+      MIGRATION_DATABASE_URL: postgresql+asyncpg://saber_migrator:${SABER_MIGRATOR_PASSWORD:?Defina SABER_MIGRATOR_PASSWORD en .env}@db:5432/${POSTGRES_DB:-saber_uli}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:18
+    # El entrypoint de la imagen arranca como root solo para preparar el volumen y luego ejecuta
+    # el servidor como `postgres` con gosu (R-32).
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-saber_uli}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD en .env}
+      SABER_MIGRATOR_PASSWORD: ${SABER_MIGRATOR_PASSWORD:?Defina SABER_MIGRATOR_PASSWORD en .env}
+      SABER_APP_PASSWORD: ${SABER_APP_PASSWORD:?Defina SABER_APP_PASSWORD en .env}
+      SABER_BI_PASSWORD: ${SABER_BI_PASSWORD:?Defina SABER_BI_PASSWORD en .env}
+    volumes:
+      # PostgreSQL 18 guarda los datos en /var/lib/postgresql/18/docker: el volumen va en el padre.
+      - db-data:/var/lib/postgresql
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      # Por TCP: el servidor temporal de los scripts de inicio solo escucha por socket, así que
+      # el servicio no queda "healthy" hasta que terminan los scripts.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      # Margen amplio: el primer arranque ejecuta los scripts de inicio y en equipos cargados
+      # puede tardar más de un minuto.
+      retries: 20
+      start_period: 60s
+
+  redis:
+    image: redis:8-alpine
+    # Broker, caché y límites: sin persistencia (lo confiable va por el outbox, R-08).
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Solo desarrollo (override) y e2e: correo de prueba.
+  mailpit:
+    image: axllent/mailpit:v1.31
+    profiles: ["e2e"]
+    user: "65534:65534"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Solo e2e: Entra ID simulado (infra/docker/mock-oauth2.json). Su health check usa GET: el
+  # servidor no responde a HEAD (`wget --spider`).
+  oidc:
+    image: ghcr.io/navikt/mock-oauth2-server:3.0.3
+    profiles: ["e2e"]
+    user: "65532:65532"
+    environment:
+      SERVER_PORT: "8080"
+      JSON_CONFIG_PATH: /config/mock-oauth2.json
+    volumes:
+      - ./infra/docker/mock-oauth2.json:/config/mock-oauth2.json:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -q
+        - -O
+        - /dev/null
+        - http://localhost:8080/${ENTRA_TENANT_ID:?Defina ENTRA_TENANT_ID en .env}/.well-known/openid-configuration
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  db-data:

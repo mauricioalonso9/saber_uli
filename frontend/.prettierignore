@@ -1,0 +1,11 @@
+node_modules
+dist
+dev-dist
+coverage
+package-lock.json
+src/api
+test-results
+playwright-report
+tests/e2e/report
+public/sw.js
+public/workbox-*.js

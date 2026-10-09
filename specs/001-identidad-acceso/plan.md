@@ -57,7 +57,8 @@ petición con conexión; cero datos personales en registros; ASVS nivel 2 en fun
 privilegiadas; WCAG 2.2 AA; HTTPS obligatorio fuera de `localhost`; imágenes sin root
 
 **Scale/Scope**: hasta 40 000 usuarios registrados, 2 000 concurrentes en pico, < 2 000
-invitados activos; 8 historias de usuario, 51 operaciones de API en 41 rutas, ~16 pantallas
+invitados activos; 8 historias de usuario, 55 operaciones de API en 44 rutas (contrato al
+2026-10-08), ~16 pantallas
 
 ## Constitution Check
 

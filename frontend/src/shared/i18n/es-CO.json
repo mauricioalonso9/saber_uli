@@ -1,0 +1,553 @@
+{
+  "app": {
+    "name": "Saber Uli",
+    "skipToContent": "Saltar al contenido",
+    "mainNavigation": "Principal"
+  },
+  "connection": {
+    "label": "Estado de conexión",
+    "online": "En línea",
+    "offline": "Sin conexión"
+  },
+  "nav": {
+    "home": "Inicio",
+    "consent": "Mi autorización de datos",
+    "account": "Mi cuenta",
+    "invitations": "Invitaciones",
+    "myGroups": "Mis grupos",
+    "users": "Cuentas",
+    "groups": "Grupos",
+    "programs": "Programas",
+    "settings": "Parámetros",
+    "audit": "Auditoría",
+    "policy": "Política de datos",
+    "administration": "Administración",
+    "deletions": "Supresiones"
+  },
+  "home": {
+    "title": "Inicio",
+    "placeholder": "Aquí aparecerán tus lecciones y tu progreso."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "body": "La página que buscas no existe o cambió de lugar.",
+    "back": "Volver al inicio"
+  },
+  "login": {
+    "title": "Ingresar",
+    "intro": "Usa tu cuenta institucional de la Universidad Libre (Microsoft 365).",
+    "microsoft": "Ingresar con mi cuenta Unilibre",
+    "guestLink": "Soy invitado: recibir un enlace de ingreso por correo",
+    "errors": {
+      "tenant_not_allowed": "Tu cuenta no pertenece a la Universidad Libre. Si no eres parte de la comunidad Unilibre, pide una invitación a un docente o a la administración de Saber Uli.",
+      "idp_unavailable": "No pudimos conectar con Microsoft. Intenta de nuevo en unos minutos.",
+      "invalid_state": "El ingreso tardó demasiado o se interrumpió. Vuelve a intentarlo.",
+      "login_cancelled": "Cancelaste el ingreso con Microsoft. Puedes intentarlo de nuevo cuando quieras.",
+      "login_failed": "No pudimos completar el ingreso. Vuelve a intentarlo.",
+      "account_disabled": "Tu cuenta está desactivada. Comunícate con la administración de Saber Uli.",
+      "account_deleted": "Esta cuenta fue eliminada.",
+      "unknown": "No pudimos completar el ingreso. Vuelve a intentarlo.",
+      "guest_access_revoked": "Tu acceso como invitado fue retirado y tu sesión se cerró. Si crees que es un error, comunícate con quien te invitó.",
+      "guest_access_expired": "Tu acceso como invitado venció y tu sesión se cerró. Pide a quien te invitó que lo renueve."
+    }
+  },
+  "guestAccess": {
+    "title": "Acceso de invitado",
+    "intro": "Pulsa «Ingresar» para entrar a Saber Uli. El enlace sirve una sola vez.",
+    "enter": "Ingresar",
+    "noToken": "Abre el enlace que te enviamos por correo para entrar. Si ya no lo tienes o venció, pide uno nuevo.",
+    "requestLink": "Pedir un enlace nuevo por correo"
+  },
+  "consent": {
+    "title": "Tratamiento de tus datos",
+    "intro": "Antes de usar Saber Uli, lee cómo tratamos tus datos personales y decide si autorizas su tratamiento.",
+    "loading": "Cargando la política…",
+    "version": "Versión {{version}}, vigente desde el {{date}}",
+    "decision": "Tu decisión",
+    "accept": "Acepto",
+    "reject": "No acepto",
+    "confirm": "Confirmar mi decisión",
+    "chooseOne": "Elige una opción: «Acepto» o «No acepto».",
+    "rejected": {
+      "title": "No aceptaste la política",
+      "body": "Sin tu autorización no puedes usar ninguna función de Saber Uli, porque necesitamos tratar tus datos para funcionar. Puedes revisar la política y aceptarla cuando quieras, o solicitar la eliminación de tu cuenta.",
+      "reviewAgain": "Revisar la política y aceptar",
+      "requestDeletion": "Solicitar la eliminación de mi cuenta"
+    }
+  },
+  "profile": {
+    "title": "Completa tu perfil",
+    "intro": "Solo cuatro datos para ajustar tu práctica. Podrás cambiarlos cuando quieras en «Mi cuenta».",
+    "introGuest": "Dinos cómo llamarte y cuánto quieres practicar. Podrás cambiarlo cuando quieras en «Mi cuenta».",
+    "loading": "Cargando tu perfil…",
+    "program": "Programa académico",
+    "chooseProgram": "Elige tu programa",
+    "semester": "Semestre",
+    "chooseSemester": "Elige tu semestre",
+    "examDate": "Fecha estimada de tu prueba Saber Pro",
+    "examDateOptional": "Fecha estimada de tu prueba Saber Pro (opcional)",
+    "dailyGoal": "Meta diaria",
+    "goals": {
+      "casual": "Casual",
+      "regular": "Regular",
+      "intense": "Intensa"
+    },
+    "guestName": "Tu nombre",
+    "saveAndContinue": "Guardar y continuar",
+    "directory": {
+      "title": "Datos de tu cuenta Unilibre",
+      "name": "Nombre",
+      "email": "Correo",
+      "note": "Vienen del directorio de la Universidad Libre y no se cambian en Saber Uli."
+    },
+    "errors": {
+      "program": "Elige tu programa académico.",
+      "semester": "Elige tu semestre.",
+      "examDate": "Indica la fecha estimada de tu prueba Saber Pro.",
+      "guestName": "Tu nombre debe tener entre 2 y 120 caracteres."
+    }
+  },
+  "offline": {
+    "title": "Sin conexión"
+  },
+  "install": {
+    "title": "Instala Saber Uli",
+    "ios": "Para tenerla en tu iPhone como una app, toca el botón Compartir de Safari y luego «Agregar a inicio».",
+    "dismiss": "Cerrar la guía de instalación",
+    "dismissShort": "Entendido"
+  },
+  "auth": {
+    "signOut": "Cerrar sesión"
+  },
+  "consentSettings": {
+    "title": "Mi autorización de datos",
+    "current": "Autorización vigente",
+    "acceptedOn": "Aceptaste la versión {{version}} de la política el {{date}}.",
+    "none": "No tienes una autorización vigente.",
+    "showText": "Ver el texto de la versión {{version}}",
+    "hideText": "Ocultar el texto de la versión {{version}}",
+    "revoke": "Revocar mi autorización",
+    "history": "Historial de decisiones",
+    "decision": {
+      "accepted": "Aceptaste la versión {{version}} el {{date}}",
+      "rejected": "No aceptaste la versión {{version}} el {{date}}",
+      "revoked": "Revocaste la autorización de la versión {{version}} el {{date}}"
+    },
+    "confirm": {
+      "title": "¿Revocar tu autorización?",
+      "body": "Si la revocas, no podrás usar Saber Uli hasta que vuelvas a aceptar la política, y tu sesión se cerrará en todos tus dispositivos.",
+      "yes": "Sí, revocar",
+      "cancel": "Cancelar"
+    },
+    "revoked": {
+      "title": "Revocaste tu autorización",
+      "body": "Tu acceso quedó suspendido. Para volver a usar Saber Uli, ingresa y acepta la política; si lo prefieres, desde allí puedes solicitar la supresión de tus datos.",
+      "signInAgain": "Ingresar de nuevo"
+    }
+  },
+  "accountData": {
+    "title": "Mis datos",
+    "intro": "Estos son todos los datos personales que Saber Uli guarda sobre ti.",
+    "loading": "Cargando tus datos…",
+    "download": "Descargar una copia",
+    "identity": "Identidad",
+    "profile": "Perfil",
+    "roles": "Roles",
+    "groups": "Grupos",
+    "consents": "Historial de autorizaciones",
+    "invitation": "Invitación",
+    "fields": {
+      "name": "Nombre",
+      "email": "Correo",
+      "kind": "Tipo de cuenta",
+      "createdAt": "Cuenta creada el",
+      "lastLogin": "Último ingreso",
+      "program": "Programa académico",
+      "semester": "Semestre",
+      "examDate": "Fecha prevista de la prueba",
+      "dailyGoal": "Meta diaria",
+      "acceptedAt": "Aceptaste la invitación el",
+      "accessUntil": "Tu acceso dura hasta el"
+    },
+    "kinds": {
+      "institutional": "Cuenta institucional",
+      "guest": "Invitado"
+    },
+    "none": "Sin datos",
+    "noGroups": "No perteneces a ningún grupo.",
+    "fix": {
+      "title": "¿Algún dato está mal?",
+      "editProfile": "Editar mi perfil"
+    },
+    "directorPrograms": "Programas que diriges",
+    "sessions": "Sesiones",
+    "activity": "Actividad sobre tu cuenta",
+    "noActivity": "No hay actividad registrada.",
+    "session": {
+      "methods": {
+        "entra_id": "Ingreso con tu cuenta Unilibre",
+        "guest_link": "Ingreso con enlace de invitado"
+      },
+      "detail": "{{method}} el {{started}}; última actividad el {{lastSeen}}.",
+      "revoked": "Cerrada el {{date}}.",
+      "expires": "Vence el {{date}}."
+    },
+    "actors": {
+      "self": "tú",
+      "staff": "el personal de la universidad",
+      "system": "el sistema"
+    },
+    "event": "{{date}}: {{action}}, por {{actor}}."
+  },
+  "policyAdmin": {
+    "title": "Política de tratamiento de datos",
+    "current": "Versión vigente: {{version}}, desde el {{date}}.",
+    "warning": "Al empezar a regir una versión nueva, todas las personas, incluida tú, deberán leerla y aceptarla antes de seguir usando Saber Uli.",
+    "version": "Número de versión",
+    "effectiveFrom": "Vigente desde (hora de Colombia)",
+    "titleField": "Título",
+    "body": "Texto de la política (Markdown)",
+    "count_one": "{{count}} carácter (entre {{min}} y {{max}}).",
+    "count_other": "{{count}} caracteres (entre {{min}} y {{max}}).",
+    "preview": "Vista previa",
+    "hidePreview": "Ocultar la vista previa",
+    "publish": "Publicar versión",
+    "untitled": "Sin título",
+    "published": "Publicaste la versión {{version}}. Desde el {{from}}, todas las personas deberán aceptarla.",
+    "errors": {
+      "version": "Usa el formato número.número, por ejemplo 2.0.",
+      "titleRequired": "Escribe el título.",
+      "titleMax": "El título admite hasta {{max}} caracteres.",
+      "bodyMin": "El texto debe tener al menos {{min}} caracteres.",
+      "bodyMax": "El texto admite hasta {{max}} caracteres.",
+      "effectiveFrom": "Indica la fecha y la hora de vigencia."
+    }
+  },
+  "account": {
+    "title": "Mi cuenta",
+    "profile": "Tu perfil",
+    "save": "Guardar cambios",
+    "saved": "Guardamos tus cambios.",
+    "deletion": {
+      "title": "Eliminar mi cuenta",
+      "intro": "Puedes pedir que eliminemos tu cuenta y tus datos personales.",
+      "erased": "Se borran tu nombre, correo, perfil, roles, grupos y sesiones.",
+      "kept": "Las estadísticas de tus respuestas, tus autorizaciones de datos y la auditoría se conservan sin datos que te identifiquen.",
+      "irreversible": "La eliminación no se puede deshacer: pierdes el acceso de inmediato y la completamos en un máximo de 15 días hábiles. Si vuelves a ingresar, se creará una cuenta nueva, sin tu historial.",
+      "open": "Eliminar mi cuenta",
+      "lastAdmin": "Eres el último administrador activo: asigna el rol Administrador a otra persona antes de eliminar tu cuenta.",
+      "confirm": {
+        "title": "¿Eliminar tu cuenta?",
+        "body": "Esta acción no se puede deshacer. Para confirmar, escribe ELIMINAR.",
+        "label": "Escribe ELIMINAR para confirmar",
+        "yes": "Eliminar definitivamente",
+        "cancel": "Cancelar"
+      },
+      "done": {
+        "title": "Solicitamos la supresión de tu cuenta",
+        "body": "Cerramos tu sesión en todos tus dispositivos. Completaremos la eliminación a más tardar el {{date}}."
+      }
+    },
+    "sessions": {
+      "title": "Sesiones abiertas",
+      "intro": "Estos son los dispositivos donde tienes Saber Uli abierto. Si no reconoces alguno, ciérralo.",
+      "loading": "Cargando tus sesiones…",
+      "current": "este dispositivo",
+      "method": {
+        "entra_id": "Cuenta Unilibre (Microsoft 365)",
+        "guest_link": "Enlace de invitado"
+      },
+      "started": "Inició: {{date}}",
+      "lastActivity": "Última actividad: {{date}}",
+      "closeOne": "Cerrar esta sesión",
+      "closeOneLabel": "Cerrar la sesión de {{method}} con última actividad {{date}}",
+      "closeOthers": "Cerrar todas las demás sesiones",
+      "closedOne": "La sesión se cerró. Ese dispositivo tendrá que volver a ingresar.",
+      "closedOthers": "Se cerraron las demás sesiones. Esos dispositivos tendrán que volver a ingresar."
+    }
+  },
+  "guestLink": {
+    "title": "Ingresar como invitado",
+    "intro": "Escribe el correo al que te llegó la invitación y te enviaremos un enlace para entrar, sin contraseña.",
+    "email": "Tu correo",
+    "submit": "Enviarme un enlace",
+    "sent": "Si el correo corresponde a un invitado con acceso vigente, en unos minutos recibirás un enlace para ingresar. Revisa también la carpeta de correo no deseado.",
+    "back": "¿Eres de la Universidad Libre? Ingresa con tu cuenta Unilibre",
+    "errors": {
+      "email": "Escribe un correo válido, por ejemplo nombre@correo.com."
+    }
+  },
+  "invitations": {
+    "title": "Invitaciones",
+    "listTitle": "Invitaciones enviadas",
+    "loading": "Cargando invitaciones…",
+    "empty": "Todavía no hay invitaciones con este filtro.",
+    "reauth": "Confirmar mi identidad",
+    "status": {
+      "sent": "Enviada",
+      "accepted": "Aceptada",
+      "expired": "Vencida",
+      "revoked": "Revocada"
+    },
+    "filters": {
+      "status": "Estado",
+      "all": "Todas",
+      "mine": "Solo las que yo envié",
+      "search": "Buscar por correo o nombre",
+      "searchButton": "Buscar"
+    },
+    "table": {
+      "email": "Correo",
+      "name": "Nombre",
+      "status": "Estado",
+      "until": "Acceso hasta",
+      "invitedBy": "Invitó",
+      "actions": "Acciones",
+      "noEmail": "(contacto eliminado)",
+      "system": "Sistema",
+      "erased": "(cuenta eliminada)"
+    },
+    "form": {
+      "title": "Invitar a una persona",
+      "email": "Correo",
+      "name": "Nombre (opcional)",
+      "until": "Acceso hasta (opcional)",
+      "submit": "Enviar invitación",
+      "sent": "Enviamos la invitación a {{email}}.",
+      "errors": {
+        "email": "Escribe un correo válido, por ejemplo nombre@correo.com.",
+        "date": "Elige una fecha futura."
+      }
+    },
+    "batch": {
+      "title": "Invitar por lote",
+      "help": "Sube un archivo CSV en UTF-8 con el encabezado correo,nombre,vence (vence como AAAA-MM-DD; si la dejas vacía se usa el plazo por defecto). Máximo 500 filas. Revisa el reporte antes de enviar: solo se envían las filas válidas.",
+      "file": "Archivo CSV",
+      "check": "Revisar el archivo",
+      "chooseFile": "Elige un archivo CSV.",
+      "report": "Reporte del lote",
+      "line": "Fila",
+      "result": "Resultado",
+      "detail": "Detalle",
+      "summary_one": "{{count}} válida y {{invalid}} con problemas.",
+      "summary_other": "{{count}} válidas y {{invalid}} con problemas.",
+      "confirm_one": "Enviar {{count}} invitación",
+      "confirm_other": "Enviar {{count}} invitaciones",
+      "sent_one": "Enviamos {{count}} invitación.",
+      "sent_other": "Enviamos {{count}} invitaciones.",
+      "results": {
+        "valid": "Válida",
+        "invalid_email": "Correo inválido",
+        "duplicate_in_file": "Repetida en el archivo",
+        "already_invited": "Ya invitada",
+        "institutional_email": "Correo institucional",
+        "expiry_out_of_range": "Vencimiento fuera de rango"
+      }
+    },
+    "actions": {
+      "resend": "Reenviar",
+      "resendFor": "Reenviar la invitación de {{who}}",
+      "resent": "Reenviamos la invitación a {{who}}.",
+      "change": "Cambiar vencimiento",
+      "changeFor": "Cambiar vencimiento de {{who}}",
+      "newDate": "Nuevo vencimiento",
+      "save": "Guardar",
+      "changed": "Actualizamos el vencimiento de {{who}}.",
+      "revoke": "Revocar",
+      "revokeFor": "Revocar el acceso de {{who}}",
+      "confirmTitle": "¿Revocar el acceso de {{who}}?",
+      "confirmBody": "El enlace dejará de funcionar y, si ya ingresó, su sesión terminará de inmediato.",
+      "confirmYes": "Sí, revocar",
+      "cancel": "Cancelar",
+      "revoked": "Revocamos el acceso de {{who}}."
+    },
+    "count_one": "{{count}} invitación.",
+    "count_other": "{{count}} invitaciones.",
+    "partial": "Se muestran las {{shown}} más recientes; usa la búsqueda para encontrar otras."
+  },
+  "admin": {
+    "loading": "Cargando…",
+    "roles": {
+      "student": "Estudiante",
+      "guest": "Invitado",
+      "teacher": "Docente",
+      "program_director": "Director de programa",
+      "admin": "Administrador"
+    },
+    "status": {
+      "active": "Activa",
+      "disabled": "Desactivada",
+      "guest_expired": "Acceso vencido",
+      "guest_revoked": "Acceso revocado",
+      "deletion_pending": "Supresión en curso",
+      "deleted": "Eliminada"
+    },
+    "kinds": {
+      "institutional": "Institucional",
+      "guest": "Invitado"
+    },
+    "users": {
+      "title": "Cuentas",
+      "table": "Cuentas",
+      "search": "Buscar por correo o nombre",
+      "role": "Rol",
+      "columns": {
+        "name": "Nombre",
+        "email": "Correo",
+        "kind": "Tipo",
+        "roles": "Roles",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "editRoles": "Editar roles",
+      "editRolesOf": "Editar roles de {{name}}",
+      "rolesOf": "Roles de {{name}}",
+      "directorPrograms": "Programas que dirige",
+      "saveRoles": "Guardar roles",
+      "rolesSaved": "Actualizamos los roles de {{name}}.",
+      "disable": "Desactivar",
+      "disableOf": "Desactivar a {{name}}",
+      "reactivate": "Reactivar",
+      "reactivateOf": "Reactivar a {{name}}",
+      "confirmDisable": "¿Desactivar a {{name}}?",
+      "confirmDisableBody": "No podrá ingresar y sus sesiones abiertas terminarán de inmediato. Puedes reactivarla después.",
+      "confirmYes": "Sí, desactivar",
+      "disabled": "Desactivamos la cuenta de {{name}}.",
+      "reactivated": "Reactivamos la cuenta de {{name}}."
+    },
+    "groups": {
+      "title": "Grupos",
+      "table": "Grupos",
+      "createTitle": "Crear un grupo",
+      "name": "Nombre",
+      "cohort": "Cohorte (opcional)",
+      "description": "Descripción (opcional)",
+      "create": "Crear grupo",
+      "created": "Creamos el grupo {{name}}.",
+      "columns": {
+        "name": "Nombre",
+        "cohort": "Cohorte",
+        "members": "Estudiantes",
+        "teachers": "Docentes",
+        "state": "Estado",
+        "actions": "Acciones"
+      },
+      "active": "Activo",
+      "archived": "Archivado",
+      "manage": "Gestionar",
+      "manageOf": "Gestionar {{name}}",
+      "archive": "Archivar el grupo",
+      "unarchive": "Reactivar el grupo",
+      "archivedDone": "Archivamos el grupo.",
+      "unarchived": "Reactivamos el grupo.",
+      "students": "Estudiantes",
+      "teachers": "Docentes",
+      "searchStudents": "Buscar estudiantes por correo o nombre",
+      "searchTeachers": "Buscar docentes por correo o nombre",
+      "add": "Agregar",
+      "addPerson": "Agregar a {{name}}",
+      "added": "Agregamos a {{name}}.",
+      "remove": "Quitar",
+      "removePerson": "Quitar a {{name}}",
+      "removed": "Quitamos a {{name}}.",
+      "errors": {
+        "name": "El nombre debe tener entre 2 y 120 caracteres."
+      }
+    },
+    "programs": {
+      "title": "Programas",
+      "table": "Programas",
+      "createTitle": "Crear un programa",
+      "code": "Código",
+      "name": "Nombre",
+      "campus": "Seccional",
+      "create": "Crear programa",
+      "created": "Creamos el programa {{name}}.",
+      "columns": {
+        "code": "Código",
+        "name": "Nombre",
+        "campus": "Seccional",
+        "state": "Estado",
+        "actions": "Acciones"
+      },
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "activateOf": "Activar {{label}}",
+      "deactivateOf": "Desactivar {{label}}",
+      "activated": "Activamos {{label}}.",
+      "deactivated": "Desactivamos {{label}}: ya no aparece al completar el perfil.",
+      "errors": {
+        "code": "Usa de 2 a 20 letras mayúsculas, números o guiones, por ejemplo DER-BOG.",
+        "name": "El nombre debe tener entre 3 y 200 caracteres.",
+        "campus": "La seccional debe tener entre 2 y 100 caracteres."
+      }
+    },
+    "settings": {
+      "title": "Parámetros",
+      "fields": {
+        "teacher_max_access_days": "Plazo máximo para docentes al invitar (días)",
+        "default_guest_access_days": "Acceso por defecto de un invitado (días)",
+        "invitation_link_ttl_days": "Vigencia del enlace de invitación (días)",
+        "sign_in_link_ttl_minutes": "Vigencia del enlace de ingreso (minutos)"
+      },
+      "range": "Debe ser un número entero entre {{min}} y {{max}}.",
+      "save": "Guardar parámetros",
+      "saved": "Guardamos los parámetros.",
+      "noChanges": "No hay cambios que guardar."
+    },
+    "audit": {
+      "title": "Auditoría",
+      "table": "Eventos de auditoría",
+      "action": "Acción",
+      "from": "Desde",
+      "to": "Hasta",
+      "filter": "Filtrar",
+      "system": "Sistema",
+      "count_one": "{{count}} evento.",
+      "count_other": "{{count}} eventos.",
+      "columns": {
+        "when": "Fecha",
+        "action": "Acción",
+        "actor": "Quién",
+        "target": "Sobre",
+        "details": "Detalle"
+      }
+    },
+    "deletions": {
+      "title": "Solicitudes de supresión",
+      "table": "Solicitudes de supresión",
+      "status": "Estado",
+      "all": "Todas",
+      "empty": "No hay solicitudes de supresión.",
+      "count_one": "{{count}} solicitud.",
+      "count_other": "{{count}} solicitudes.",
+      "columns": {
+        "requested": "Solicitada",
+        "status": "Estado",
+        "origin": "Origen",
+        "due": "Fecha límite",
+        "completed": "Completada el",
+        "account": "Cuenta"
+      },
+      "statuses": {
+        "received": "Recibida",
+        "in_progress": "En proceso",
+        "completed": "Completada"
+      },
+      "origins": {
+        "user_request": "Solicitud de la persona",
+        "guest_retention": "Conservación de invitado",
+        "institutional_retention": "Conservación institucional"
+      }
+    }
+  },
+  "teacher": {
+    "title": "Mis grupos",
+    "empty": "Todavía no tienes grupos asignados. La administración de Saber Uli te los asigna.",
+    "groupButton_one": "{{name}} ({{count}} estudiante)",
+    "groupButton_other": "{{name}} ({{count}} estudiantes)",
+    "studentsOf": "Estudiantes de {{name}}"
+  }
+}

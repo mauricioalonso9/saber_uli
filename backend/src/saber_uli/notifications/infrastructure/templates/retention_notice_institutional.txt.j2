@@ -1,0 +1,10 @@
+{% extends "base.txt.j2" %}
+{% block content %}{% if name %}Hola, {{ name }}.{% else %}Hola.{% endif %}
+
+Hace casi un año que no ingresas a Saber Uli. Para proteger tus datos personales, el {{ erase_on }} eliminaremos tu cuenta, tu perfil y tu progreso.
+
+Si quieres conservarlos, ingresa con tu cuenta Unilibre antes de esa fecha. Con eso la eliminación se cancela.
+
+Ingresar a Saber Uli: {{ sign_in_path | absolute_url }}
+
+Si no haces nada, la eliminación ocurrirá en la fecha indicada. Las estadísticas de las preguntas se conservan sin datos que te identifiquen.{% endblock %}

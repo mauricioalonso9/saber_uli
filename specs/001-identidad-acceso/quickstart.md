@@ -33,6 +33,9 @@ Pedir a TI que registre la aplicación con estos datos:
 4. **Permisos delegados**: `openid`, `profile`, `email`. No se requieren permisos de Microsoft
    Graph ni consentimiento de administrador adicional.
 5. **Claims opcionales** del ID token: `email`.
+6. **Acceso condicional con MFA** para la aplicación, al menos para quienes tengan rol de
+   docente, director de programa o administrador (ASVS 4.3.1; la app no pide un segundo factor
+   propio: lo impone Entra ID).
 
 TI entrega: *Tenant ID*, *Client ID* y *Client Secret*. Se cargan solo en `.env`, nunca en el
 repositorio.
@@ -71,6 +74,21 @@ docker compose run --rm -v ${PWD}\programas.csv:/tmp/programas.csv api `
   saber-uli identity import-programs --csv /tmp/programas.csv
 ```
 
+Ejemplo de archivo (sirve el «CSV UTF-8» de Excel; el código va en mayúsculas, números o
+guiones, de 2 a 20 caracteres):
+
+```text
+codigo,nombre,seccional
+DER-BOG,Derecho,Bogotá
+CON-CAL,Contaduría Pública,Cali
+```
+
+El comando informa cuántos programas creó, actualizó y dejó sin cambios, y lista las filas
+rechazadas con su número y el motivo. Código de salida: `0` todo cargado; `1` hubo filas
+rechazadas (las válidas sí se cargaron) o falló la base de datos; `2` el archivo no existe, no
+está en UTF-8 o el encabezado no es `codigo,nombre,seccional` (no se cargó nada). Los programas
+existentes conservan su estado activo o inactivo.
+
 Después también se pueden gestionar desde `/admin/programas`.
 
 ---
@@ -88,8 +106,8 @@ cd backend
 uv run pytest --cov=saber_uli --cov-report=term-missing
 uv run ruff check . ; uv run mypy --strict src ; uv run lint-imports
 
-# Contrato (con el stack arriba)
-uv run schemathesis run ../specs/001-identidad-acceso/contracts/openapi.yaml --url http://localhost
+# Contrato (Schemathesis sobre las 55 operaciones contra la app ASGI; requiere Docker)
+uv run pytest tests/contract
 
 # Frontend
 cd ../frontend
@@ -97,9 +115,26 @@ npm ci ; npm run lint ; npm run typecheck ; npm test
 
 # Extremo a extremo, accesibilidad y modo sin conexión (stack con proveedor OIDC de prueba)
 cd ..
-docker compose --profile e2e up -d --build
-cd frontend ; npx playwright test
+docker compose --profile e2e up -d --build --wait
+cd frontend ; npx playwright install chromium webkit ; npx playwright test
 ```
+
+Para el perfil `e2e`, `.env` apunta al proveedor OIDC de prueba en lugar de Entra ID (lo mismo
+que hace CI):
+
+```text
+ENTRA_TENANT_ID=11111111-1111-4111-8111-111111111111
+ENTRA_AUTHORITY=http://oidc:8080/11111111-1111-4111-8111-111111111111
+PUBLIC_BASE_URL=http://localhost
+```
+
+El navegador y la API usan el mismo emisor `http://oidc:8080`. Chromium lo resuelve solo
+(`playwright.config.ts`); para WebKit agregue `127.0.0.1 oidc` al archivo hosts y ejecute con
+`E2E_OIDC_RESOLVES=1`, o esas pruebas se omiten.
+
+Rendimiento (T176): `uv run pytest tests/integration/identity/test_performance_budgets.py -s`
+imprime los p95 medidos; con `PERF_BUDGETS_ENFORCE=1` además exige p95 < 300 ms (en el servidor
+de referencia).
 
 Criterios: todas las suites en verde; cobertura ≥ 80 % en `domain` y `application`;
 Schemathesis sin fallos; axe sin infracciones de nivel AA.
@@ -150,3 +185,36 @@ docker compose -f compose.yaml -f compose.prod.yaml up -d --build
 - Verificar V1, V2, V5 y V20 tras cada despliegue.
 - Renovar el secreto de Entra ID antes de su vencimiento y rotar `JWT_SIGNING_KEY` con un `kid`
   nuevo (los tokens anteriores siguen válidos hasta 10 minutos).
+- `REDIS_PASSWORD` es obligatoria con `compose.prod.yaml`: Redis exige contraseña y Compose arma
+  `REDIS_URL` con ella (T070a).
+
+### Alertas operativas (T070b)
+
+La API y el worker escriben un JSON por línea (`event`, `level`, `timestamp` y campos sin datos
+personales). Estos eventos deben generar una alerta en el sistema de monitoreo:
+
+| Evento | Origen | Qué significa | Qué revisar |
+|--------|--------|---------------|-------------|
+| `rate_limit_unavailable` | API | Redis no responde y los límites de peticiones quedan sin aplicar (falla abierta) | Estado de `redis`, `REDIS_URL` y `REDIS_PASSWORD` |
+| `epoch_cache_unavailable` | API, worker | La caché de `auth_epoch` no responde; cada petición consulta PostgreSQL | Estado de `redis`; carga de `db` |
+| `session_revocation_unavailable` | API | No se pudo registrar o consultar una sesión revocada; un token ya emitido podría valer hasta su vencimiento (10 min) | Estado de `redis` |
+| `outbox_delivery_failed` | worker | Un evento del outbox falló (`event_type`, `attempts`, `error_type`); se reintenta con espera creciente | SMTP (`SMTP_*`) si es un correo; alerta si `attempts` ≥ 5 |
+| `readiness_check_failed` | API | `/api/ready` falló para `check` (`database` o `redis`) | El servicio indicado en `check` |
+
+Ejemplo con los registros de Compose y `jq` (cuenta los eventos de los últimos 15 minutos):
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml logs --no-log-prefix --since 15m api worker \
+  | jq -Rr 'fromjson? | select(.event | IN("rate_limit_unavailable", "epoch_cache_unavailable",
+      "session_revocation_unavailable", "outbox_delivery_failed", "readiness_check_failed"))
+      | .event' \
+  | sort | uniq -c
+```
+
+Eventos del outbox atascados (pendientes con 5 intentos o más):
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml exec db psql -U postgres -d saber_uli -c \
+  "SELECT event_type, attempts, last_error, available_at FROM shared.outbox_events
+   WHERE processed_at IS NULL AND attempts >= 5 ORDER BY occurred_at"
+```

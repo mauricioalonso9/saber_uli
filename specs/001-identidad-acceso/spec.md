@@ -77,6 +77,12 @@ Microsoft externa; verificar que la primera entra con cuenta creada y la segunda
 4. **Given** un usuario con sesión abierta,
    **When** cierra sesión,
    **Then** la sesión termina en ese dispositivo y se requiere autenticarse de nuevo.
+5. **Given** un usuario con sesiones abiertas en varios dispositivos,
+   **When** entra a Mi cuenta,
+   **Then** ve cada sesión activa con la forma de ingreso, cuándo empezó y su última actividad,
+   identifica la del dispositivo actual y puede cerrar cualquiera o todas las demás; una sesión
+   cerrada deja de servir en su siguiente petición con conexión (FR-037a; enmienda del
+   2026-10-08 por ASVS 3.3.4).
 
 ---
 
@@ -489,6 +495,9 @@ personales, descarga una copia y corrige un dato editable.
 - **FR-036**: El sistema DEBE registrar los intentos de ingreso rechazados sin almacenar datos
   personales en los registros técnicos.
 - **FR-037**: El usuario DEBE poder cerrar sesión; las sesiones inactivas DEBEN expirar.
+- **FR-037a**: El usuario DEBE poder ver sus sesiones activas (forma de ingreso, inicio y
+  última actividad, sin dirección IP ni datos del dispositivo) y cerrar cualquiera de ellas o
+  todas las demás (ASVS 4.0.3 V3.3.4; enmienda del 2026-10-08).
 - **FR-038**: Un usuario autenticado DEBE poder seguir usando la app sin conexión hasta 7 días
   desde su última validación con conexión; pasado ese plazo DEBE volver a autenticarse con red.
 - **FR-039**: Al recuperar la conexión, el sistema DEBE validar que la cuenta sigue activa, que
@@ -550,7 +559,7 @@ personales, descarga una copia y corrige un dato editable.
   administrador no configure otro.
 - Si el administrador no indica otra cosa, el acceso de un invitado vence a los 90 días de
   enviada la invitación; el enlace de invitación vence a los 7 días y los enlaces de ingreso
-  posteriores a los 15 minutos.
+  posteriores a los 10 minutos (máximo configurable: 10, por ASVS 2.7.2; enmienda del 2026-10-08).
 - Todas las cuentas institucionales, incluidos funcionarios y docentes, entran con rol Estudiante;
   los demás roles los asigna un administrador.
 - Los usuarios son mayores de edad; la autorización la otorga el propio titular.

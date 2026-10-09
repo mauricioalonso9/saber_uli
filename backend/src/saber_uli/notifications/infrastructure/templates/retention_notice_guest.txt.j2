@@ -1,0 +1,8 @@
+{% extends "base.txt.j2" %}
+{% block content %}{% if name %}Hola, {{ name }}.{% else %}Hola.{% endif %}
+
+Tu acceso como invitado a Saber Uli terminó. Para proteger tus datos personales, el {{ erase_on }} eliminaremos tu cuenta, tu perfil y tu progreso.
+
+Si quieres conservarlos, pide la renovación de tu acceso a quien te invitó{% if inviter_name %} ({{ inviter_name }}){% endif %} antes de esa fecha. Con la renovación la eliminación se cancela y recuperas tu progreso.
+
+Si no haces nada, la eliminación ocurrirá en la fecha indicada. Las estadísticas de las preguntas se conservan sin datos que te identifiquen.{% endblock %}

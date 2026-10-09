@@ -92,6 +92,11 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
   `SELECT … FOR UPDATE SKIP LOCKED`, los despacha a sus manejadores y los marca como procesados;
   los manejadores son idempotentes (clave `event_id`). Los eventos procesados se purgan a los
   7 días.
+  - Precisión (2026-10-06): el bus en proceso tiene dos fases. `in_transaction` corre antes del
+    `COMMIT` con la misma sesión (por ejemplo, escribir el outbox); si falla, se revierte todo.
+    `after_commit` corre después del `COMMIT` para efectos fuera de la base de datos (por
+    ejemplo, invalidar la caché de `auth_epoch`); sus fallos se registran y no deshacen nada. Lo
+    que deba ocurrir de forma confiable va al outbox, nunca a `after_commit`.
 - **Justificación**: el correo de invitación, el enlace de acceso, los avisos de supresión y la
   supresión misma deben ocurrir si y solo si la transacción que los origina se confirma.
 - **Alternativas**: publicar directamente a Celery tras el commit (se pierden eventos si el
@@ -174,6 +179,16 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
     su hash SHA-256. Cookie `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`.
     Rotación en cada uso con detección de reutilización por familia: si se presenta un token ya
     rotado, se revoca toda la familia (todas las sesiones derivadas).
+  - **Precisión (2026-10-07, T120)**: la cookie lleva `Secure` siempre que `PUBLIC_BASE_URL`
+    sea https (producción). Con http, que la configuración solo acepta en localhost, se omite:
+    WebKit (Safari) no guarda cookies `Secure` en `http://localhost` y la sesión se perdía en la
+    e2e de iPhone. Es el mismo criterio que ya usaba la cookie del flujo OIDC.
+  - **Precisión (2026-10-07, T103)**: reutilizar un token rotado hace **30 segundos o menos**
+    no revoca: es una carrera benigna (dos pestañas que renuevan a la vez, o la app cerrada antes
+    de recibir la cookie nueva) y se emite otro token de la familia. Pasado ese margen sí se
+    revoca. Lo mostró la e2e de US3: cerrar la app justo después de ingresar dejaba la sesión
+    revocada «por seguridad» al volver. Es el mismo compromiso que el *reuse interval* de los
+    proveedores de identidad: un ladrón tendría que usar el token en esos 30 s.
   - **Duración para sesiones de aprendizaje**: 7 días de inactividad y 30 días absolutos.
 - **Justificación**: definido en el kit (JWT corto + *refresh* rotativo en cookie). La
   inactividad de 7 días coincide con el plazo sin conexión de FR-038: quien pasa más de 7 días
@@ -240,8 +255,11 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 
 - **Decisión**:
   - Tokens aleatorios de 256 bits; en base de datos solo su hash SHA-256; un solo uso.
-  - Vigencias: enlace de invitación 7 días; enlace de ingreso 15 minutos (valores por defecto
+  - Vigencias: enlace de invitación 7 días; enlace de ingreso 10 minutos (valores por defecto
     configurables en `identity.settings`).
+  - **Precisión (2026-10-08, T178a)**: el enlace de ingreso pasa de 15 a 10 minutos y su máximo
+    configurable de 60 a 10, porque ASVS 4.0.3 V2.7.2 pide que un enlace fuera de banda venza a
+    los 10 minutos.
   - El enlace del correo apunta al **frontend** con el token en el fragmento:
     `https://<host>/acceso#t=<token>`. La página muestra el botón "Ingresar" y solo al pulsarlo
     hace `POST /api/auth/guest/sessions`. El fragmento no viaja al servidor ni a registros del
@@ -291,7 +309,8 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 - **Decisión**: RBAC con permisos declarados en código (`identity/domain/permissions.py`): cada
   rol se asocia a un conjunto de permisos (`invitations:manage_own`, `invitations:manage_all`,
   `users:manage`, `groups:manage`, `groups:read_own_students`, `programs:read_aggregated`,
-  `settings:manage`, `audit:read`, `policy:publish`). Los permisos de un usuario son la unión de
+  `programs:manage`, `settings:manage`, `audit:read`, `policy:publish`, `deletions:read`; la
+  lista completa es el enum `Permission` del contrato). Los permisos de un usuario son la unión de
   sus roles (FR-023). Las reglas de alcance (invitaciones propias, grupos propios, programas
   asignados) se verifican en la capa de aplicación. Un recurso fuera del alcance responde `404`
   (no revela que existe); una función no permitida responde `403`.
@@ -348,9 +367,11 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 ### R-26. Exportación de "Mis datos" (FR-031)
 
 - **Decisión**: `GET /api/v1/me/data-export` devuelve un JSON legible
-  (`Content-Disposition: attachment`) con identidad, perfil, roles, grupos, historial de
-  autorizaciones e invitación de origen. Las especificaciones futuras agregan sus secciones
-  mediante una interfaz de "proveedores de exportación" por contexto.
+  (`Content-Disposition: attachment`) con identidad, perfil, roles, programas que dirige,
+  grupos, historial de autorizaciones, invitación de origen, sesiones y eventos de auditoría
+  sobre la persona (sin identificar a quien hizo la acción: solo `self`, `staff` o `system`).
+  Las especificaciones futuras agregan sus secciones mediante una interfaz de "proveedores de
+  exportación" por contexto.
 - **Justificación**: un formato legible y estructurado cumple el derecho de consulta.
 
 ### R-27. Política de tratamiento de datos
@@ -376,7 +397,7 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 - **Decisión**: tabla `identity.settings` (clave/valor tipado) editable por el Administrador:
   plazo máximo de acceso para invitaciones de docentes (180 días), vencimiento por defecto del
   acceso de invitado (90 días), vigencia del enlace de invitación (7 días) y del enlace de
-  ingreso (15 minutos).
+  ingreso (10 minutos; T178a).
 - **Justificación**: FR-006a pide un plazo configurable por un administrador; los demás valores
   son supuestos de la especificación que conviene poder ajustar sin desplegar código.
 
@@ -398,10 +419,20 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 - **Decisión**: librería `limits` con almacenamiento en Redis, aplicada como dependencia de
   FastAPI:
   - `POST /api/auth/guest/link-requests`: 5 por hora por hash de correo y 20 por hora por IP.
-  - `POST /api/auth/guest/sessions`: 10 por minuto por IP.
+  - `POST /api/auth/guest/sessions`: 10 por minuto por IP (ahora 60; ver la precisión de T120).
   - `GET /api/auth/microsoft/*` y `POST /api/auth/refresh`: 30 por minuto por IP.
   - Resto de la API: 300 por minuto por usuario.
   Se responde `429` con `Retry-After`.
+- **Precisión (2026-10-07, T081)**: en el campus muchas personas salen a internet por la misma IP
+  (NAT); 30/min por IP compartidos entre ingreso y renovación bloqueaban a un salón entero (lo
+  mostró la prueba e2e). Ahora: `GET /api/auth/microsoft/login` 120/min por IP;
+  `POST /api/auth/refresh` 30/min **por sesión** (HMAC de la cookie, nunca la cookie) y 600/min por
+  IP como tope de abuso. El *callback* no tiene límite propio: solo avanza con la cookie firmada de
+  un solo uso que emite `/login`.
+- **Precisión (2026-10-07, T120)**: `POST /api/auth/guest/sessions` pasa de 10 a **60 por minuto
+  por IP**. El token tiene 256 bits, así que el límite no protege contra adivinarlo sino contra
+  abuso; 10/min bloqueaba a varios invitados detrás de la misma IP (un taller con externos, o la
+  propia e2e con dos navegadores).
 - **Dependencia nueva**: `limits`.
 - **Alternativas**: `slowapi` (envoltorio de `limits` con mantenimiento irregular); límites solo
   en Nginx (no conoce usuarios ni correos).
@@ -503,6 +534,22 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 - **Justificación**: cada una evita trabajo manual propenso a errores o hace verificable un
   principio de la constitución; ninguna agrega comportamiento en tiempo de ejecución salvo
   `pydantic-settings` y la imagen de Nginx.
+
+### R-40. Mostrar la política en Markdown
+
+- **Decisión**: `react-markdown` 10 (licencia MIT) para mostrar `body_markdown` de la política
+  en `/bienvenida/datos`, `/mi-cuenta/autorizacion` y la vista previa de `/admin/politica`. Solo CommonMark: **sin `rehype-raw`** (el HTML incrustado se descarta y no
+  se interpreta), sin `remark-gfm` mientras la política no use tablas, y `skipHtml` activado.
+  Los enlaces conservan el filtro de URL por defecto (`defaultUrlTransform`, que anula
+  `javascript:` y otros esquemas no seguros) y abren con `rel="noopener noreferrer"`.
+- **Justificación**: el texto lo escribe un administrador, pero es contenido que verá toda la
+  comunidad; `react-markdown` construye elementos de React a partir del árbol de Markdown, sin
+  `dangerouslySetInnerHTML`, así que no hay vía de XSS aunque el texto traiga HTML. Mantiene la
+  estructura (títulos, listas, negritas) necesaria para que la política sea legible y accesible
+  (los títulos quedan como encabezados reales para lectores de pantalla).
+- **Alternativas**: `marked` + `DOMPurify` (genera HTML y depende de sanear bien; inserción con
+  `dangerouslySetInnerHTML`); mostrar el texto plano (pierde la estructura que exige FR-016);
+  `markdown-to-jsx` (permite HTML por defecto; habría que desactivarlo y es menos usado).
 
 ---
 

@@ -1,0 +1,11 @@
+{% extends "base.html.j2" %}
+{% block title %}Tu invitación a Saber Uli{% endblock %}
+{% block content %}
+<h1 style="font-size:20px;margin:0 0 16px;">{% if name %}Hola, {{ name }}.{% else %}Hola.{% endif %}</h1>
+<p style="margin:0 0 12px;">Te invitaron a practicar para las pruebas Saber Pro en Saber Uli, la aplicación de la Universidad Libre.</p>
+<p style="margin:0 0 12px;">Para entrar no necesitas contraseña: pulsa el botón. El enlace sirve una sola vez y vence el {{ link_until }}. Tu acceso como invitado dura hasta el {{ access_until }}.</p>
+<p style="margin:24px 0 0;">
+  <a href="{{ link_path | absolute_url }}" style="display:inline-block;padding:12px 20px;background:#15803d;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold;">Aceptar la invitación</a>
+</p>
+<p style="margin:24px 0 0;font-size:14px;color:#4b5563;">Si no esperabas esta invitación, ignora este correo: sin pulsar el enlace no se crea ninguna cuenta.</p>
+{% endblock %}

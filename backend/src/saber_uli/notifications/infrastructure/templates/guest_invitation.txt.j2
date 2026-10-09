@@ -1,0 +1,10 @@
+{% extends "base.txt.j2" %}
+{% block content %}{% if name %}Hola, {{ name }}.{% else %}Hola.{% endif %}
+
+Te invitaron a practicar para las pruebas Saber Pro en Saber Uli, la aplicación de la Universidad Libre.
+
+Para entrar no necesitas contraseña: abre este enlace. Sirve una sola vez y vence el {{ link_until }}. Tu acceso como invitado dura hasta el {{ access_until }}.
+
+Aceptar la invitación: {{ link_path | absolute_url }}
+
+Si no esperabas esta invitación, ignora este correo: sin abrir el enlace no se crea ninguna cuenta.{% endblock %}

@@ -1,0 +1,25 @@
+# Contexto de construcción = raíz del repositorio (backend/Dockerfile y frontend/Dockerfile).
+.git
+.github
+.specify
+.claude
+specs
+docs
+*.md
+!README.md
+!backend/seeds/*.md
+.env
+.env.*
+backend/.venv
+backend/**/__pycache__
+backend/.mypy_cache
+backend/.ruff_cache
+backend/.pytest_cache
+backend/tests
+frontend/node_modules
+frontend/dist
+frontend/dev-dist
+frontend/test-results
+frontend/playwright-report
+.lighthouseci
+infra/docker/certs

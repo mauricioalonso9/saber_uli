@@ -126,7 +126,7 @@ miembros de los grupos donde está en `group_teachers`; nunca su correo.
 | `id` | uuid PK | |
 | `email` | citext NULL | correo destino; `NULL` tras la supresión del invitado o la purga de FR-034e |
 | `invitee_name` | text NULL | nombre opcional que indica quien invita |
-| `invited_by` | uuid FK → `users.id` | docente o administrador |
+| `invited_by` | uuid NULL FK → `users.id` | docente o administrador; `NULL` = sistema (comando `invite-guest`, T118) |
 | `batch_id` | uuid NULL FK → `invitation_batches.id` | |
 | `guest_user_id` | uuid NULL FK → `users.id` | se llena al aceptar |
 | `status` | text | `CHECK (status IN ('sent','accepted','expired','revoked'))` |
@@ -155,7 +155,7 @@ miembros de los grupos donde está en `group_teachers`; nunca su correo.
 | `invitation_id` | uuid FK → `invitations.id` `ON DELETE CASCADE` | |
 | `purpose` | text | `CHECK (purpose IN ('invitation','sign_in'))` |
 | `token_hash` | bytea UNIQUE | SHA-256 del token; el token en claro nunca se guarda (R-19) |
-| `expires_at` | timestamptz | 7 días (`invitation`) o 15 minutos (`sign_in`) |
+| `expires_at` | timestamptz | 7 días (`invitation`) o 10 minutos (`sign_in`) |
 | `used_at` | timestamptz NULL | un solo uso |
 | `created_at` | timestamptz | |
 
@@ -236,6 +236,11 @@ Reglas:
   detectada) y se audita.
 - Al incrementar `users.auth_epoch` se revocan todas las sesiones del usuario.
 - La tarea diaria purga sesiones vencidas o revocadas hace más de 30 días.
+- Sesión activa (FR-037a): `revoked_at` NULL, `absolute_expires_at` futuro y `last_seen_at` de
+  los últimos 7 días. El usuario puede cerrar una o todas las demás: `revoked_reason =
+  'user_revoked'` y su `id` entra en la lista de sesiones revocadas de Redis (como al cerrar
+  sesión). Valores de `revoked_reason`: `logout`, `token_reuse`, `access_changed`,
+  `reauthenticated`, `user_revoked`.
 
 ### 2.14 `audit_events` (solo inserción)
 
@@ -260,7 +265,7 @@ Reglas:
 | `teacher_max_access_days` | integer | 180 |
 | `default_guest_access_days` | integer | 90 |
 | `invitation_link_ttl_days` | integer | 7 |
-| `sign_in_link_ttl_minutes` | integer | 15 |
+| `sign_in_link_ttl_minutes` | integer | 10 (rango 5 a 10; ASVS 2.7.2, migración 0007) |
 
 Columnas: `key` PK, `value` jsonb, `updated_by`, `updated_at`. Cada cambio se audita.
 

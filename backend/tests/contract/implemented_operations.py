@@ -1,0 +1,74 @@
+"""Operaciones del contrato ya implementadas (T059). Cada historia agrega sus `operationId`.
+
+El arnés de contrato (`test_openapi_contract.py`) prueba estas operaciones y, desde T177, exige
+que la lista coincida con todas las del contrato.
+"""
+
+IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
+    {
+        # Fase 2 (T058, T050)
+        "getHealth",
+        "getReadiness",
+        "refreshSession",
+        "logout",
+        # US1 (T078, T079)
+        "startMicrosoftLogin",
+        "completeMicrosoftLogin",
+        "getMe",
+        "listMySessions",
+        "revokeMySession",
+        "revokeMyOtherSessions",
+        # US2 (T090)
+        "listMyConsents",
+        "decideConsent",
+        "revokeConsent",
+        "getCurrentPolicy",
+        "getPolicyVersion",
+        "publishPolicyVersion",
+        # US3 (T100)
+        "listActivePrograms",
+        "getMyProfile",
+        "updateMyProfile",
+        # US4 (T115)
+        "createGuestSession",
+        "requestGuestSignInLink",
+        # US5 (T130)
+        "listInvitations",
+        "createInvitation",
+        "getInvitation",
+        "updateInvitationExpiry",
+        "resendInvitation",
+        "revokeInvitation",
+        "validateInvitationBatch",
+        "getInvitationBatch",
+        "confirmInvitationBatch",
+        # US6 (T144 a T146)
+        "adminListUsers",
+        "adminGetUser",
+        "adminUpdateUserStatus",
+        "adminSetUserRoles",
+        "adminListGroups",
+        "adminCreateGroup",
+        "adminGetGroup",
+        "adminUpdateGroup",
+        "adminListGroupMembers",
+        "adminAddGroupMembers",
+        "adminRemoveGroupMember",
+        "adminAddGroupTeachers",
+        "adminRemoveGroupTeacher",
+        "listMyTeachingGroups",
+        "listMyGroupStudents",
+        "adminListPrograms",
+        "adminCreateProgram",
+        "adminUpdateProgram",
+        "adminGetSettings",
+        "adminUpdateSettings",
+        "adminListAuditEvents",
+        # US7 (T160)
+        "getMyDeletionRequest",
+        "requestMyDeletion",
+        "adminListDeletionRequests",
+        # US8 (T168)
+        "exportMyData",
+    }
+)

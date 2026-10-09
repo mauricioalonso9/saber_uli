@@ -1,0 +1,8 @@
+{% extends "base.txt.j2" %}
+{% block content %}{% if name %}Hola, {{ name }}.{% else %}Hola.{% endif %}
+
+Pediste un enlace para ingresar a Saber Uli. Sirve una sola vez y vence en {{ link_minutes }} minutos.
+
+Ingresar: {{ link_path | absolute_url }}
+
+Tu acceso como invitado dura hasta el {{ access_until }}. Si no pediste este enlace, ignora este correo.{% endblock %}

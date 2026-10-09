@@ -1,0 +1,114 @@
+"""Unidad de trabajo de `identity` sobre SQLAlchemy."""
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+from saber_uli.identity.application.ports import (
+    AccessLinkRepository,
+    AuditRepository,
+    ConsentRepository,
+    DeletionRequestRepository,
+    GroupRepository,
+    GuestAccessReader,
+    InvitationBatchRepository,
+    InvitationRepository,
+    PersonalDataEraser,
+    PolicyRepository,
+    ProfileRepository,
+    ProgramRepository,
+    SessionRepository,
+    SettingsReader,
+    UserRepository,
+)
+from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
+from saber_uli.identity.infrastructure.repositories.access_links import (
+    SqlAlchemyAccessLinkRepository,
+)
+from saber_uli.identity.infrastructure.repositories.audit import SqlAlchemyAuditRepository
+from saber_uli.identity.infrastructure.repositories.consents import SqlAlchemyConsentRepository
+from saber_uli.identity.infrastructure.repositories.deletion_requests import (
+    SqlAlchemyDeletionRequestRepository,
+)
+from saber_uli.identity.infrastructure.repositories.erasure import SqlAlchemyPersonalDataEraser
+from saber_uli.identity.infrastructure.repositories.groups import SqlAlchemyGroupRepository
+from saber_uli.identity.infrastructure.repositories.guest_access import (
+    SqlAlchemyGuestAccessReader,
+)
+from saber_uli.identity.infrastructure.repositories.invitation_batches import (
+    SqlAlchemyInvitationBatchRepository,
+)
+from saber_uli.identity.infrastructure.repositories.invitations import (
+    SqlAlchemyInvitationRepository,
+)
+from saber_uli.identity.infrastructure.repositories.policies import SqlAlchemyPolicyRepository
+from saber_uli.identity.infrastructure.repositories.profiles import SqlAlchemyProfileRepository
+from saber_uli.identity.infrastructure.repositories.programs import SqlAlchemyProgramRepository
+from saber_uli.identity.infrastructure.repositories.sessions import SqlAlchemySessionRepository
+from saber_uli.identity.infrastructure.repositories.settings import SqlAlchemySettingsRepository
+from saber_uli.identity.infrastructure.repositories.users import SqlAlchemyUserRepository
+from saber_uli.shared.application.event_bus import EventBus
+from saber_uli.shared.infrastructure.db import SqlAlchemyUnitOfWork
+
+
+class SqlAlchemyIdentityUnitOfWork(SqlAlchemyUnitOfWork, IdentityUnitOfWork):
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession], bus: EventBus) -> None:
+        super().__init__(session_factory, bus)
+
+    @property
+    def users(self) -> UserRepository:
+        return SqlAlchemyUserRepository(self.session)
+
+    @property
+    def sessions(self) -> SessionRepository:
+        return SqlAlchemySessionRepository(self.session)
+
+    @property
+    def guest_access(self) -> GuestAccessReader:
+        return SqlAlchemyGuestAccessReader(self.session)
+
+    @property
+    def consents(self) -> ConsentRepository:
+        return SqlAlchemyConsentRepository(self.session)
+
+    @property
+    def policies(self) -> PolicyRepository:
+        return SqlAlchemyPolicyRepository(self.session)
+
+    @property
+    def profiles(self) -> ProfileRepository:
+        return SqlAlchemyProfileRepository(self.session)
+
+    @property
+    def programs(self) -> ProgramRepository:
+        return SqlAlchemyProgramRepository(self.session)
+
+    @property
+    def groups(self) -> GroupRepository:
+        return SqlAlchemyGroupRepository(self.session)
+
+    @property
+    def invitations(self) -> InvitationRepository:
+        return SqlAlchemyInvitationRepository(self.session)
+
+    @property
+    def invitation_batches(self) -> InvitationBatchRepository:
+        return SqlAlchemyInvitationBatchRepository(self.session)
+
+    @property
+    def access_links(self) -> AccessLinkRepository:
+        return SqlAlchemyAccessLinkRepository(self.session)
+
+    @property
+    def settings(self) -> SettingsReader:
+        return SqlAlchemySettingsRepository(self.session)
+
+    @property
+    def audit(self) -> AuditRepository:
+        return SqlAlchemyAuditRepository(self.session)
+
+    @property
+    def deletion_requests(self) -> DeletionRequestRepository:
+        return SqlAlchemyDeletionRequestRepository(self.session)
+
+    @property
+    def erasure(self) -> PersonalDataEraser:
+        return SqlAlchemyPersonalDataEraser(self.session)

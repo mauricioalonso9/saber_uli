@@ -188,7 +188,7 @@ async def test_token_valido(guard: AccessGuard, committed: Committed) -> None:
     assert response.json() == {
         "id": str(user.id),
         "roles": ["student", "teacher"],
-        "permissions": ["groups:read_own_students", "invitations:manage_own"],
+        "permissions": ["content:author", "groups:read_own_students", "invitations:manage_own"],
         "privileged": False,
     }
 

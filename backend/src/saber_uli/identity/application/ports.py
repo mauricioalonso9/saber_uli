@@ -377,6 +377,10 @@ class UserRepository(Protocol):
         """Bloquea (`FOR UPDATE`) y devuelve los administradores activos (FR-025, FR-034d)."""
         ...
 
+    async def names(self, user_ids: Collection[UUID]) -> dict[UUID, tuple[str | None, bool]]:
+        """`{id: (nombre, suprimida)}` de las cuentas que existen, en una sola consulta."""
+        ...
+
     async def search(
         self,
         *,

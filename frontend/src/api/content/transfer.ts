@@ -203,7 +203,7 @@ export const getListImportsQueryKey = (params?: ListImportsParams) => {
 
 export const getListImportsQueryOptions = <
   TData = Awaited<ReturnType<typeof listImports>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListImportsParams,
   options?: {
@@ -226,11 +226,12 @@ export const getListImportsQueryOptions = <
 };
 
 export type ListImportsQueryResult = NonNullable<Awaited<ReturnType<typeof listImports>>>;
-export type ListImportsQueryError = UnauthorizedResponse | ForbiddenResponse;
+export type ListImportsQueryError =
+  UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse;
 
 export function useListImports<
   TData = Awaited<ReturnType<typeof listImports>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params: undefined | ListImportsParams,
   options: {
@@ -249,7 +250,7 @@ export function useListImports<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListImports<
   TData = Awaited<ReturnType<typeof listImports>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListImportsParams,
   options?: {
@@ -268,7 +269,7 @@ export function useListImports<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListImports<
   TData = Awaited<ReturnType<typeof listImports>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListImportsParams,
   options?: {
@@ -283,7 +284,7 @@ export function useListImports<
 
 export function useListImports<
   TData = Awaited<ReturnType<typeof listImports>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListImportsParams,
   options?: {
@@ -424,7 +425,7 @@ export const getGetImportQueryKey = (importId: string, params?: GetImportParams)
 
 export const getGetImportQueryOptions = <
   TData = Awaited<ReturnType<typeof getImport>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse,
 >(
   importId: string,
   params?: GetImportParams,
@@ -451,11 +452,12 @@ export const getGetImportQueryOptions = <
 };
 
 export type GetImportQueryResult = NonNullable<Awaited<ReturnType<typeof getImport>>>;
-export type GetImportQueryError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse;
+export type GetImportQueryError =
+  UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse;
 
 export function useGetImport<
   TData = Awaited<ReturnType<typeof getImport>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse,
 >(
   importId: string,
   params: undefined | GetImportParams,
@@ -475,7 +477,7 @@ export function useGetImport<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useGetImport<
   TData = Awaited<ReturnType<typeof getImport>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse,
 >(
   importId: string,
   params?: GetImportParams,
@@ -495,7 +497,7 @@ export function useGetImport<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useGetImport<
   TData = Awaited<ReturnType<typeof getImport>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse,
 >(
   importId: string,
   params?: GetImportParams,
@@ -508,7 +510,7 @@ export function useGetImport<
 
 export function useGetImport<
   TData = Awaited<ReturnType<typeof getImport>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | NotFoundResponse | ValidationErrorResponse,
 >(
   importId: string,
   params?: GetImportParams,

@@ -4,6 +4,7 @@
   `saber_migrator`, porque los casos de uso confirman sus propias transacciones.
 - `content_uow`: fábrica de unidades de trabajo de `content` sobre la base migrada.
 - `lc_taxonomy`: módulo LC con una competencia, dos afirmaciones, evidencias y un tipo de texto.
+- `staff` (de `identity`): docentes y administradores con sesión privilegiada y autorización.
 """
 
 from collections.abc import AsyncIterator, Callable
@@ -21,6 +22,9 @@ from saber_uli.content.domain.taxonomy import TaxonomyNode, TaxonomyNodeKind
 from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.infrastructure.db import create_session_factory
+from tests.integration.identity.staff import staff
+
+__all__ = ["staff"]
 
 CONTENT_TABLES = (
     "item_version_stats, item_events, item_versions, items, context_versions, contexts, media,"

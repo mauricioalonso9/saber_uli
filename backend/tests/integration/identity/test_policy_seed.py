@@ -36,7 +36,10 @@ async def test_volver_a_migrar_no_duplica_la_version_1_0(
     # bucle de eventos: se ejecuta en otro hilo.
     url = migrated_database["migrator"]
     await asyncio.to_thread(stamp_migrations, url, "0004")
-    await asyncio.to_thread(run_migrations, url)
+    # Hasta 0007 (las migraciones de datos de identity); 0008 en adelante crean el esquema de
+    # content, que no se repite. Luego se deja la base marcada en la última revisión.
+    await asyncio.to_thread(run_migrations, url, "0007")
+    await asyncio.to_thread(stamp_migrations, url, "head")
 
     count = (
         await db_session.execute(

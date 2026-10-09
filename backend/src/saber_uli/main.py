@@ -21,6 +21,9 @@ from sqlalchemy import text
 from starlette.middleware.sessions import SessionMiddleware
 
 from saber_uli.config import Settings, get_settings
+from saber_uli.content.api.taxonomy_router import router as content_taxonomy_router
+from saber_uli.content.application.queries.modules import ListContentModules
+from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
 from saber_uli.identity.api.admin_catalogs_router import router as admin_catalogs_router
 from saber_uli.identity.api.admin_users_router import router as admin_users_router
 from saber_uli.identity.api.auth_router import router as auth_router
@@ -210,6 +213,13 @@ def create_app(
     app.state.privacy_policy_service = PrivacyPolicyService(uow_factory=identity_uow, clock=clock)
     app.state.readiness_checks = {"database": database_ready, "redis": redis_ready}
 
+    # Banco de ítems (spec 002).
+    def content_uow() -> SqlAlchemyContentUnitOfWork:
+        return SqlAlchemyContentUnitOfWork(session_factory, bus)
+
+    app.state.content_uow = content_uow
+    app.state.content_list_modules = ListContentModules(uow_factory=content_uow)
+
     install_problem_handlers(app)
     app.include_router(health_router)
     app.include_router(auth_router)
@@ -229,6 +239,7 @@ def create_app(
     app.include_router(admin_catalogs_router, dependencies=v1)
     app.include_router(deletion_router, dependencies=v1)
     app.include_router(deletion_admin_router, dependencies=v1)
+    app.include_router(content_taxonomy_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

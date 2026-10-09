@@ -4,4 +4,9 @@
 todas las de `specs/002-banco-items/contracts/openapi.yaml`.
 """
 
-IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset()
+IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset(
+    {
+        # Fase 2 (T030)
+        "listContentModules",
+    }
+)

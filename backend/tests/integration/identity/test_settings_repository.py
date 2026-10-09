@@ -69,7 +69,10 @@ async def _sign_in_ttl_after_0007(engine: AsyncEngine, url: str, stored: int) ->
         )
     # Alembic crea su propio bucle de eventos: se ejecuta en otro hilo.
     await asyncio.to_thread(stamp_migrations, url, "0006")
-    await asyncio.to_thread(run_migrations, url)
+    # Hasta 0007 (las migraciones de datos de identity); 0008 en adelante crean el esquema de
+    # content, que no se repite. Luego se deja la base marcada en la última revisión.
+    await asyncio.to_thread(run_migrations, url, "0007")
+    await asyncio.to_thread(stamp_migrations, url, "head")
     async with engine.connect() as conn:
         value = (
             await conn.execute(

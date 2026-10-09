@@ -306,7 +306,7 @@ export const getListContextsQueryKey = (params?: ListContextsParams) => {
 
 export const getListContextsQueryOptions = <
   TData = Awaited<ReturnType<typeof listContexts>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListContextsParams,
   options?: {
@@ -329,11 +329,12 @@ export const getListContextsQueryOptions = <
 };
 
 export type ListContextsQueryResult = NonNullable<Awaited<ReturnType<typeof listContexts>>>;
-export type ListContextsQueryError = UnauthorizedResponse | ForbiddenResponse;
+export type ListContextsQueryError =
+  UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse;
 
 export function useListContexts<
   TData = Awaited<ReturnType<typeof listContexts>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params: undefined | ListContextsParams,
   options: {
@@ -352,7 +353,7 @@ export function useListContexts<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListContexts<
   TData = Awaited<ReturnType<typeof listContexts>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListContextsParams,
   options?: {
@@ -371,7 +372,7 @@ export function useListContexts<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListContexts<
   TData = Awaited<ReturnType<typeof listContexts>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListContextsParams,
   options?: {
@@ -383,7 +384,7 @@ export function useListContexts<
 
 export function useListContexts<
   TData = Awaited<ReturnType<typeof listContexts>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListContextsParams,
   options?: {

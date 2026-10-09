@@ -90,7 +90,7 @@ export const getListContentModulesQueryKey = (params?: ListContentModulesParams)
 
 export const getListContentModulesQueryOptions = <
   TData = Awaited<ReturnType<typeof listContentModules>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListContentModulesParams,
   options?: {
@@ -115,11 +115,12 @@ export const getListContentModulesQueryOptions = <
 export type ListContentModulesQueryResult = NonNullable<
   Awaited<ReturnType<typeof listContentModules>>
 >;
-export type ListContentModulesQueryError = UnauthorizedResponse | ForbiddenResponse;
+export type ListContentModulesQueryError =
+  UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse;
 
 export function useListContentModules<
   TData = Awaited<ReturnType<typeof listContentModules>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params: undefined | ListContentModulesParams,
   options: {
@@ -138,7 +139,7 @@ export function useListContentModules<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListContentModules<
   TData = Awaited<ReturnType<typeof listContentModules>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListContentModulesParams,
   options?: {
@@ -159,7 +160,7 @@ export function useListContentModules<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListContentModules<
   TData = Awaited<ReturnType<typeof listContentModules>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListContentModulesParams,
   options?: {
@@ -174,7 +175,7 @@ export function useListContentModules<
 
 export function useListContentModules<
   TData = Awaited<ReturnType<typeof listContentModules>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListContentModulesParams,
   options?: {

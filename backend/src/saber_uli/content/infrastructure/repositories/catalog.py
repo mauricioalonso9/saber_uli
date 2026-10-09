@@ -3,7 +3,7 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from saber_uli.content.domain.module import Module, QuestionType
@@ -14,7 +14,13 @@ from saber_uli.content.domain.rubric import (
     RubricLevel,
 )
 from saber_uli.content.domain.taxonomy import PartFormat, TaxonomyNode, TaxonomyNodeKind
-from saber_uli.content.infrastructure.orm import ModuleRow, RubricRow, TaxonomyNodeRow
+from saber_uli.content.infrastructure.orm import (
+    ContextVersionRow,
+    ItemVersionRow,
+    ModuleRow,
+    RubricRow,
+    TaxonomyNodeRow,
+)
 
 
 class SqlAlchemyModuleRepository:
@@ -106,6 +112,23 @@ class SqlAlchemyTaxonomyRepository:
         if module_code is not None:
             query = query.where(TaxonomyNodeRow.module_code == module_code)
         return [_node(row) for row in await self._db.scalars(query)]
+
+    async def used_ids(self) -> set[UUID]:
+        v = ItemVersionRow
+        c = ContextVersionRow
+        columns = (
+            v.competence_id,
+            v.assertion_id,
+            v.evidence_id,
+            v.component_id,
+            v.situation_id,
+            v.part_id,
+            c.text_type_node_id,
+            c.part_node_id,
+            TaxonomyNodeRow.parent_id,
+        )
+        used = union(*(select(column).where(column.is_not(None)) for column in columns))
+        return set((await self._db.scalars(select(used.subquery().c[0]))).all())
 
 
 def _copy_node(node: TaxonomyNode, row: TaxonomyNodeRow) -> None:

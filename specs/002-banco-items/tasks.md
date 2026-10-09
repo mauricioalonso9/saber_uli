@@ -207,7 +207,7 @@ historias.**
 - [x] T028 Implementar `content/api/etag.py` (dependencia FastAPI y problemas) para que pase T027 → Qwen
   - Terminado: T027 en verde.
   - Estado (Opus, 2026-10-09): cerrada. En verde. `content/api/etag.py` (`etag`, `expected_revision`, `require_revision`, `edit_conflict` y la dependencia `if_match_revision`). Ampliación compatible del kernel `shared/api/problems.py`: `FieldError.rule`, `ProblemException` con `errors` y `extensions`, errores de dominio con `issues` presentados en `errors[]`, y estados por slug 412, 428, 413 y 415.
-- [ ] T029 Prueba: `backend/tests/integration/content/test_content_access.py`. Recorre todas las rutas de `content` del contrato (con 404 aceptable para las no implementadas) y comprueba:
+- [x] T029 Prueba: `backend/tests/integration/content/test_content_access.py`. Recorre todas las rutas de `content` del contrato (con 404 aceptable para las no implementadas) y comprueba:
   - sin token responde 401;
   - sin sesión privilegiada responde 401 `reauthentication-required`, salvo `GET /content/media/{id}`;
   - un estudiante recibe 403 `forbidden`;
@@ -216,8 +216,10 @@ historias.**
 
   → Opus
   - Terminado: la prueba falla.
-- [ ] T030 Conectar el contexto en `backend/src/saber_uli/main.py`: unidad de trabajo de `content` en `app.state` y dependencias `require_permission` por router según `x-required-permission`. Sumar los routers vacíos de `content/api/*_router.py` bajo `/api/v1` con las guardias de sesión privilegiada y consentimiento, para que pase T029 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló (404 y 0 operaciones revisadas) antes de T030. Revisa cada operación implementada del contrato; la cobertura crece sola con cada historia.
+- [x] T030 Conectar el contexto en `backend/src/saber_uli/main.py`: unidad de trabajo de `content` en `app.state` y dependencias `require_permission` por router según `x-required-permission`. Sumar los routers vacíos de `content/api/*_router.py` bajo `/api/v1` con las guardias de sesión privilegiada y consentimiento, para que pase T029 → Qwen
   - Terminado: T029 en verde; suites de 001 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. En verde. `content/api/dependencies.py` (permisos como texto del contrato + sesión privilegiada; `reject_unknown_query` responde 422 a parámetros no declarados), `listContentModules` en `taxonomy_router.py` con `in_use` por categoría, y la UoW de content en `main.py`. Hallazgos: FastAPI envuelve los routers incluidos (`_IncludedRouter`) y `app.routes` ya no lista las rutas, así que la prueba de rutas dentro del contrato de T005 pasaba sin revisar nada; ahora usa `tests/routes.py` (`iter_route_contexts`). El contrato documenta 422 en las operaciones con parámetros de consulta. `.importlinter` permite `shared → identity.application.public` también en el contrato de independencia. Dos pruebas de 001 que reejecutan migraciones ahora migran hasta 0007 y marcan `head` (0008 no es repetible).
 
 ### Base del frontend
 

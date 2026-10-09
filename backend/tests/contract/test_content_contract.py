@@ -13,7 +13,6 @@ from typing import Any
 
 import pytest
 import schemathesis
-from fastapi.routing import APIRoute
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -22,6 +21,7 @@ from saber_uli.main import create_app
 from tests.contract.implemented_content_operations import IMPLEMENTED_CONTENT_OPERATIONS
 from tests.contract.test_openapi_contract import Unlimited
 from tests.integration.conftest import REPO, CommittedLogin, settings_for
+from tests.routes import app_operations
 
 CONTRACT = REPO / "specs" / "002-banco-items" / "contracts" / "openapi.yaml"
 CONTENT_PREFIX = "/api/v1/content"
@@ -49,12 +49,12 @@ def test_ninguna_ruta_de_content_queda_fuera_del_contrato(
 ) -> None:
     app = create_app(settings_for(migrated_database, redis_url), log_stream=io.StringIO())
     routes = {
-        f"{method} {route.path}"
-        for route in app.routes
-        if isinstance(route, APIRoute) and route.path.startswith(CONTENT_PREFIX)
-        for method in route.methods
+        f"{method} {path}"
+        for method, path in app_operations(app)
+        if path.startswith(CONTENT_PREFIX)
     }
 
+    assert routes, "la app no expone rutas de content"
     assert sorted(routes - set(_contract_operations())) == []
 
 

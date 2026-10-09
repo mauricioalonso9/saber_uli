@@ -47,6 +47,10 @@ class TaxonomyRepository(Protocol):
         """Categorías por módulo, tipo y posición (todas si `module_code` es None)."""
         ...
 
+    async def used_ids(self) -> set[UUID]:
+        """Categorías que usa alguna versión de ítem o de contexto, o alguna categoría hija."""
+        ...
+
 
 class RubricRepository(Protocol):
     async def add(self, rubric: Rubric) -> Rubric: ...

@@ -95,7 +95,7 @@ export const getListItemsQueryKey = (params?: ListItemsParams) => {
 
 export const getListItemsQueryOptions = <
   TData = Awaited<ReturnType<typeof listItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListItemsParams,
   options?: {
@@ -118,11 +118,12 @@ export const getListItemsQueryOptions = <
 };
 
 export type ListItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listItems>>>;
-export type ListItemsQueryError = UnauthorizedResponse | ForbiddenResponse;
+export type ListItemsQueryError =
+  UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse;
 
 export function useListItems<
   TData = Awaited<ReturnType<typeof listItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params: undefined | ListItemsParams,
   options: {
@@ -141,7 +142,7 @@ export function useListItems<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListItems<
   TData = Awaited<ReturnType<typeof listItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListItemsParams,
   options?: {
@@ -160,7 +161,7 @@ export function useListItems<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useListItems<
   TData = Awaited<ReturnType<typeof listItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListItemsParams,
   options?: {
@@ -175,7 +176,7 @@ export function useListItems<
 
 export function useListItems<
   TData = Awaited<ReturnType<typeof listItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse,
+  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
 >(
   params?: ListItemsParams,
   options?: {

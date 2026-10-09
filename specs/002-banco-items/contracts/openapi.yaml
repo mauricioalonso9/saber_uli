@@ -68,6 +68,7 @@ paths:
                     items: { $ref: '#/components/schemas/ContentModule' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/v1/content/modules/{moduleCode}:
     patch:
       tags: [taxonomy]
@@ -317,6 +318,7 @@ paths:
                   meta: { $ref: '#/components/schemas/PageMeta' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
     post:
       tags: [contexts]
       operationId: createContext
@@ -437,6 +439,7 @@ paths:
                   meta: { $ref: '#/components/schemas/PageMeta' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
     post:
       tags: [items]
       operationId: createItem
@@ -825,6 +828,7 @@ paths:
                   meta: { $ref: '#/components/schemas/PageMeta' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
     post:
       tags: [transfer]
       operationId: createImport
@@ -893,6 +897,7 @@ paths:
               schema: { $ref: '#/components/schemas/ImportDetail' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
         '404': { $ref: '#/components/responses/NotFound' }
   /api/v1/content/imports/{importId}/report:
     get:

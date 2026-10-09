@@ -90,6 +90,8 @@ ignore_imports =
     saber_uli.notifications.** -> saber_uli.identity.application.public
     saber_uli.content.** -> saber_uli.identity.application.public
     saber_uli.identity.** -> saber_uli.content.application.public
+    # Las guardias compartidas de la API (shared.api.auth) usan la fachada de identity.
+    saber_uli.shared.** -> saber_uli.identity.application.public
 
 [importlinter:contract:kernel-compartido]
 name = El kernel compartido no depende de los contextos salvo por su fachada pública

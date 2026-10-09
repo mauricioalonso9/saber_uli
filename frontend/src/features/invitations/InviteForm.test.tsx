@@ -11,7 +11,7 @@ import { useSessionStore } from "@/features/auth/session-store";
 import { invitation, renderInvitations } from "@/features/invitations/testing";
 
 const server = setupServer();
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   server.resetHandlers();
   useSessionStore.getState().clear();

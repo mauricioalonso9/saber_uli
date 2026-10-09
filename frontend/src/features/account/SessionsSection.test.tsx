@@ -29,7 +29,7 @@ const PHONE: MySession = {
 const TABLET: MySession = { ...PHONE, id: "0192f3c4-0000-7000-8000-0000000000a3" };
 
 const server = setupServer();
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 beforeEach(() => useSessionStore.getState().setSession("token", 600));
 afterEach(() => {
   server.resetHandlers();

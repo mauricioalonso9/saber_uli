@@ -42,7 +42,7 @@ const ADMIN: Me = {
 const BODY = `## Finalidades\n\n${"Usamos sus datos para medir su progreso. ".repeat(6)}`;
 
 const server = setupServer();
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 beforeEach(() => useSessionStore.getState().setSession("token", 600));
 afterEach(() => {
   server.resetHandlers();

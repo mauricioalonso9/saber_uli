@@ -7,7 +7,7 @@
 
 ARG PYTHON_IMAGE=python:3.13-slim
 
-FROM ghcr.io/astral-sh/uv:0.11 AS uv
+FROM ghcr.io/astral-sh/uv:0.12 AS uv
 
 # ---------------------------------------------------------------------------------------------
 # builder: resuelve dependencias con uv.lock y construye el entorno virtual.

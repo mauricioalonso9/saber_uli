@@ -131,7 +131,7 @@ historias.**
 - [x] T016 Implementar `content/domain/word_count.py` para que pase T015 → Qwen
   - Terminado: T015 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 10 en verde; los tres textos de LC del banco inicial quedan dentro de ±2 de su `palabras`.
-- [ ] T017 [P] Prueba: `backend/tests/unit/content/test_item_validation.py`. `ItemVersion.validate(rules)` devuelve problemas con `field`, `rule` y `message`, con `rule` del catálogo `ValidationRule` del contrato:
+- [x] T017 [P] Prueba: `backend/tests/unit/content/test_item_validation.py`. `ItemVersion.validate(rules)` devuelve problemas con `field`, `rule` y `message`, con `rule` del catálogo `ValidationRule` del contrato:
   - `single_correct_option` con 0 o 2 opciones correctas;
   - `option_count`;
   - `option_feedback_required`;
@@ -145,8 +145,10 @@ historias.**
 
   Un Borrador incompleto se puede guardar, pero tiene `content_issues`; enviar a revisión exige cero problemas (FR-024) → Qwen
   - Terminado: la prueba falla.
-- [ ] T018 Implementar `content/domain/item.py`, `item_version.py`, `context.py` (con `SharedOption`, `ContextVersion` y validación de `kind`) y `errors.py` para que pase T017 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T018. Incluye la parte 1 de Inglés: exactamente 8 opciones compartidas y máximo 5 ítems por contexto (U1 de analyze).
+- [x] T018 Implementar `content/domain/item.py`, `item_version.py`, `context.py` (con `SharedOption`, `ContextVersion` y validación de `kind`) y `errors.py` para que pase T017 → Qwen
   - Terminado: T017 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 53 en verde. `item_version.py` (tipos, `ItemContent`, `validate_item`), `context.py` (`ContextContent`, `ContextVersion`, `Context`, `validate_context`) y `errors.py`. El agregado `item.py` queda con la máquina de estados en T022.
 - [ ] T019 [P] Prueba: `backend/tests/unit/content/test_fingerprint.py` (research R-06):
   - `content_hash` es igual para el mismo contenido con claves en otro orden, con espacios externos o con Unicode NFC o NFD, y distinto si cambia una retroalimentación;
   - `fingerprint` es igual entre dos ítems que solo difieren en mayúsculas, tildes, puntuación, espacios u orden de las opciones, y distinto si cambia el texto de una opción.

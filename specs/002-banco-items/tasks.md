@@ -201,10 +201,12 @@ historias.**
 - [x] T026 Implementar `content/infrastructure/interchange/models.py` (Pydantic, formato v1), `json_format.py` (lector y escritor) y `schema.py` (generador). Generar y versionar `backend/schemas/banco_items.schema.json` (JSON Schema 2020-12) con el comando `uv run python -m saber_uli.content.infrastructure.interchange.schema > ../backend/schemas/banco_items.schema.json`, documentado en el docstring, para que pase T025 → Qwen
   - Terminado: T025 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 100 en verde (unidad). `interchange/models.py` (Pydantic, claves desconocidas rechazadas), `mapping.py`, `json_format.py` y `schema.py`; `backend/schemas/banco_items.schema.json` versionado. Especificaciones en `content/application/bundle.py`. Decisiones: regla nueva `invalid_value` (contrato ampliado) para valores con tipo equivocado; la explicación general no es obligatoria en consignas (la rúbrica cumple ese papel; el banco inicial no la trae); campos opcionales nuevos del formato documentados en `models.py`.
-- [ ] T027 [P] Prueba: `backend/tests/unit/content/test_etag.py` (research R-09). `ETag: "<revision>"`; `If-Match` igual pasa; distinto lanza 412 `edit-conflict` con `current` y `etag`; ausente lanza 428 `precondition-required`; se acepta el `ETag` débil `W/"7"` → Qwen
+- [x] T027 [P] Prueba: `backend/tests/unit/content/test_etag.py` (research R-09). `ETag: "<revision>"`; `If-Match` igual pasa; distinto lanza 412 `edit-conflict` con `current` y `etag`; ausente lanza 428 `precondition-required`; se acepta el `ETag` débil `W/"7"` → Qwen
   - Terminado: la prueba falla.
-- [ ] T028 Implementar `content/api/etag.py` (dependencia FastAPI y problemas) para que pase T027 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T028. Cubre también las respuestas HTTP (428, 412 con `current` y `etag`, 422 con `errors[].rule`).
+- [x] T028 Implementar `content/api/etag.py` (dependencia FastAPI y problemas) para que pase T027 → Qwen
   - Terminado: T027 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. En verde. `content/api/etag.py` (`etag`, `expected_revision`, `require_revision`, `edit_conflict` y la dependencia `if_match_revision`). Ampliación compatible del kernel `shared/api/problems.py`: `FieldError.rule`, `ProblemException` con `errors` y `extensions`, errores de dominio con `issues` presentados en `errors[]`, y estados por slug 412, 428, 413 y 415.
 - [ ] T029 Prueba: `backend/tests/integration/content/test_content_access.py`. Recorre todas las rutas de `content` del contrato (con 404 aceptable para las no implementadas) y comprueba:
   - sin token responde 401;
   - sin sesión privilegiada responde 401 `reauthentication-required`, salvo `GET /content/media/{id}`;

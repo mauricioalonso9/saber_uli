@@ -1,7 +1,10 @@
 """Errores como Problem Details (RFC 9457; contrato: esquema `Problem`).
 
 Traduce las categorías de error de dominio a estados HTTP, los errores de validación a 422 con
-`errors` por campo en español y cualquier otro error a `about:blank`. Ninguna respuesta repite el
+`errors` por campo en español y cualquier otro error a `about:blank`. Un error de dominio con
+`issues` (campo, regla y mensaje, como `content.ContentValidationError`) los lleva en `errors` con
+su `rule`; un `ProblemException` puede sumar miembros de extensión (RFC 9457 §3.2), como `current`
+y `etag` del 412 `edit-conflict` del banco de ítems. Ninguna respuesta repite el
 valor recibido ni el texto de una excepción no controlada: pueden contener datos personales.
 """
 
@@ -45,6 +48,12 @@ STATUS_BY_SLUG: dict[str, int] = {
     "access-link-invalid": 400,
     # Lote de invitaciones con más de 500 filas (contrato: `validateInvitationBatch`).
     "batch-too-large": 413,
+    # Banco de ítems (002): bloqueo optimista (R-09), archivos e imágenes (R-04, R-11).
+    "edit-conflict": 412,
+    "precondition-required": 428,
+    "file-too-large": 413,
+    "unsupported-media-type": 415,
+    "unsupported-file-format": 415,
 }
 
 _TITLES: Mapping[int, str] = {
@@ -106,6 +115,7 @@ _log = structlog.get_logger(__name__)
 class FieldError(BaseModel):
     field: str
     message: str
+    rule: str | None = None
 
 
 class Problem(BaseModel):
@@ -127,12 +137,16 @@ class ProblemException(Exception):
         *,
         detail: str | None = None,
         headers: Mapping[str, str] | None = None,
+        errors: list[FieldError] | None = None,
+        extensions: Mapping[str, Any] | None = None,
     ) -> None:
         super().__init__(slug)
         self.status = status
         self.slug = slug
         self.detail = detail
         self.headers = dict(headers or {})
+        self.errors = errors
+        self.extensions = dict(extensions or {})
 
 
 def _title(status: int) -> str:
@@ -147,6 +161,7 @@ def problem_response(
     detail: str | None = None,
     errors: list[FieldError] | None = None,
     headers: Mapping[str, str] | None = None,
+    extensions: Mapping[str, Any] | None = None,
 ) -> JSONResponse:
     problem = Problem(
         type=type_,
@@ -156,8 +171,11 @@ def problem_response(
         instance=request.url.path,  # sin la consulta: podría llevar datos personales
         errors=errors,
     )
+    body = problem.model_dump(mode="json", exclude_none=True)
+    for key, value in (extensions or {}).items():
+        body.setdefault(key, value)  # los miembros estándar no se sobrescriben
     return JSONResponse(
-        problem.model_dump(mode="json", exclude_none=True),
+        body,
         status_code=status,
         media_type=PROBLEM_MEDIA_TYPE,
         headers=dict(headers) if headers else None,
@@ -190,8 +208,17 @@ def _field_error(error: Mapping[str, Any]) -> FieldError:
 async def _on_domain_error(request: Request, exc: Exception) -> JSONResponse:
     if not isinstance(exc, DomainError):  # Starlette tipa los manejadores con Exception
         raise exc
+    issues = getattr(exc, "issues", None) or ()
+    errors = [
+        FieldError(field=issue.field, message=issue.message, rule=str(issue.rule))
+        for issue in issues
+    ]
     return problem_response(
-        request, _domain_status(exc), f"{PROBLEM_TYPE_PREFIX}{exc.slug}", detail=exc.message
+        request,
+        _domain_status(exc),
+        f"{PROBLEM_TYPE_PREFIX}{exc.slug}",
+        detail=exc.message,
+        errors=errors or None,
     )
 
 
@@ -204,6 +231,8 @@ async def _on_problem(request: Request, exc: Exception) -> JSONResponse:
         f"{PROBLEM_TYPE_PREFIX}{exc.slug}",
         detail=exc.detail,
         headers=exc.headers,
+        errors=exc.errors,
+        extensions=exc.extensions,
     )
 
 

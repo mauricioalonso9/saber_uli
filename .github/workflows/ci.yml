@@ -107,7 +107,7 @@ jobs:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: "24"
           cache: npm
@@ -129,7 +129,7 @@ jobs:
       - id: enabled
         name: ¿Existe frontend/playwright.config.ts?
         run: echo "value=${{ hashFiles('frontend/playwright.config.ts') != '' }}" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         if: steps.enabled.outputs.value == 'true'
         with:
           node-version: "24"
@@ -176,7 +176,7 @@ jobs:
       - id: enabled
         name: ¿Existe frontend/lighthouserc.json?
         run: echo "value=${{ hashFiles('frontend/lighthouserc.json') != '' }}" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         if: steps.enabled.outputs.value == 'true'
         with:
           node-version: "24"

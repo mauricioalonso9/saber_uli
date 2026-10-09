@@ -19,7 +19,7 @@ RUN npm run build
 # ---------------------------------------------------------------------------------------------
 # runtime: Nginx sin privilegios (UID 101, puerto 8080).
 # ---------------------------------------------------------------------------------------------
-FROM nginxinc/nginx-unprivileged:1.29-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runtime
 
 # Disposición descrita en infra/nginx/default.conf. En producción, compose.prod.yaml monta
 # tls.conf sobre conf.d/default.conf.

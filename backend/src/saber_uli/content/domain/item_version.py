@@ -7,6 +7,7 @@ exige cero.
 """
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
@@ -217,3 +218,32 @@ def _check_writing(content: ItemContent, rules: ModuleRules) -> list[ContentIssu
     elif not rules.has_rubric(content.rubric_id):
         issues.append(ContentIssue("rubric_id", R.RUBRIC_UNKNOWN, "La rúbrica no existe."))
     return issues
+
+
+@dataclass
+class ItemVersion:
+    """Una versión de un ítem. Publicada o Retirada, su contenido ya no cambia (ADR 0008)."""
+
+    id: UUID | None
+    number: int
+    state: VersionState
+    content: ItemContent
+    content_hash: bytes
+    fingerprint: bytes
+    context_version_id: UUID | None
+    author_id: UUID | None
+    contributor_ids: frozenset[UUID]
+    created_at: datetime
+    updated_at: datetime
+    submitted_at: datetime | None = None
+    submitted_by: UUID | None = None
+    reviewed_at: datetime | None = None
+    reviewed_by: UUID | None = None
+    published_at: datetime | None = None
+    retired_at: datetime | None = None
+    retired_by: UUID | None = None
+    retire_reason: str | None = None
+
+    def involves(self, person: UUID) -> bool:
+        """Creó o modificó esta versión (FR-012)."""
+        return person == self.author_id or person in self.contributor_ids

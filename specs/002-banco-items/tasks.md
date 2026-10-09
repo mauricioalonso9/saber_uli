@@ -159,7 +159,7 @@ historias.**
 - [x] T020 Implementar `content/domain/fingerprint.py` (`ContentHash`, `Fingerprint`, SHA-256 sobre la forma canónica) para que pase T019 → Qwen
   - Terminado: T019 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 60 en verde (dominio). `content_hash` acepta cualquier valor (dataclasses, enums, UUID) y `normalize_text` queda disponible para la importación.
-- [ ] T021 [P] Prueba: `backend/tests/unit/content/test_lifecycle.py` con la máquina de estados de data-model §4. Prueba:
+- [x] T021 [P] Prueba: `backend/tests/unit/content/test_lifecycle.py` con la máquina de estados de data-model §4. Prueba:
   - cada transición válida y que todas las demás lanzan `InvalidTransitionError` (`invalid-transition`);
   - aprobar con `approver ∈ contributor_ids` lanza `SelfApprovalError` (`self-approval-forbidden`, FR-012);
   - aprobar sin las dos confirmaciones es inválido (FR-014);
@@ -170,8 +170,10 @@ historias.**
 
   → Opus
   - Terminado: la prueba falla.
-- [ ] T022 Implementar `content/domain/lifecycle.py` y `content/domain/events.py` (tipos de evento de la historia) para que pase T021 → Opus
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T022.
+- [x] T022 Implementar `content/domain/lifecycle.py` y `content/domain/events.py` (tipos de evento de la historia) para que pase T021 → Opus
   - Terminado: T021 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 86 en verde (dominio). `lifecycle.py` (tabla de transiciones), `events.py` (`HistoryEventType`, `HistoryEvent`), entidad `ItemVersion` y agregado `item.py` (`Item`: crear, editar con `keep_in_review` y `start_state`, enviar, aprobar con reemplazo, devolver, rechazar, retirar y comentar). El comentario no sube la revisión.
 
 ### Persistencia y aplicación base
 

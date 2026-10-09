@@ -223,7 +223,7 @@ historias.**
 
 ### Base del frontend
 
-- [ ] T031 [P] Prueba: `frontend/src/shared/content/ContentView.test.tsx` (research R-10, R-17). Comprueba que:
+- [x] T031 [P] Prueba: `frontend/src/shared/content/ContentView.test.tsx` (research R-10, R-17). Comprueba que:
   - renderiza tablas GFM como `<table>` con encabezados;
   - `$x^2$` produce MathML (`<math>`);
   - el HTML crudo del Markdown no se renderiza;
@@ -234,8 +234,10 @@ historias.**
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T032 Implementar `frontend/src/shared/content/MarkdownView.tsx` (react-markdown con `skipHtml`, remark-gfm, remark-math y rehype-katex con `output: "htmlAndMathml"`) y `ContentView.tsx`, e importar la hoja de estilos de KaTeX, para que pase T031 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló (módulo inexistente) antes de T032. axe se ejecuta con `axe-core` (agregado como dependencia de desarrollo explícita; ya venía transitivo con `@axe-core/playwright`) sin la regla de contraste, que jsdom no evalúa.
+- [x] T032 Implementar `frontend/src/shared/content/MarkdownView.tsx` (react-markdown con `skipHtml`, remark-gfm, remark-math y rehype-katex con `output: "htmlAndMathml"`) y `ContentView.tsx`, e importar la hoja de estilos de KaTeX, para que pase T031 → Qwen
   - Terminado: T031 en verde; el paquete inicial no crece (ContentView se carga solo en rutas del banco).
+  - Estado (Opus, 2026-10-09): cerrada. 9 en verde. `MarkdownView` (GFM, KaTeX con MathML, `skipHtml`; las tablas usan `ScrollRegion` de 001) y `ContentView` (selección, emparejamiento con opciones del contexto, consignas; `showFeedback`). El HTML crudo se descarta y su texto queda inerte.
 - [ ] T033 [P] Prueba: `frontend/src/app/navigation.test.tsx`. Un usuario con `content:author` ve "Banco de ítems" en la navegación; con `content:review` ve además "Revisión"; con `content:taxonomy_manage`, "Taxonomía"; un estudiante no ve ninguna. Las rutas `/banco*` y `/admin/taxonomia` sin el permiso muestran "No tienes permiso" → Qwen
   - Terminado: la prueba falla.
 - [ ] T034 Registrar en `frontend/src/app/router.tsx` las rutas `/banco`, `/banco/revision`, `/banco/items/nuevo`, `/banco/items/$code`, `/banco/contextos/$code`, `/banco/importar`, `/banco/importaciones/$importId`, `/banco/exportar`, `/banco/cobertura` y `/admin/taxonomia` con `lazyRouteComponent` y páginas provisionales. Agregar las entradas de navegación por permiso y las claves `content.*` en `src/shared/i18n/es-CO`, para que pase T033 → Qwen

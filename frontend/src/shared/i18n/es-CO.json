@@ -549,5 +549,12 @@
     "groupButton_one": "{{name}} ({{count}} estudiante)",
     "groupButton_other": "{{name}} ({{count}} estudiantes)",
     "studentsOf": "Estudiantes de {{name}}"
+  },
+  "content": {
+    "view": {
+      "options": "Opciones",
+      "correctAnswer": "Respuesta correcta",
+      "explanation": "Explicación"
+    }
   }
 }

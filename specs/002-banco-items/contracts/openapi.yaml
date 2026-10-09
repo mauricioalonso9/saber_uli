@@ -273,7 +273,10 @@ paths:
     get:
       tags: [contexts]
       operationId: getContentMedia
-      summary: Entrega una imagen a cualquier usuario autenticado (cacheable e inmutable)
+      summary: Entrega una imagen (cacheable e inmutable)
+      description: |
+        Con `content:author`, cualquier imagen. Sin ese permiso, solo las imágenes de contextos
+        usados por una versión Publicada o Retirada; las demás responden 404 (FR-046, R-11).
       parameters:
         - $ref: '#/components/parameters/MediaId'
       responses:
@@ -491,6 +494,13 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ItemCode'
         - $ref: '#/components/parameters/IfMatch'
+        - name: keep_in_review
+          in: query
+          required: false
+          description: |
+            Solo si la versión abierta está En revisión (FR-016): `true` la deja En revisión (la
+            revisión empieza de nuevo); `false` la devuelve a Borrador. Se ignora en otros estados.
+          schema: { type: boolean, default: false }
       requestBody:
         required: true
         content:
@@ -1337,7 +1347,9 @@ components:
         subtype: { type: [string, 'null'], maxLength: 60 }
         shared_options:
           type: [array, 'null']
+          minItems: 2
           maxItems: 8
+          description: El dominio exige exactamente `part_options` de la parte (8 en la parte 1, FR-003)
           items: { $ref: '#/components/schemas/SharedOption' }
     ContextCreate:
       allOf:

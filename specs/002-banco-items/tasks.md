@@ -93,7 +93,7 @@ historias.**
   - Terminado: la prueba falla.
 - [ ] T010 Crear `backend/migrations/versions/0008_content_schema.py` con el esquema `content` y las tablas, índices, `CHECK` y FK exactamente como en data-model §2.1 a §2.13 (FK `contexts.current_version_id` `DEFERRABLE INITIALLY DEFERRED`; FK de taxonomía `ON DELETE RESTRICT`) para que pase T009 → Qwen
   - Terminado: T009 en verde; `alembic downgrade -1` y `upgrade head` funcionan.
-- [ ] T011 [P] Prueba de infraestructura: `backend/tests/infra/test_content_grants.py`. Con el rol `saber_app`, `UPDATE` y `DELETE` sobre `content.item_events`, `context_versions`, `media`, `exports`, `taxonomy_changes` y `seed_loads` responden `permission denied`. `UPDATE` de `imports.rows` también responde `permission denied`, pero `UPDATE` de `imports.status` funciona. `DELETE` de `taxonomy_nodes` funciona (data-model §2.14) → Opus
+- [ ] T011 [P] Prueba de infraestructura: `backend/tests/infra/test_content_grants.py`. Con el rol `saber_app`, `UPDATE` y `DELETE` sobre `content.item_events`, `context_versions`, `media`, `exports`, `taxonomy_changes` y `seed_loads` responden `permission denied`. `UPDATE` de `imports.rows` también responde `permission denied`, pero `UPDATE` de `imports.status` funciona. `DELETE` de `taxonomy_nodes` funciona y `DELETE` de `imports` responde `permission denied` (data-model §2.14) → Opus
   - Terminado: la prueba falla.
 - [ ] T012 Crear `backend/migrations/versions/0009_content_grants.py` con los permisos de data-model §2.14 (incluidos los permisos de columna de `imports`) para que pase T011 → Opus
   - Terminado: T011 en verde.
@@ -103,6 +103,7 @@ historias.**
 - [ ] T013 [P] Prueba: `backend/tests/unit/content/test_module_rules.py`. Reglas por módulo y parte con datos de taxonomía en memoria:
   - LC, RC y CC exigen 4 opciones; LC exige `competence`, `assertion` y `evidence` coherentes (la evidencia pertenece a la afirmación y esta a la competencia); RC además `component` y `situation`; CC competencia, afirmación y evidencia.
   - Inglés exige `part`: la parte 1 es `matching` sin opciones propias; las partes 2 a 5 tienen 3 opciones y las 6 y 7, 4.
+  - El contexto de la parte 1 tiene exactamente `part_options` (8) opciones compartidas (regla `option_count`), y un contexto admite como máximo 5 ítems de emparejamiento (regla `option_count`, FR-003).
   - CE exige rúbrica y no admite opciones.
   - Una categoría `active = false` es inválida en ítems nuevos y válida en ítems que ya la usan (FR-045).
 
@@ -121,6 +122,7 @@ historias.**
   - `explanation_required`;
   - `taxonomy_unknown`, `taxonomy_inactive` y `taxonomy_mismatch`;
   - `matching_key_unknown` (la clave no está entre las opciones compartidas del contexto);
+  - `option_count` en un contexto de opciones compartidas con un número distinto de `part_options`, y al agregar un sexto ítem de emparejamiento al mismo contexto;
   - `rubric_unknown`;
   - `context_word_limit`;
   - `alt_text_required`.
@@ -345,10 +347,11 @@ sigue vigente (quickstart B9 a B13).
   - un contenido igual al de otro ítem (`fingerprint`) responde `duplicate-item`;
   - guardar el borrador con `revision` vieja responde `edit-conflict`;
   - guardar sobre un ítem publicado sin versión abierta crea la versión N+1 en `draft`, y la publicada sigue intacta;
-  - guardar sobre `in_review` vuelve a `draft` o se queda en `in_review` según `keep_in_review`;
+  - guardar sobre `in_review` vuelve a `draft` o se queda en `in_review` según el parámetro `keep_in_review` del contrato (falso por defecto, FR-016);
   - enviar con `content_issues` responde `validation-error` con la lista;
   - enviar sin problemas deja `in_review` con `submitted_by`;
-  - los eventos `created`, `edited` y `submitted`.
+  - los eventos `created`, `edited` y `submitted`;
+  - si el autor pierde el rol Docente, su Borrador sigue en el banco y otro docente lo puede editar y enviar (caso límite de la spec).
 
   → Qwen
   - Terminado: la prueba falla.
@@ -371,7 +374,7 @@ sigue vigente (quickstart B9 a B13).
   - más de 1 MB responde 413 `file-too-large`;
   - más de 4 000 px por lado responde 415;
   - la misma imagen dos veces devuelve el mismo `id`;
-  - `GET /content/media/{id}` responde a un estudiante con `Cache-Control: private, max-age=31536000, immutable` y el `Content-Type` correcto;
+  - `GET /content/media/{id}` responde a un estudiante con `Cache-Control: private, max-age=31536000, immutable` y el `Content-Type` correcto si la imagen está en un contexto de una versión Publicada o Retirada, y 404 si solo la usan Borradores o versiones En revisión (FR-046); un docente la recibe siempre;
   - límite de 60 subidas por hora por usuario.
 
   → Opus
@@ -379,6 +382,7 @@ sigue vigente (quickstart B9 a B13).
 - [ ] T052 [P] [US3] Prueba: `backend/tests/integration/content/test_items_api_authoring.py`. Cubre:
   - `createItem`, `saveItemDraft`, `submitItem`, `createContext`, `getContext`, `updateContext` y `getItemVersion` según el contrato;
   - `ETag` en las respuestas y 412 o 428 según `If-Match`;
+  - `saveItemDraft?keep_in_review=true` sobre una versión En revisión la deja En revisión, y sin el parámetro la devuelve a Borrador;
   - `getItemVersion` devuelve `changes` campo por campo (`stem_md`, `options[B].feedback`, `taxonomy.assertion_id`) frente a la versión anterior;
   - `errors[]` de un 422 trae `field` y `rule`.
 
@@ -611,11 +615,11 @@ sus publicados, En revisión, porcentaje, peso y "Faltan N" (quickstart B18).
 ### Tests for User Story 7 ⚠️
 
 - [ ] T091 [P] [US7] Prueba: `backend/tests/integration/content/test_coverage.py` (FR-039, FR-040, R-16). Cubre:
-  - la agrupación por el tipo de categoría que tiene pesos (afirmación en LC y CC, componente o competencia en RC, parte en Inglés);
+  - la agrupación por el tipo de categoría que tiene pesos: LC por afirmación, RC y CC por competencia e Inglés por parte (research R-16);
   - `published`, `in_review` y `published_share`;
   - `missing = max(0, ceil(bank_target × target_weight) − published)` y `below_target`;
   - los ítems retirados no cuentan;
-  - CE (sin pesos) agrupa por rúbrica o informa solo totales.
+  - CE (sin pesos) informa solo los totales.
 
   → Qwen
   - Terminado: la prueba falla.
@@ -772,7 +776,8 @@ punta a punta.
   - cobertura ≥ 80 % en `content.domain` y `content.application`;
   - CI en verde en el PR;
   - `/speckit.analyze` sin inconsistencias abiertas;
-  - Definición de Terminado del kit (sección 9), incluida la carga del banco inicial.
+  - Definición de Terminado del kit (sección 9), incluida la carga del banco inicial;
+  - SC-007: un docente que no conoce la aplicación crea un ítem completo con contexto, lo previsualiza y lo envía a revisión en menos de 10 minutos; prueba manual cronometrada, con el tiempo anotado.
 
   → Opus
   - Terminado: todo lo anterior comprobado y anotado bajo esta tarea.
@@ -895,5 +900,5 @@ Task: "T068 Prueba API"   +  Task: "T069 Prueba purga"        +  Task: "T070 Pru
   | SC-003, SC-004, SC-009, SC-010 | T110 |
   | SC-005 | T041 |
   | SC-006 | T009, T023 |
-  | SC-007 | T063 |
+  | SC-007 | T063, T117 (prueba manual cronometrada) |
   | SC-008 | T085 |

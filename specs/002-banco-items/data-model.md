@@ -36,7 +36,8 @@ Reglas del dominio que no dependen de la base:
   - `selection`: exactamente una opción correcta; número de opciones según el módulo o la parte;
     retroalimentación en cada opción; explicación general; taxonomía requerida por el módulo.
   - `matching` (Inglés parte 1): clave existente entre las opciones compartidas del contexto; sin
-    opciones propias.
+    opciones propias. El contexto tiene exactamente `part_options` (8) opciones compartidas y
+    como máximo 5 ítems de emparejamiento (FR-003).
   - `writing_prompt`: pregunta, contexto en texto y rúbrica; sin opciones.
 - **Palabras de Lectura crítica**: `WordCount.of(markdown)`, con máximo de 500 (research R-10).
 - **Transiciones**: la máquina de estados de §4. La autoaprobación se impide con
@@ -286,8 +287,8 @@ La tarea nocturna la reemplaza completa (R-13). Índice GIN en `signals`.
 
 - `SELECT`, `INSERT` y `UPDATE` sobre `modules`, `taxonomy_nodes`, `rubrics`, `contexts`,
   `items`, `item_versions` e `item_version_stats`;
-- `DELETE` solo sobre `taxonomy_nodes` (una categoría sin uso), `item_version_stats` e `imports`
-  vencidas;
+- `DELETE` solo sobre `taxonomy_nodes` (una categoría sin uso) e `item_version_stats`; las
+  importaciones vencidas no se borran, se marcan `expired` y pierden su `payload`;
 - `INSERT` y `SELECT` sobre `media`, `context_versions`, `item_events`, `exports`,
   `taxonomy_changes` y `seed_loads`;
 - sobre `imports`, los permisos de columna de §2.9.
@@ -373,7 +374,7 @@ Equivalencias con el modelo:
 |---------|--------|
 | `dificultad`: `baja`, `media`, `alta` | `low`, `medium`, `high` |
 | `estado`: `borrador`, `en_revision`, `publicado`, `retirado` | `draft`, `in_review`, `published`, `retired` |
-| `origen`: `ia`, `docente`, `banco_inicial` | `ai`, `teacher`, `seed` |
+| `origen`: `ia`, `docente`, `banco_inicial` | `ai`, `teacher`, `seed` (`banco_inicial` identifica ítems escritos por personas que llegan en el banco inicial; los del banco actual traen `ia` y se guardan `ai`) |
 | `usa_opciones_del_contexto: true` | `kind = matching` |
 | consigna | `kind = writing_prompt` |
 

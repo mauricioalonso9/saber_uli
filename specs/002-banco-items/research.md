@@ -64,7 +64,9 @@ Reglas del formato que no estaban explícitas en el archivo:
 
 - `id` del ítem es el código de negocio; `version` se ignora al importar (la asigna el sistema) y
   se escribe al exportar.
-- `estado` y `origen` del archivo se respetan solo en la carga del banco inicial. En una importación
+- `estado` y `origen` del archivo se respetan solo en la carga del banco inicial. Un ítem del banco
+  inicial sin `origen` o con `banco_inicial` se guarda con origen `seed`; los que traen `ia`, con
+  `ai`, y en ambos casos entran En revisión. En una importación
   el estado lo elige el docente (Borrador o En revisión) y el origen es `docente`, salvo que el
   archivo diga `ia` (FR-019: entonces entra En revisión).
 - Un archivo exportado incluye `modulos` solo con las categorías que usan sus ítems y las rúbricas
@@ -276,7 +278,9 @@ accesibles).
   formados.
 - **Deduplicación**: se identifican por el SHA-256 del resultado, así que la misma imagen se
   guarda una sola vez.
-- **Entrega**: `GET /content/media/{id}` la sirve a cualquier usuario autenticado, con
+- **Entrega**: `GET /content/media/{id}` la sirve a quien tiene `content:author`, y a los demás
+  usuarios autenticados solo si la imagen está en un contexto usado por una versión Publicada o
+  Retirada (las respuestas históricas de 003 la necesitan); si no, 404 (FR-046). Va con
   `Cache-Control: private, max-age=31536000, immutable`, para que la PWA pueda guardarla para el
   uso sin conexión en 003.
 - **Texto alternativo**: es obligatorio (FR-009) y vive en la versión del contexto, no en la
@@ -393,9 +397,10 @@ funcionalidad); `$ref` externos al contrato de 001 (generan modelos duplicados e
 **Decisión**:
 
 - **Objetivo**: cada categoría de la taxonomía puede tener un **peso objetivo** entre 0 y 1. El
-  banco inicial trae `peso_aprox` en las afirmaciones (LC, CC), los componentes o competencias
-  (RC) y las partes (Inglés).
-- **Cálculo**: la cobertura de un módulo agrupa por el tipo de categoría que tiene pesos.
+  banco inicial trae `peso_aprox` en las afirmaciones de LC, en las competencias de RC y CC y en
+  las partes de Inglés.
+- **Cálculo**: la cobertura de un módulo agrupa por el tipo de categoría que tiene pesos: LC por
+  afirmación, RC y CC por competencia e Inglés por parte. CE no tiene pesos y muestra solo totales.
   - En cada categoría muestra los ítems Publicados y En revisión, el porcentaje real sobre los
     publicados del módulo, el peso objetivo y el **faltante**: los ítems que harían falta para
     llegar al objetivo con la meta del kit de unos 150 por módulo y 225 en Inglés.

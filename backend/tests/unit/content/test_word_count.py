@@ -41,6 +41,12 @@ def test_numeros_tildes_y_palabras_con_guion_cuentan_como_una() -> None:
     assert count_words("En 2024 el franco-colombiano leyó 3,5 páginas") == 7
 
 
+def test_el_apostrofo_no_parte_la_palabra_pero_los_digitos_sueltos_no_la_unen() -> None:
+    # "O'Neill" con apóstrofo recto o tipográfico es una palabra; "2019" no es separador.
+    assert count_words("Ana O'Neill y Juan O\u2019Neill") == 4
+    assert count_words("año 2019 fin") == 3
+
+
 def test_un_texto_vacio_tiene_cero_palabras() -> None:
     assert count_words("") == 0
     assert count_words("  \n|---|\n  ") == 0

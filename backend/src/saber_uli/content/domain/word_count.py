@@ -10,7 +10,7 @@ import re
 
 _LINK_TARGET = re.compile(r"(!?\[[^\]]*\])\([^)]*\)")
 _ORDERED_MARKER = re.compile(r"^\s*\d+[.)]\s+", flags=re.MULTILINE)
-_WORD = re.compile(r"[^\W_]+(?:[-'2019.,][^\W_]+)*")
+_WORD = re.compile(r"[^\W_]+(?:[-'\u2019.,][^\W_]+)*")  # \u2019: apóstrofo tipográfico
 
 MAX_CONTEXT_WORDS = 500
 

@@ -11,6 +11,7 @@ from enum import StrEnum
 
 class ValidationRule(StrEnum):
     REQUIRED = "required"
+    INVALID_VALUE = "invalid_value"
     SINGLE_CORRECT_OPTION = "single_correct_option"
     OPTION_COUNT = "option_count"
     OPTION_FEEDBACK_REQUIRED = "option_feedback_required"

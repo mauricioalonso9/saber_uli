@@ -189,7 +189,7 @@ historias.**
 - [x] T024 Implementar `content/application/ports.py` (repositorios, `MediaProcessor`, `ResponseStatisticsSource`, `UserNames`), `content/application/unit_of_work.py`, `content/infrastructure/orm.py`, `content/infrastructure/repositories/*.py` y `content/infrastructure/unit_of_work.py` siguiendo el patrón de `identity`, para que pase T023 → Qwen
   - Terminado: T023 en verde; `mypy --strict` en verde.
   - Estado (Opus, 2026-10-09): cerrada. 9 en verde, a la primera. Repositorios en `repositories/catalog.py` (módulos, taxonomía, rúbricas), `contexts.py` (contextos e imágenes) e `items.py`; este último escribe con sentencias explícitas y retira primero para no violar los índices parciales al aprobar. Entidad `content/domain/media.py`. `MediaProcessor`, `ResponseStatisticsSource` y `UserNames` se agregan con su historia (US3, US8, US2).
-- [ ] T025 [P] Prueba: `backend/tests/unit/content/test_interchange.py` (research R-03, data-model §6). Comprueba que:
+- [x] T025 [P] Prueba: `backend/tests/unit/content/test_interchange.py` (research R-03, data-model §6). Comprueba que:
   - el banco inicial `backend/seeds/banco_inicial_saber_uli.json` se lee sin errores con 5 módulos, 8 contextos, 43 ítems, 3 consignas y 1 rúbrica;
   - las equivalencias `baja/media/alta → low/medium/high`, `en_revision → in_review` e `ia → ai` funcionan, y `usa_opciones_del_contexto: true` da `kind = matching`;
   - escribir y volver a leer un banco da el mismo contenido (`content_hash` iguales);
@@ -197,8 +197,10 @@ historias.**
 
   Además, `backend/tests/unit/content/test_interchange_schema.py` falla si `backend/schemas/banco_items.schema.json` difiere del JSON Schema generado → Qwen
   - Terminado: las dos pruebas fallan.
-- [ ] T026 Implementar `content/infrastructure/interchange/models.py` (Pydantic, formato v1), `json_format.py` (lector y escritor) y `schema.py` (generador). Generar y versionar `backend/schemas/banco_items.schema.json` (JSON Schema 2020-12) con el comando `uv run python -m saber_uli.content.infrastructure.interchange.schema > ../backend/schemas/banco_items.schema.json`, documentado en el docstring, para que pase T025 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T026. Lee el banco inicial (5 módulos, 8 contextos, 46 ítems con 3 consignas, 1 rúbrica), comprueba equivalencias, ida y vuelta, errores por entrada y sobres ilegibles.
+- [x] T026 Implementar `content/infrastructure/interchange/models.py` (Pydantic, formato v1), `json_format.py` (lector y escritor) y `schema.py` (generador). Generar y versionar `backend/schemas/banco_items.schema.json` (JSON Schema 2020-12) con el comando `uv run python -m saber_uli.content.infrastructure.interchange.schema > ../backend/schemas/banco_items.schema.json`, documentado en el docstring, para que pase T025 → Qwen
   - Terminado: T025 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 100 en verde (unidad). `interchange/models.py` (Pydantic, claves desconocidas rechazadas), `mapping.py`, `json_format.py` y `schema.py`; `backend/schemas/banco_items.schema.json` versionado. Especificaciones en `content/application/bundle.py`. Decisiones: regla nueva `invalid_value` (contrato ampliado) para valores con tipo equivocado; la explicación general no es obligatoria en consignas (la rúbrica cumple ese papel; el banco inicial no la trae); campos opcionales nuevos del formato documentados en `models.py`.
 - [ ] T027 [P] Prueba: `backend/tests/unit/content/test_etag.py` (research R-09). `ETag: "<revision>"`; `If-Match` igual pasa; distinto lanza 412 `edit-conflict` con `current` y `etag`; ausente lanza 428 `precondition-required`; se acepta el `ETag` débil `W/"7"` → Qwen
   - Terminado: la prueba falla.
 - [ ] T028 Implementar `content/api/etag.py` (dependencia FastAPI y problemas) para que pase T027 → Qwen

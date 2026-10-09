@@ -1185,6 +1185,7 @@ components:
       description: Catálogo de reglas de validación del contenido (FR-031)
       enum:
         - required
+        - invalid_value
         - single_correct_option
         - option_count
         - option_feedback_required

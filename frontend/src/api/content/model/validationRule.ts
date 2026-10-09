@@ -10,6 +10,7 @@ export type ValidationRule = (typeof ValidationRule)[keyof typeof ValidationRule
 
 export const ValidationRule = {
   required: "required",
+  invalid_value: "invalid_value",
   single_correct_option: "single_correct_option",
   option_count: "option_count",
   option_feedback_required: "option_feedback_required",

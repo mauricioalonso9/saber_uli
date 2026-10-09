@@ -89,7 +89,8 @@ def validate_item(
         )
     if _blank(content.stem_md):
         issues.append(ContentIssue("stem_md", R.REQUIRED, "Escribe el enunciado."))
-    if _blank(content.explanation_md):
+    if kind is not ItemKind.WRITING_PROMPT and _blank(content.explanation_md):
+        # En una consigna, la rúbrica cumple el papel de la explicación general.
         issues.append(
             ContentIssue(
                 "explanation_md", R.EXPLANATION_REQUIRED, "Escribe la explicación general."

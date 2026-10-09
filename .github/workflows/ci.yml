@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
       - name: Dependencias
@@ -50,7 +50,7 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
       - run: uv sync --frozen
@@ -71,7 +71,7 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
       - run: uv sync --frozen
@@ -89,7 +89,7 @@ jobs:
       - id: enabled
         name: ¿Existe backend/tests/contract/test_openapi_contract.py?
         run: echo "value=${{ hashFiles('backend/tests/contract/test_openapi_contract.py') != '' }}" >> "$GITHUB_OUTPUT"
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         if: steps.enabled.outputs.value == 'true'
         with:
           python-version: "3.13"

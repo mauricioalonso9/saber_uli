@@ -224,6 +224,82 @@ const teacherGroupsRoute = createRoute({
   ),
 });
 
+// Banco de ítems (002): todas las páginas se cargan bajo demanda (001/T174).
+const bankRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco",
+  component: lazyRouteComponent(() => import("@/features/content/BankPage"), "BankPage"),
+});
+
+const reviewQueueRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/revision",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ReviewQueuePage"),
+    "ReviewQueuePage",
+  ),
+});
+
+const newItemRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/items/nuevo",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ItemEditorPage"),
+    "ItemEditorPage",
+  ),
+});
+
+const itemRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/items/$code",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ItemEditorPage"),
+    "ItemEditorPage",
+  ),
+});
+
+const contextRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/contextos/$code",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ContextEditorPage"),
+    "ContextEditorPage",
+  ),
+});
+
+const importRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/importar",
+  component: lazyRouteComponent(() => import("@/features/content/ImportPage"), "ImportPage"),
+});
+
+const importPreviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/importaciones/$importId",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ImportPreviewPage"),
+    "ImportPreviewPage",
+  ),
+});
+
+const exportRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/exportar",
+  component: lazyRouteComponent(() => import("@/features/content/ExportPage"), "ExportPage"),
+});
+
+const coverageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/cobertura",
+  component: lazyRouteComponent(() => import("@/features/content/CoveragePage"), "CoveragePage"),
+});
+
+const taxonomyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/taxonomia",
+  component: lazyRouteComponent(() => import("@/features/content/TaxonomyPage"), "TaxonomyPage"),
+});
+
 const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sin-conexion",
@@ -252,6 +328,16 @@ export const routeTree = rootRoute.addChildren([
   profileRoute,
   accountRoute,
   offlineRoute,
+  bankRoute,
+  reviewQueueRoute,
+  newItemRoute,
+  itemRoute,
+  contextRoute,
+  importRoute,
+  importPreviewRoute,
+  exportRoute,
+  coverageRoute,
+  taxonomyRoute,
 ]);
 
 export interface AppRouterOptions {

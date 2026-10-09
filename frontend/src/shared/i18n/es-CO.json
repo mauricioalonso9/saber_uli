@@ -22,7 +22,10 @@
     "audit": "Auditoría",
     "policy": "Política de datos",
     "administration": "Administración",
-    "deletions": "Supresiones"
+    "deletions": "Supresiones",
+    "bank": "Banco de ítems",
+    "review": "Revisión de ítems",
+    "taxonomy": "Taxonomía"
   },
   "home": {
     "title": "Inicio",
@@ -555,6 +558,18 @@
       "options": "Opciones",
       "correctAnswer": "Respuesta correcta",
       "explanation": "Explicación"
+    },
+    "placeholder": "Esta sección está en construcción.",
+    "pages": {
+      "bank": "Banco de ítems",
+      "review": "Revisión de ítems",
+      "item": "Ítem",
+      "context": "Contexto",
+      "import": "Importar ítems",
+      "importPreview": "Vista previa de la importación",
+      "export": "Exportar el banco",
+      "coverage": "Cobertura del banco",
+      "taxonomy": "Taxonomía"
     }
   }
 }

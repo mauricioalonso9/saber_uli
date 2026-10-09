@@ -366,8 +366,9 @@ docente no ve las acciones (quickstart B5 a B8).
 - [x] T046 [US2] Implementar `frontend/src/features/content/ReviewQueuePage.tsx`, `ReviewActions.tsx` y la vista de solo lectura de un ítem en `ItemEditorPage.tsx` (contenido con `ContentView` e historia) para que pase T043 → Qwen
   - Terminado: T043 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 12 en verde; Vitest completo 237. `ReviewQueuePage`, `ReviewActions` (If-Match con la revisión vista; formulario en línea con confirmaciones, comentario o motivo) y una vista de solo lectura en `ItemEditorPage` (versión abierta y publicada con `ContentView` y retroalimentación); el editor llega en T061. El contexto se muestra por su código hasta que `getContext` exista (US3). Mensajes de error del banco en `problem-messages.ts`.
-- [ ] T047 [US2] E2E: `frontend/tests/e2e/content-review.spec.ts`, con los escenarios B5 a B8 del quickstart, dos administradores, un docente y axe en `/banco/revision` → Qwen
+- [x] T047 [US2] E2E: `frontend/tests/e2e/content-review.spec.ts`, con los escenarios B5 a B8 del quickstart, dos administradores, un docente y axe en `/banco/revision` → Qwen
   - Terminado: en verde con el perfil e2e (Chromium y WebKit).
+  - Estado (Opus, 2026-10-09): cerrada. En verde en Chromium contra el stack local reconstruido (WebKit se omite aquí sin la entrada `oidc` en hosts; corre en CI). Los ítems son copias propias de la prueba (`fixtures/content.ts`, códigos `AAA-E2E-…`) para no depender del estado del banco inicial entre corridas; axe en `/banco/revision`.
 - [ ] T048 [US2] Revisión de US2 (Opus), anotada en `specs/002-banco-items/tasks.md`: autoaprobación, permisos, confirmaciones registradas e inmutabilidad de lo publicado → Opus
   - Terminado: US2 aprobada.
 

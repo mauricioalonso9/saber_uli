@@ -45,6 +45,11 @@ function psqlArgs(variables: Record<string, string>): string[] {
   return args;
 }
 
+/** Ejecuta una sentencia con variables de psql (para otras fixtures, como `content.ts`). */
+export function psqlExec(statement: string, variables: Record<string, string>): void {
+  psql(statement, variables);
+}
+
 function psql(statement: string, variables: Record<string, string>): void {
   execFileSync("docker", psqlArgs(variables), {
     input: statement,

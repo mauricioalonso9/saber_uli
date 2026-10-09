@@ -11,7 +11,6 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
-    ARRAY,
     Boolean,
     Computed,
     DateTime,
@@ -26,7 +25,7 @@ from sqlalchemy import (
     Uuid,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from saber_uli.shared.infrastructure.db import Base

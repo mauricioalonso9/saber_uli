@@ -40,11 +40,11 @@ def test_sin_if_match_es_428() -> None:
 
 
 @pytest.mark.parametrize("header", ["7", '"siete"', "*", '"1", "2"'])
-def test_un_if_match_que_no_es_una_revision_es_un_conflicto(header: str) -> None:
+def test_un_if_match_mal_formado_es_428(header: str) -> None:
     with pytest.raises(ProblemException) as error:
         expected_revision(header)
 
-    assert (error.value.status, error.value.slug) == (412, "edit-conflict")
+    assert (error.value.status, error.value.slug) == (428, "precondition-required")
 
 
 def test_un_conflicto_lleva_el_recurso_actual_y_su_etag() -> None:

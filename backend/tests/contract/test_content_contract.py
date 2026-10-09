@@ -13,6 +13,11 @@ from typing import Any
 
 import pytest
 import schemathesis
+from schemathesis.specs.openapi.checks import (
+    allow_header_conformance,
+    missing_required_header,
+    unsupported_method,
+)
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -58,6 +63,18 @@ def test_ninguna_ruta_de_content_queda_fuera_del_contrato(
     assert sorted(routes - set(_contract_operations())) == []
 
 
+class BearerToken:
+    """La autenticación la pone el arnés (no es un dato que Schemathesis deba mutar)."""
+
+    token = ""
+
+    def get(self, case: Any, context: Any) -> str:
+        return self.token
+
+    def set(self, case: Any, data: str, context: Any) -> None:
+        case.headers = {**(case.headers or {}), "Authorization": f"Bearer {data}"}
+
+
 @pytest.fixture
 def content_contract_schema(
     migrated_database: dict[str, str], redis_url: str, redis_client: Any
@@ -66,6 +83,7 @@ def content_contract_schema(
     app.state.rate_limiter = Unlimited()
     schema = schemathesis.openapi.from_path(CONTRACT)
     schema.app = app
+    schema.auth()(BearerToken)
     return schema
 
 
@@ -83,7 +101,24 @@ async def content_contract_headers(
             ),
             {"u": admin.id},
         )
+    BearerToken.token = token
     return {"Authorization": f"Bearer {token}"}
+
+
+def _partially_implemented_paths() -> set[str]:
+    """Rutas del contrato con métodos que aún no existen: su cabecera Allow no coincide todavía."""
+    raw = schemathesis.openapi.from_path(CONTRACT).raw_schema
+    return {
+        path
+        for path, item in raw["paths"].items()
+        if any(
+            isinstance(op, dict) and op.get("operationId") not in IMPLEMENTED_CONTENT_OPERATIONS
+            for op in item.values()
+        )
+    }
+
+
+PARTIAL_PATHS = _partially_implemented_paths()
 
 
 if IMPLEMENTED_CONTENT_OPERATIONS:
@@ -93,4 +128,13 @@ if IMPLEMENTED_CONTENT_OPERATIONS:
 
     @content_schema.parametrize()
     def test_contrato_content(case: Any, content_contract_headers: dict[str, str]) -> None:
-        case.call_and_validate(headers=content_contract_headers, allow_redirects=False)
+        excluded: list[Any] = []
+        if case.operation.path in PARTIAL_PATHS:
+            excluded += [unsupported_method, allow_header_conformance]
+        if any(p.name == "If-Match" for p in case.operation.headers):
+            # Sin If-Match la API responde 428 (RFC 6585, documentado en el contrato); la
+            # comprobación genérica espera 400, 406 o 422.
+            excluded.append(missing_required_header)
+        case.call_and_validate(
+            headers=content_contract_headers, allow_redirects=False, excluded_checks=excluded
+        )

@@ -21,8 +21,12 @@ from sqlalchemy import text
 from starlette.middleware.sessions import SessionMiddleware
 
 from saber_uli.config import Settings, get_settings
+from saber_uli.content.api.items_router import router as content_items_router
+from saber_uli.content.api.review_router import router as content_review_router
 from saber_uli.content.api.taxonomy_router import router as content_taxonomy_router
+from saber_uli.content.application.queries.items import GetItem, ItemHistoryQuery, ListItems
 from saber_uli.content.application.queries.modules import ListContentModules
+from saber_uli.content.application.review import Review
 from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
 from saber_uli.identity.api.admin_catalogs_router import router as admin_catalogs_router
 from saber_uli.identity.api.admin_users_router import router as admin_users_router
@@ -48,6 +52,7 @@ from saber_uli.identity.application.catalogs import AuditQuery, ProgramAdmin, Se
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
 from saber_uli.identity.application.data_export import DataExport
 from saber_uli.identity.application.deletion import DeletionService
+from saber_uli.identity.application.directory import IdentityDirectory
 from saber_uli.identity.application.groups import GroupService, TeacherGroups
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
 from saber_uli.identity.application.invitation_batches import InvitationBatchService
@@ -219,6 +224,13 @@ def create_app(
 
     app.state.content_uow = content_uow
     app.state.content_list_modules = ListContentModules(uow_factory=content_uow)
+    # Nombres y administradores activos desde la fachada de identity (research R-14).
+    names = IdentityDirectory(uow_factory=identity_uow)
+    app.state.content_user_names = names
+    app.state.content_review = Review(uow_factory=content_uow, clock=clock)
+    app.state.content_get_item = GetItem(uow_factory=content_uow, names=names)
+    app.state.content_list_items = ListItems(uow_factory=content_uow, names=names)
+    app.state.content_item_history = ItemHistoryQuery(uow_factory=content_uow, names=names)
 
     install_problem_handlers(app)
     app.include_router(health_router)
@@ -240,6 +252,8 @@ def create_app(
     app.include_router(deletion_router, dependencies=v1)
     app.include_router(deletion_admin_router, dependencies=v1)
     app.include_router(content_taxonomy_router, dependencies=v1)
+    app.include_router(content_items_router, dependencies=v1)
+    app.include_router(content_review_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

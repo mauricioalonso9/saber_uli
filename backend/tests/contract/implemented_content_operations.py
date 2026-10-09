@@ -8,5 +8,15 @@ IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset(
     {
         # Fase 2 (T030)
         "listContentModules",
+        # US2 (T045)
+        "listItems",
+        "getItem",
+        "getItemHistory",
+        "getItemVersion",
+        "commentItem",
+        "approveItem",
+        "returnItem",
+        "rejectItem",
+        "retireItem",
     }
 )

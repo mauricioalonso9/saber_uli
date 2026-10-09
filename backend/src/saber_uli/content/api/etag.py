@@ -1,8 +1,9 @@
 """ETag e If-Match del banco de ítems (research R-09; FR-027).
 
 La revisión de un ítem o contexto es su `ETag` (`"7"`). Las modificaciones exigen `If-Match`:
-sin él, 428 `precondition-required`; si no coincide, 412 `edit-conflict` con el recurso actual
-(`current`) y su `etag`, para que la interfaz muestre las dos versiones y la persona decida.
+sin él o mal formado, 428 `precondition-required`; si no coincide, 412 `edit-conflict` con el
+recurso actual (`current`) y su `etag`, para que la interfaz muestre las dos versiones y la persona
+decida.
 """
 
 import re
@@ -29,8 +30,9 @@ def expected_revision(if_match: str | None) -> int:
         )
     match = _ETAG.match(if_match)
     if match is None:
+        # Mal formado no es "otra versión": falta una precondición válida.
         raise ProblemException(
-            412, "edit-conflict", detail="La versión indicada no corresponde a este recurso."
+            428, "precondition-required", detail="La versión indicada (If-Match) no es válida."
         )
     return int(match.group(1))
 

@@ -112,6 +112,7 @@ async def test_permisos_segun_roles(
 
     assert me["roles"] == ["program_director", "student", "teacher"]
     assert me["permissions"] == [
+        "content:author",  # 002/T006: el docente escribe en el banco de ítems
         "groups:read_own_students",
         "invitations:manage_own",
         "programs:read_aggregated",

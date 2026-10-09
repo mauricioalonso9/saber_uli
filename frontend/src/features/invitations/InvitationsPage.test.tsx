@@ -21,7 +21,7 @@ const ACCEPTED = invitation({
 });
 
 const server = setupServer();
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {
   server.resetHandlers();
   useSessionStore.getState().clear();

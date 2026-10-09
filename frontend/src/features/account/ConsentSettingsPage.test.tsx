@@ -56,7 +56,7 @@ const ACCEPTED = consent("accepted", "2026-10-07T15:30:00Z", "c2");
 const REJECTED = consent("rejected", "2026-10-06T14:00:00Z", "c1");
 
 const server = setupServer();
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 beforeEach(() => useSessionStore.getState().setSession("token", 600));
 afterEach(() => {
   server.resetHandlers();

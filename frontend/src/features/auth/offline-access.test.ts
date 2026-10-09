@@ -71,7 +71,7 @@ function setOnline(online: boolean) {
   });
 }
 
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 beforeEach(async () => {
   calls = [];
   useSessionStore.getState().clear();

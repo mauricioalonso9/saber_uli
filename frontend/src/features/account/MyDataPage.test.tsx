@@ -99,7 +99,7 @@ const EXPORT: PersonalDataExport = {
 };
 
 const server = setupServer();
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 beforeEach(() => useSessionStore.getState().setSession("token", 600));
 afterEach(() => {
   server.resetHandlers();

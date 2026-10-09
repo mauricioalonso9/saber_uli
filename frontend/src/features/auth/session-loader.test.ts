@@ -15,7 +15,7 @@ const ME = { id: "u1", onboarding: { consent_required: false, profile_required: 
 const DAY = 24 * 60 * 60 * 1000;
 
 const server = setupServer();
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 beforeEach(async () => {
   useSessionStore.getState().clear();
   await db.meta.clear();

@@ -26,7 +26,7 @@ function tokens(accessToken: string) {
 const server = setupServer();
 let refreshCalls: Request[] = [];
 
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
+beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 beforeEach(() => {
   refreshCalls = [];
   useSessionStore.getState().clear();

@@ -43,7 +43,7 @@ def test_numeros_tildes_y_palabras_con_guion_cuentan_como_una() -> None:
 
 def test_el_apostrofo_no_parte_la_palabra_pero_los_digitos_sueltos_no_la_unen() -> None:
     # "O'Neill" con apóstrofo recto o tipográfico es una palabra; "2019" no es separador.
-    assert count_words("Ana O'Neill y Juan O\u2019Neill") == 4
+    assert count_words("Ana O'Neill y Juan O\u2019Neill") == 5
     assert count_words("año 2019 fin") == 3
 
 

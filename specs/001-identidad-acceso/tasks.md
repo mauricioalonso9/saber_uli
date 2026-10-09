@@ -1728,10 +1728,16 @@ dato editable del perfil.
     faltaba cómo configurar `.env` (inquilino y autoridad del proveedor de prueba, como en CI) y
     el comando de contrato no era el que corre CI: ambos corregidos en la sección 4. La
     comprobación con un `docker compose up` desde cero queda para T180.
-- [ ] T180 Validar de punta a punta los escenarios V1 a V21 de `specs/001-identidad-acceso/quickstart.md` sobre `docker compose up` desde cero, corregir la documentación si algo difiere y confirmar la Definición de Terminado del kit (sección 9) → Opus
+- [x] T180 Validar de punta a punta los escenarios V1 a V21 de `specs/001-identidad-acceso/quickstart.md` sobre `docker compose up` desde cero, corregir la documentación si algo difiere y confirmar la Definición de Terminado del kit (sección 9) → Opus
   - Terminado: todos los escenarios pasan; cobertura ≥ 80 % en `domain` y `application`; CI en verde; `/speckit.analyze` sin inconsistencias abiertas.
-  - Estado (Opus, 2026-10-08): todo verificado salvo CI, que no se puede comprobar: el
-    repositorio no tiene remoto. Falta publicarlo y ver el flujo en verde para marcar la casilla.
+  - Estado (Opus, 2026-10-08): cerrada. CI en verde en el PR #11 (`001-identidad-acceso` →
+    `main`, corrida 37876216778 sobre `ed04d7a`): los 9 trabajos pasan.
+    - Ajustes que pidió la primera corrida en GitHub: Trivy con la imagen oficial 0.66.0 (la
+      etiqueta `trivy-action@0.33.1` no existía y la acción fallaba sin registros públicos);
+      imagen del backend sin `pip` y proxy en `nginx-unprivileged:1.31` con `apk upgrade` y
+      `USER 101`, sin hallazgos HIGH/CRITICAL; Playwright con reporter `github` e informe como
+      artefacto. En CI corre WebKit (`E2E_OIDC_RESOLVES=1`): 61 en verde, y V16 se omite en
+      WebKit porque Playwright solo controla service workers en Chromium (corre en `pixel-7`).
     - Stack desde cero (proyecto Compose aparte, volúmenes nuevos, perfil `e2e` con los valores
       de quickstart.md §4): todos los servicios `healthy`, `migrate` con código 0.
     - V1–V18: suite e2e completa contra ese stack, 40 en verde (las 23 de WebKit se omiten sin

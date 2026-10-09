@@ -1,0 +1,39 @@
+"""Unidad de trabajo del contexto `content`: transacción más sus repositorios."""
+
+from abc import abstractmethod
+
+from saber_uli.content.application.ports import (
+    ContextRepository,
+    ItemRepository,
+    MediaRepository,
+    ModuleRepository,
+    RubricRepository,
+    TaxonomyRepository,
+)
+from saber_uli.shared.application.unit_of_work import UnitOfWork
+
+
+class ContentUnitOfWork(UnitOfWork):
+    @property
+    @abstractmethod
+    def modules(self) -> ModuleRepository: ...
+
+    @property
+    @abstractmethod
+    def taxonomy(self) -> TaxonomyRepository: ...
+
+    @property
+    @abstractmethod
+    def rubrics(self) -> RubricRepository: ...
+
+    @property
+    @abstractmethod
+    def contexts(self) -> ContextRepository: ...
+
+    @property
+    @abstractmethod
+    def items(self) -> ItemRepository: ...
+
+    @property
+    @abstractmethod
+    def media(self) -> MediaRepository: ...

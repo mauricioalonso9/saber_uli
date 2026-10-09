@@ -177,7 +177,7 @@ historias.**
 
 ### Persistencia y aplicación base
 
-- [ ] T023 [P] Prueba: `backend/tests/integration/content/test_repositories.py`. Comprueba que:
+- [x] T023 [P] Prueba: `backend/tests/integration/content/test_repositories.py`. Comprueba que:
   - guardar y leer módulos, taxonomía, rúbricas, contextos con versiones, ítems con versiones, imágenes y eventos conserva todos los campos (`jsonb` de opciones, `contributor_ids`);
   - los repositorios rechazan modificar el contenido de una versión `published` o `retired`;
   - `items.revision` y `contexts.revision` suben con cada cambio;
@@ -185,8 +185,10 @@ historias.**
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T024 Implementar `content/application/ports.py` (repositorios, `MediaProcessor`, `ResponseStatisticsSource`, `UserNames`), `content/application/unit_of_work.py`, `content/infrastructure/orm.py`, `content/infrastructure/repositories/*.py` y `content/infrastructure/unit_of_work.py` siguiendo el patrón de `identity`, para que pase T023 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló por `ModuleNotFoundError` antes de T024. Incluye la comparación del ORM con el esquema migrado (como en 001) y `tests/integration/content/conftest.py` (limpieza del esquema antes de cada prueba, fábrica de UoW y taxonomía de LC).
+- [x] T024 Implementar `content/application/ports.py` (repositorios, `MediaProcessor`, `ResponseStatisticsSource`, `UserNames`), `content/application/unit_of_work.py`, `content/infrastructure/orm.py`, `content/infrastructure/repositories/*.py` y `content/infrastructure/unit_of_work.py` siguiendo el patrón de `identity`, para que pase T023 → Qwen
   - Terminado: T023 en verde; `mypy --strict` en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 9 en verde, a la primera. Repositorios en `repositories/catalog.py` (módulos, taxonomía, rúbricas), `contexts.py` (contextos e imágenes) e `items.py`; este último escribe con sentencias explícitas y retira primero para no violar los índices parciales al aprobar. Entidad `content/domain/media.py`. `MediaProcessor`, `ResponseStatisticsSource` y `UserNames` se agregan con su historia (US3, US8, US2).
 - [ ] T025 [P] Prueba: `backend/tests/unit/content/test_interchange.py` (research R-03, data-model §6). Comprueba que:
   - el banco inicial `backend/seeds/banco_inicial_saber_uli.json` se lee sin errores con 5 módulos, 8 contextos, 43 ítems, 3 consignas y 1 rúbrica;
   - las equivalencias `baja/media/alta → low/medium/high`, `en_revision → in_review` e `ia → ai` funcionan, y `usa_opciones_del_contexto: true` da `kind = matching`;

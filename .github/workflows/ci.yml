@@ -31,7 +31,7 @@ jobs:
     name: infra
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
@@ -49,7 +49,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
@@ -70,7 +70,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
@@ -85,7 +85,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - id: enabled
         name: ¿Existe backend/tests/contract/test_openapi_contract.py?
         run: echo "value=${{ hashFiles('backend/tests/contract/test_openapi_contract.py') != '' }}" >> "$GITHUB_OUTPUT"
@@ -106,7 +106,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
         with:
           node-version: "24"
@@ -125,7 +125,7 @@ jobs:
     name: e2e
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - id: enabled
         name: ¿Existe frontend/playwright.config.ts?
         run: echo "value=${{ hashFiles('frontend/playwright.config.ts') != '' }}" >> "$GITHUB_OUTPUT"
@@ -181,7 +181,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - id: enabled
         name: ¿Existe frontend/lighthouserc.json?
         run: echo "value=${{ hashFiles('frontend/lighthouserc.json') != '' }}" >> "$GITHUB_OUTPUT"
@@ -202,7 +202,7 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v3
       - name: Imagen del backend
         uses: docker/build-push-action@v6
@@ -225,7 +225,7 @@ jobs:
     # Imagen oficial de Trivy con versión fija en vez de trivy-action (fallaba sin registros
     # públicos): CI corre lo mismo que `docker run` en local.
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Trivy sobre el repositorio (dependencias, secretos y configuración)
         run: >-
           docker run --rm -v "$GITHUB_WORKSPACE:/src:ro" -v /var/run/docker.sock:/var/run/docker.sock

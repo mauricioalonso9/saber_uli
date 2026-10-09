@@ -125,10 +125,12 @@ historias.**
 - [x] T014 Implementar `content/domain/module.py`, `taxonomy.py` y `rubric.py` (`Module`, `TaxonomyNode`, `TaxonomyNodeKind`, `ModuleRules`, `Rubric` con dimensiones de al menos 2 niveles) para que pase T013 → Qwen
   - Terminado: T013 en verde; sin importaciones de frameworks.
   - Estado (Opus, 2026-10-09): cerrada. 19 en verde. Además `content/domain/validation.py` (`ValidationRule`, `ContentIssue`), compartido por módulo, ítem y contexto.
-- [ ] T015 [P] Prueba: `backend/tests/unit/content/test_word_count.py` (research R-10). Un texto de exactamente 500 palabras se acepta y uno de 501 no. Las marcas Markdown (`**`, `#`, `>`), los separadores de tabla `|---|` y las URL de enlaces no cuentan. Los números y las palabras con tilde o con guion cuentan como una. Los 3 contextos de LC del banco inicial dan el valor de `palabras` del archivo con ±2 de tolerancia → Qwen
+- [x] T015 [P] Prueba: `backend/tests/unit/content/test_word_count.py` (research R-10). Un texto de exactamente 500 palabras se acepta y uno de 501 no. Las marcas Markdown (`**`, `#`, `>`), los separadores de tabla `|---|` y las URL de enlaces no cuentan. Los números y las palabras con tilde o con guion cuentan como una. Los 3 contextos de LC del banco inicial dan el valor de `palabras` del archivo con ±2 de tolerancia → Qwen
   - Terminado: la prueba falla.
-- [ ] T016 Implementar `content/domain/word_count.py` para que pase T015 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T016.
+- [x] T016 Implementar `content/domain/word_count.py` para que pase T015 → Qwen
   - Terminado: T015 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 10 en verde; los tres textos de LC del banco inicial quedan dentro de ±2 de su `palabras`.
 - [ ] T017 [P] Prueba: `backend/tests/unit/content/test_item_validation.py`. `ItemVersion.validate(rules)` devuelve problemas con `field`, `rule` y `message`, con `rule` del catálogo `ValidationRule` del contrato:
   - `single_correct_option` con 0 o 2 opciones correctas;
   - `option_count`;

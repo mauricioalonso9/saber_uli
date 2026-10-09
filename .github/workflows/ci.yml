@@ -222,31 +222,26 @@ jobs:
   security:
     name: security
     runs-on: ubuntu-latest
+    # Imagen oficial de Trivy con versión fija en vez de trivy-action (fallaba sin registros
+    # públicos): CI corre lo mismo que `docker run` en local.
     steps:
       - uses: actions/checkout@v5
       - name: Trivy sobre el repositorio (dependencias, secretos y configuración)
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
-        with:
-          scan-type: fs
-          scanners: vuln,secret,misconfig
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: "1"
+        run: >-
+          docker run --rm -v "$GITHUB_WORKSPACE:/src:ro" -v /var/run/docker.sock:/var/run/docker.sock
+          -v trivy-cache:/root/.cache aquasec/trivy:0.66.0
+          fs --scanners vuln,secret,misconfig --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 /src
       - name: Construir imágenes
         run: |
           docker build -f backend/Dockerfile -t saber-uli/backend:scan .
           docker build -f frontend/Dockerfile -t saber-uli/proxy:scan .
       - name: Trivy sobre la imagen del backend
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
-        with:
-          image-ref: saber-uli/backend:scan
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: "1"
+        run: >-
+          docker run --rm -v "$GITHUB_WORKSPACE:/src:ro" -v /var/run/docker.sock:/var/run/docker.sock
+          -v trivy-cache:/root/.cache aquasec/trivy:0.66.0
+          image --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 saber-uli/backend:scan
       - name: Trivy sobre la imagen del proxy
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
-        with:
-          image-ref: saber-uli/proxy:scan
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: "1"
+        run: >-
+          docker run --rm -v "$GITHUB_WORKSPACE:/src:ro" -v /var/run/docker.sock:/var/run/docker.sock
+          -v trivy-cache:/root/.cache aquasec/trivy:0.66.0
+          image --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 saber-uli/proxy:scan

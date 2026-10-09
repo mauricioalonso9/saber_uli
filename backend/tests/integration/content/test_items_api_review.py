@@ -306,3 +306,16 @@ async def test_historia_con_nombres(
     assert version["reviewer"]["id"] == str(admin.id)
     assert [event["type"] for event in body["events"]] == ["created", "approved"]
     assert body["events"][1]["actor"]["display_name"] == admin.display_name
+
+
+async def test_la_busqueda_resiste_nul_y_paginas_enormes(
+    api_client: httpx.AsyncClient, people: dict[str, Staff]
+) -> None:
+    # Hallazgos de Schemathesis: el carácter NUL y un desplazamiento mayor que BIGINT daban 500.
+    headers = people["teacher"].headers
+
+    nul = await api_client.get(BASE, params={"q": "\x00"}, headers=headers)
+    huge = await api_client.get(BASE, params={"page": 368934881474191034}, headers=headers)
+
+    assert nul.status_code == 200
+    assert (huge.status_code, huge.json()["items"]) == (200, [])

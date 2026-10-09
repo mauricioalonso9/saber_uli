@@ -189,6 +189,30 @@ class MediaRepository(Protocol):
 
     async def get_by_sha256(self, sha256: bytes) -> Media | None: ...
 
+    async def add_or_get(self, media: Media) -> Media:
+        """Guarda la imagen o, si ya existe una con la misma huella, devuelve esa."""
+        ...
+
+    async def is_public(self, media_id: UUID) -> bool:
+        """La usa un contexto de alguna versión Publicada o Retirada (FR-046)."""
+        ...
+
+
+@dataclass(frozen=True)
+class ProcessedImage:
+    """Imagen verificada y re-codificada sin metadatos (research R-11)."""
+
+    data: bytes
+    content_type: str
+    width: int
+    height: int
+
+
+class ImageProcessor(Protocol):
+    def process(self, data: bytes) -> ProcessedImage:
+        """Verifica y re-codifica; `FileTooLargeError` o `UnsupportedMediaError` si no sirve."""
+        ...
+
 
 @dataclass(frozen=True)
 class SeedLoadRecord:

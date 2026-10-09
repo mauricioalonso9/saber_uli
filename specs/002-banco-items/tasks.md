@@ -417,7 +417,7 @@ sigue vigente (quickstart B9 a B13).
   → Qwen
   - Terminado: la prueba falla.
   - Estado (Opus, 2026-10-09): cerrada. Falló (sin `context_usage`) antes de T057.
-- [ ] T051 [P] [US3] Prueba de seguridad: `backend/tests/integration/content/test_media.py` (FR-009, R-11). Cubre:
+- [x] T051 [P] [US3] Prueba de seguridad: `backend/tests/integration/content/test_media.py` (FR-009, R-11). Cubre:
   - PNG, JPEG y WebP válidos se guardan re-codificados;
   - un JPEG con EXIF GPS queda sin EXIF;
   - SVG, GIF y un PNG truncado responden 415 `unsupported-media-type`;
@@ -429,7 +429,8 @@ sigue vigente (quickstart B9 a B13).
 
   → Opus
   - Terminado: la prueba falla.
-- [ ] T052 [P] [US3] Prueba: `backend/tests/integration/content/test_items_api_authoring.py`. Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T058. El límite de 60 subidas por hora se prueba con 61 peticiones reales (la 61 responde 429; otra persona sí sube).
+- [x] T052 [P] [US3] Prueba: `backend/tests/integration/content/test_items_api_authoring.py`. Cubre:
   - `createItem`, `saveItemDraft`, `submitItem`, `createContext`, `getContext`, `updateContext` y `getItemVersion` según el contrato;
   - `ETag` en las respuestas y 412 o 428 según `If-Match`;
   - `saveItemDraft?keep_in_review=true` sobre una versión En revisión la deja En revisión, y sin el parámetro la devuelve a Borrador;
@@ -438,9 +439,11 @@ sigue vigente (quickstart B9 a B13).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T053 [P] [US3] Prueba: `frontend/src/features/content/schemas.test.ts`. Los esquemas zod reproducen las reglas de T013 y T017 (opciones por módulo y parte, una correcta, retroalimentación, explicación, 500 palabras en LC, texto alternativo) con los mismos `rule` del contrato → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T059 (rutas inexistentes). 8 casos con PostgreSQL real.
+- [x] T053 [P] [US3] Prueba: `frontend/src/features/content/schemas.test.ts`. Los esquemas zod reproducen las reglas de T013 y T017 (opciones por módulo y parte, una correcta, retroalimentación, explicación, 500 palabras en LC, texto alternativo) con los mismos `rule` del contrato → Qwen
   - Terminado: la prueba falla.
-- [ ] T054 [P] [US3] Prueba de componentes: `frontend/src/features/content/ItemEditorPage.test.tsx`, `ItemPreview.test.tsx` y `EditConflictDialog.test.tsx` (msw). Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T060.
+- [x] T054 [P] [US3] Prueba de componentes: `frontend/src/features/content/ItemEditorPage.test.tsx`, `ItemPreview.test.tsx` y `EditConflictDialog.test.tsx` (msw). Cubre:
   - los campos cambian según módulo y parte (la parte 1 de Inglés pide la clave entre las opciones del contexto; CE pide rúbrica);
   - los errores del cliente y del servidor aparecen junto al campo y se anuncian con `aria-live`;
   - el contador de palabras muestra "501/500";
@@ -450,7 +453,8 @@ sigue vigente (quickstart B9 a B13).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T055 [P] [US3] Prueba de componentes: `frontend/src/features/content/ContextEditorPage.test.tsx` y `MediaUpload.test.tsx`. Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T061. El contador 501/500 vive en el editor de contextos, junto al texto que cuenta (lo cubre T055).
+- [x] T055 [P] [US3] Prueba de componentes: `frontend/src/features/content/ContextEditorPage.test.tsx` y `MediaUpload.test.tsx`. Cubre:
   - aviso con el número de ítems que usan el contexto y cuántos están publicados, antes de confirmar;
   - texto alternativo obligatorio;
   - errores 413 y 415 legibles;
@@ -458,6 +462,7 @@ sigue vigente (quickstart B9 a B13).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T062.
 
 ### Implementation for User Story 3
 
@@ -467,20 +472,27 @@ sigue vigente (quickstart B9 a B13).
 - [x] T057 [US3] Implementar `content/application/contexts.py` (versionado y propagación a los ítems, FR-020) para que pase T050 → Qwen
   - Terminado: T050 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 5 en verde. `content/application/contexts.py` (crear, editar con versión nueva y FR-020 compartido con la carga del banco, consultar el uso). Un contexto inválido no se guarda; una imagen inexistente es `invalid_value`.
-- [ ] T058 [US3] Implementar `content/infrastructure/images.py` (Pillow: firma, límites, re-codificación sin EXIF, SHA-256), `content/application/media.py` y `content/api/media_router.py`, con limitación de peticiones, para que pase T051 → Opus
+- [x] T058 [US3] Implementar `content/infrastructure/images.py` (Pillow: firma, límites, re-codificación sin EXIF, SHA-256), `content/application/media.py` y `content/api/media_router.py`, con limitación de peticiones, para que pase T051 → Opus
   - Terminado: T051 en verde.
-- [ ] T059 [US3] Implementar en `content/api/items_router.py` (`createItem`, `saveItemDraft`, `submitItem`, `getItemVersion` con diferencias) y `contexts_router.py` las operaciones de T052, con `content/application/queries/item_version_diff.py` → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 13 en verde. Pillow decide el formato por el contenido, revisa las dimensiones del encabezado antes de decodificar y re-codifica sin metadatos; la huella es la de la imagen re-codificada y la inserción usa ON CONFLICT. Hallazgos de Schemathesis corregidos de paso en listItems (US2): un q con NUL y un page enorme daban 500 (se quita el NUL; el desplazamiento tiene tope). El contrato documenta 422 en uploadContentMedia.
+- [x] T059 [US3] Implementar en `content/api/items_router.py` (`createItem`, `saveItemDraft`, `submitItem`, `getItemVersion` con diferencias) y `contexts_router.py` las operaciones de T052, con `content/application/queries/item_version_diff.py` → Qwen
   - Terminado: T052 en verde; las operaciones entran en la suite de T005.
-- [ ] T060 [US3] Implementar `frontend/src/features/content/schemas.ts` para que pase T053 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. T052 en verde; 6 operaciones nuevas en la suite de contrato. Contrato corregido: ContextContent tenía additionalProperties false y hacía insatisfacible ContextCreate y la respuesta Context (allOf); el servidor sigue rechazando campos desconocidos con 422. Se excluye positive_data_acceptance en las operaciones cuyas reglas no caben en el esquema. listRubrics (de T105) se adelantó porque el editor de consignas la necesita, con prueba propia. Pendiente detectado: listContexts no tiene tarea; el editor de ítems pide el contexto por código.
+- [x] T060 [US3] Implementar `frontend/src/features/content/schemas.ts` para que pase T053 → Qwen
   - Terminado: T053 en verde.
-- [ ] T061 [US3] Implementar `ItemEditorPage.tsx` (crear y editar), `ItemPreview.tsx`, `EditConflictDialog.tsx` e `ItemHistory.tsx` (versiones y diferencias) para que pase T054 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 11 en verde; mismos field, rule y mensajes del servidor; el conteo de palabras se verificó contra word_count.py.
+- [x] T061 [US3] Implementar `ItemEditorPage.tsx` (crear y editar), `ItemPreview.tsx`, `EditConflictDialog.tsx` e `ItemHistory.tsx` (versiones y diferencias) para que pase T054 → Qwen
   - Terminado: T054 en verde.
-- [ ] T062 [US3] Implementar `ContextEditorPage.tsx` y `MediaUpload.tsx` para que pase T055 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 7 + 2 + 2 en verde. ApiProblem conserva los miembros de extensión (current, etag) y la regla de cada error. El editor pide el contexto por código para la vista previa y para las reglas de emparejamiento; la página conserva las vistas de solo lectura de las versiones (e2e de T047).
+- [x] T062 [US3] Implementar `ContextEditorPage.tsx` y `MediaUpload.tsx` para que pase T055 → Qwen
   - Terminado: T055 en verde.
-- [ ] T063 [US3] E2E: `frontend/tests/e2e/content-authoring.spec.ts` con los escenarios B9 a B13 (incluida la edición simultánea en dos contextos de navegador) y axe en el editor y en la vista previa → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 4 + 3 en verde. Las imágenes se piden con el cliente (llevan el token) y se muestran como URL de objeto; customInstance devuelve Blob para image/*.
+- [x] T063 [US3] E2E: `frontend/tests/e2e/content-authoring.spec.ts` con los escenarios B9 a B13 (incluida la edición simultánea en dos contextos de navegador) y axe en el editor y en la vista previa → Qwen
   - Terminado: en verde en Chromium y WebKit.
-- [ ] T064 [US3] Revisión de US3 (Opus), anotada en `specs/002-banco-items/tasks.md`: versiones nuevas sobre lo publicado, propagación de contextos, imágenes, bloqueo optimista y fidelidad de la vista previa → Opus
+  - Estado (Opus, 2026-10-09): cerrada. B9 a B13 en verde en pixel-7 junto con la e2e de revisión. El fixture del banco ahora copia ítems Publicados y contextos; axe encontró el marco de la vista previa sin foco de teclado (corregido).
+- [x] T064 [US3] Revisión de US3 (Opus), anotada en `specs/002-banco-items/tasks.md`: versiones nuevas sobre lo publicado, propagación de contextos, imágenes, bloqueo optimista y fidelidad de la vista previa → Opus
   - Terminado: US3 aprobada.
+  - Estado (Opus, 2026-10-09): cerrada. US3 aprobada. Versiones nuevas sobre lo publicado (B9), propagación de contextos con aviso previo (B12), imágenes verificadas, sin metadatos y visibles solo si están publicadas (FR-046), bloqueo optimista con diálogo sin pérdida de cambios (B13) y vista previa con el mismo ContentView de la práctica. Backend completo 1021 + 74 subtests; Vitest 266.
 
 **Checkpoint**: MVP del banco (US1 a US3): cargar, editar, revisar y publicar.
 

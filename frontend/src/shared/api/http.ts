@@ -27,6 +27,8 @@ const AUTH_PREFIX = "/api/auth/";
 export interface FieldError {
   field: string;
   message: string;
+  /** Regla incumplida (banco de ítems, 002): `option_feedback_required`, … */
+  rule?: string;
 }
 
 /** Error de la API con forma RFC 9457; `message` es el texto en español para mostrar. */
@@ -38,6 +40,8 @@ export class ApiProblem extends Error {
   readonly title: string;
   readonly detail?: string;
   readonly errors?: FieldError[];
+  /** Miembros de extensión (RFC 9457 §3.2), como `current` y `etag` de `edit-conflict`. */
+  readonly extensions: Record<string, unknown>;
 
   constructor(init: {
     status: number;
@@ -45,6 +49,7 @@ export class ApiProblem extends Error {
     title?: string;
     detail?: string;
     errors?: FieldError[];
+    extensions?: Record<string, unknown>;
   }) {
     super(problemMessage(init.type, init.status));
     this.name = "ApiProblem";
@@ -54,6 +59,7 @@ export class ApiProblem extends Error {
     this.title = init.title ?? this.message;
     this.detail = init.detail;
     this.errors = init.errors;
+    this.extensions = init.extensions ?? {};
   }
 }
 
@@ -65,8 +71,16 @@ function clientProblem(status: number): ApiProblem {
 async function toProblem(response: Response): Promise<ApiProblem> {
   const body: unknown = await response.json().catch(() => null);
   if (body && typeof body === "object" && typeof (body as { type?: unknown }).type === "string") {
-    const p = body as { type: string; title?: string; detail?: string; errors?: FieldError[] };
-    return new ApiProblem({ ...p, status: response.status });
+    const { type, title, detail, errors, ...extensions } = body as {
+      type: string;
+      title?: string;
+      detail?: string;
+      errors?: FieldError[];
+      [member: string]: unknown;
+    };
+    delete extensions.status;
+    delete extensions.instance;
+    return new ApiProblem({ type, title, detail, errors, extensions, status: response.status });
   }
   return clientProblem(response.status);
 }
@@ -130,6 +144,9 @@ export function refreshAccessToken(): Promise<string> {
 
 async function parse<T>(response: Response): Promise<T> {
   if (response.status === 204) return undefined as T;
+  // Las imágenes del banco (`getContentMedia`) llegan como binario.
+  const type = response.headers.get("Content-Type") ?? "";
+  if (type.startsWith("image/")) return (await response.blob()) as T;
   const text = await response.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }

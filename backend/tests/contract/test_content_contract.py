@@ -16,6 +16,7 @@ import schemathesis
 from schemathesis.specs.openapi.checks import (
     allow_header_conformance,
     missing_required_header,
+    positive_data_acceptance,
     unsupported_method,
 )
 from sqlalchemy import text
@@ -30,6 +31,21 @@ from tests.routes import app_operations
 
 CONTRACT = REPO / "specs" / "002-banco-items" / "contracts" / "openapi.yaml"
 CONTENT_PREFIX = "/api/v1/content"
+
+
+# Operaciones cuyas reglas no caben en el esquema: datos que lo cumplen pueden violar las reglas
+# del banco (módulo, categorías, opciones por parte; FR-024) y responder 422, como documenta el
+# contrato; una imagen debe además ser PNG, JPEG o WebP de verdad y responde 415 (R-11).
+BEYOND_SCHEMA = frozenset(
+    {
+        "uploadContentMedia",
+        "createItem",
+        "saveItemDraft",
+        "submitItem",
+        "createContext",
+        "updateContext",
+    }
+)
 
 
 def _contract_operations() -> dict[str, str]:
@@ -135,6 +151,8 @@ if IMPLEMENTED_CONTENT_OPERATIONS:
             # Sin If-Match la API responde 428 (RFC 6585, documentado en el contrato); la
             # comprobación genérica espera 400, 406 o 422.
             excluded.append(missing_required_header)
+        if case.operation.definition.raw.get("operationId") in BEYOND_SCHEMA:
+            excluded.append(positive_data_acceptance)
         case.call_and_validate(
             headers=content_contract_headers, allow_redirects=False, excluded_checks=excluded
         )

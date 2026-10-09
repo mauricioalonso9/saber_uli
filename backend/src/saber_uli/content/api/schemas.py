@@ -7,12 +7,14 @@ y Schemathesis verifica cada respuesta contra él).
 from typing import Any
 from uuid import UUID
 
+from saber_uli.content.application.contexts import ContextDetails
 from saber_uli.content.application.queries.items import (
     ItemDetails,
     ItemHistory,
     ItemSummary,
     VersionDetails,
 )
+from saber_uli.content.domain.context import ContextContent
 from saber_uli.content.domain.diff import FieldChange
 from saber_uli.content.domain.events import HistoryEvent
 from saber_uli.content.domain.item_version import ItemContent, ItemVersion
@@ -184,4 +186,42 @@ def version_details(value: VersionDetails) -> dict[str, Any]:
             found=value.issues,
         ),
         "changes": [field_change(change) for change in value.changes],
+    }
+
+
+def context_content(content: ContextContent) -> dict[str, Any]:
+    return {
+        "kind": content.kind.value,
+        "title": content.title,
+        "body_md": content.body_md,
+        "media_id": None if content.media_id is None else str(content.media_id),
+        "alt_text": content.alt_text,
+        "text_type_node_id": None
+        if content.text_type_node_id is None
+        else str(content.text_type_node_id),
+        "part_node_id": None if content.part_node_id is None else str(content.part_node_id),
+        "subtype": content.subtype,
+        "shared_options": None
+        if content.shared_options is None
+        else [
+            {"key": o.key, "text": o.text, "feedback": o.feedback} for o in content.shared_options
+        ],
+    }
+
+
+def context(details: ContextDetails) -> dict[str, Any]:
+    value = details.context
+    current = value.current
+    return {
+        "code": value.code,
+        "module": value.module_code,
+        "version": current.number,
+        "word_count": current.word_count,
+        "item_count": details.item_count,
+        "published_item_count": details.published_item_count,
+        **context_content(current.content),
+        "origin": current.origin.value,
+        "updated_at": _iso(current.created_at),
+        "revision": value.revision,
+        "items": [{"code": code, "state": state} for code, state in details.items],
     }

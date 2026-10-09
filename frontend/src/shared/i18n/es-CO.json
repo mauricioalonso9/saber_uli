@@ -645,6 +645,101 @@
         "retire": "El ítem quedó retirado.",
         "comment": "Comentario publicado."
       }
+    },
+    "preview": {
+      "tabs": "Vista previa del ítem",
+      "student": "Vista previa",
+      "feedback": "Retroalimentación",
+      "frame": "Vista en un celular de 360 × 800"
+    },
+    "conflict": {
+      "title": "Otra persona cambió este ítem",
+      "intro": "Mientras editabas, otra persona guardó cambios. Compara y decide qué conservar.",
+      "mine": "Tus cambios",
+      "current": "Versión actual",
+      "keep": "Conservar mis cambios",
+      "discard": "Descartar mis cambios"
+    },
+    "editor": {
+      "newTitle": "Nuevo ítem",
+      "code": "Código",
+      "module": "Módulo",
+      "choose": "Elige…",
+      "difficulty": "Dificultad",
+      "difficulties": {
+        "low": "Baja",
+        "medium": "Media",
+        "high": "Alta"
+      },
+      "contextCode": "Código del contexto",
+      "tags": {
+        "competence": "Competencia",
+        "assertion": "Afirmación",
+        "evidence": "Evidencia",
+        "component": "Componente",
+        "situation": "Tipo de situación",
+        "part": "Parte"
+      },
+      "stem": "Enunciado",
+      "options": "Opciones",
+      "optionText": "Texto de la opción {{key}}",
+      "optionCorrect": "La opción {{key}} es la correcta",
+      "optionFeedback": "Retroalimentación de la opción {{key}}",
+      "answerKey": "Clave correcta (entre las opciones del contexto)",
+      "promptContext": "Contexto de la consigna",
+      "rubric": "Rúbrica",
+      "explanation": "Explicación general",
+      "keepInReview": "Mantener en revisión (cambio menor)",
+      "keepInReviewHelp": "Sin marcar, la versión vuelve a Borrador y hay que enviarla de nuevo.",
+      "publishedNotice": "Este ítem está publicado: al guardar se creará la versión {{number}} como borrador; lo publicado no cambia hasta que se apruebe.",
+      "save": "Guardar borrador",
+      "submit": "Enviar a revisión",
+      "saved": "Cambios guardados.",
+      "created": "Ítem creado.",
+      "submitted": "El ítem quedó en revisión.",
+      "fixFields_one": "Revisa el campo marcado.",
+      "fixFields_other": "Revisa los {{count}} campos marcados."
+    },
+    "contextEditor": {
+      "newTitle": "Nuevo contexto",
+      "kind": "Tipo de contexto",
+      "kinds": {
+        "text": "Texto",
+        "table": "Tabla",
+        "image": "Imagen",
+        "shared_options": "Opciones compartidas"
+      },
+      "title": "Título",
+      "body": "Texto",
+      "table": "Tabla (Markdown)",
+      "words": "{{count}}/{{max}} palabras",
+      "wordsNoMax": "{{count}} palabras",
+      "altText": "Texto alternativo",
+      "altTextHelp": "Describe lo que muestra la imagen para quienes usan lector de pantalla.",
+      "textType": "Tipo de texto",
+      "part": "Parte",
+      "sharedOptions": "Opciones compartidas",
+      "confirmTitle": "¿Guardar el cambio del contexto?",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "create": "Crear contexto",
+      "save": "Guardar cambios",
+      "created": "Contexto creado.",
+      "saved": "Contexto guardado (versión {{version}}).",
+      "movedToReview": "Pasaron a revisión: {{codes}}.",
+      "conflict": "Otra persona cambió este contexto mientras lo editabas. Se cargó la versión actual; revisa y vuelve a aplicar tus cambios.",
+      "usageItems_one": "Este contexto lo usa 1 ítem;",
+      "usageItems_other": "Este contexto lo usan {{count}} ítems;",
+      "usagePublished_one": "1 está publicado y recibirá una versión nueva En revisión.",
+      "usagePublished_other": "{{count}} están publicados y recibirán una versión nueva En revisión.",
+      "usageNonePublished": "ninguno está publicado.",
+      "usageNone": "Ningún ítem usa este contexto todavía."
+    },
+    "media": {
+      "label": "Imagen (PNG, JPEG o WebP, hasta 1 MB)",
+      "uploading": "Subiendo la imagen…",
+      "uploaded": "Imagen cargada: {{width}} × {{height}} px.",
+      "preview": "Vista de la imagen cargada"
     }
   }
 }

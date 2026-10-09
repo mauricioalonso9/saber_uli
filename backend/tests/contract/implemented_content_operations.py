@@ -18,5 +18,17 @@ IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset(
         "returnItem",
         "rejectItem",
         "retireItem",
+        # US3 (T058)
+        "uploadContentMedia",
+        "getContentMedia",
+        # US3 (T059)
+        "createItem",
+        "saveItemDraft",
+        "submitItem",
+        "createContext",
+        "getContext",
+        "updateContext",
+        # Adelantada de T105 para el editor de consignas (US3)
+        "listRubrics",
     }
 )

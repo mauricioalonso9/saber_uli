@@ -269,6 +269,7 @@ paths:
           content:
             application/problem+json:
               schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
   /api/v1/content/media/{mediaId}:
     get:
@@ -1343,7 +1344,9 @@ components:
     ContextContent:
       type: object
       required: [kind, title]
-      additionalProperties: false
+      description: |
+        Sin `additionalProperties: false` porque `ContextCreate` y `Context` lo combinan con otros
+        campos (`allOf`); el servidor rechaza los campos desconocidos con 422 `validation-error`.
       properties:
         kind: { type: string, enum: [text, table, image, shared_options] }
         title: { type: string, minLength: 1, maxLength: 200 }

@@ -80,7 +80,12 @@ export const uploadContentMedia = async (
 export const getUploadContentMediaMutationKey = () => ["uploadContentMedia"] as const;
 
 export const getUploadContentMediaMutationOptions = <
-  TError = UnauthorizedResponse | ForbiddenResponse | Problem | TooManyRequestsResponse,
+  TError =
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | Problem
+    | ValidationErrorResponse
+    | TooManyRequestsResponse,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -120,14 +125,23 @@ export type UploadContentMediaMutationResult = NonNullable<
 >;
 export type UploadContentMediaMutationBody = UploadContentMediaBody;
 export type UploadContentMediaMutationError =
-  UnauthorizedResponse | ForbiddenResponse | Problem | TooManyRequestsResponse;
+  | UnauthorizedResponse
+  | ForbiddenResponse
+  | Problem
+  | ValidationErrorResponse
+  | TooManyRequestsResponse;
 export type UploadContentMediaMutationVariables = { data: UploadContentMediaBody };
 
 /**
  * @summary Sube una imagen (PNG, JPEG o WebP, ≤ 1 MB); se re-codifica sin metadatos (R-11)
  */
 export const useUploadContentMedia = <
-  TError = UnauthorizedResponse | ForbiddenResponse | Problem | TooManyRequestsResponse,
+  TError =
+    | UnauthorizedResponse
+    | ForbiddenResponse
+    | Problem
+    | ValidationErrorResponse
+    | TooManyRequestsResponse,
   TContext = unknown,
 >(
   options?: {

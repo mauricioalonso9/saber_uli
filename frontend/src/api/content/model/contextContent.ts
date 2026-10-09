@@ -5,6 +5,10 @@
 import type { ContextContentKind } from "./contextContentKind";
 import type { SharedOption } from "./sharedOption";
 
+/**
+ * Sin `additionalProperties: false` porque `ContextCreate` y `Context` lo combinan con otros
+ * campos (`allOf`); el servidor rechaza los campos desconocidos con 422 `validation-error`.
+ */
 export interface ContextContent {
   kind: ContextContentKind;
   /**

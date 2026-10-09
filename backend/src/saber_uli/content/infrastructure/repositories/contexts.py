@@ -5,6 +5,7 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from saber_uli.content.domain.context import (
@@ -16,7 +17,12 @@ from saber_uli.content.domain.context import (
     SharedOption,
 )
 from saber_uli.content.domain.media import Media
-from saber_uli.content.infrastructure.orm import ContextRow, ContextVersionRow, MediaRow
+from saber_uli.content.infrastructure.orm import (
+    ContextRow,
+    ContextVersionRow,
+    ItemVersionRow,
+    MediaRow,
+)
 
 
 class SqlAlchemyContextRepository:
@@ -185,6 +191,39 @@ class SqlAlchemyMediaRepository:
     async def get_by_sha256(self, sha256: bytes) -> Media | None:
         row = await self._db.scalar(select(MediaRow).where(MediaRow.sha256 == sha256))
         return None if row is None else _media(row)
+
+    async def add_or_get(self, media: Media) -> Media:
+        # ON CONFLICT: dos subidas simultáneas de la misma imagen no chocan con la llave única.
+        await self._db.execute(
+            insert(MediaRow)
+            .values(
+                sha256=media.sha256,
+                content_type=media.content_type,
+                width=media.width,
+                height=media.height,
+                size_bytes=media.size_bytes,
+                data=media.data,
+                created_by=media.created_by,
+                created_at=media.created_at,
+            )
+            .on_conflict_do_nothing(constraint="uq_media_sha256")
+        )
+        stored = await self.get_by_sha256(media.sha256)
+        if stored is None:  # pragma: no cover - la fila existe tras el INSERT
+            raise RuntimeError("la imagen no quedó guardada")
+        return stored
+
+    async def is_public(self, media_id: UUID) -> bool:
+        visible = (
+            select(ItemVersionRow.id)
+            .join(ContextVersionRow, ContextVersionRow.id == ItemVersionRow.context_version_id)
+            .where(
+                ContextVersionRow.media_id == media_id,
+                ItemVersionRow.state.in_(("published", "retired")),
+            )
+            .exists()
+        )
+        return bool(await self._db.scalar(select(visible)))
 
 
 def _media(row: MediaRow) -> Media:

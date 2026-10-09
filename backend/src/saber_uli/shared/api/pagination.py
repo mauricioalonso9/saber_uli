@@ -11,6 +11,9 @@ T = TypeVar("T")
 
 DEFAULT_PAGE_SIZE = 25
 MAX_PAGE_SIZE = 100
+# El contrato no pone tope a `page`; un desplazamiento mayor que BIGINT haría fallar la consulta.
+# Con este tope, una página enorme simplemente llega vacía.
+MAX_OFFSET = 2**62
 
 
 @dataclass(frozen=True)
@@ -20,7 +23,7 @@ class PageParams:
 
     @property
     def offset(self) -> int:
-        return (self.page - 1) * self.page_size
+        return min((self.page - 1) * self.page_size, MAX_OFFSET)
 
     @property
     def limit(self) -> int:

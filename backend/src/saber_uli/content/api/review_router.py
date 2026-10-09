@@ -4,7 +4,6 @@ Permiso `content:review` (solo administradores, FR-013) con sesión privilegiada
 `If-Match`; si otra persona cambió el ítem, 412 `edit-conflict` con el ítem actual (R-09).
 """
 
-from collections.abc import Awaitable, Callable
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Path, Request
@@ -12,12 +11,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from saber_uli.content.api.dependencies import Reviewer, reject_unknown_query
-from saber_uli.content.api.etag import edit_conflict, if_match_revision
-from saber_uli.content.api.items_router import Code, current_item, item_response
+from saber_uli.content.api.etag import if_match_revision
+from saber_uli.content.api.items_router import Code, change_item
 from saber_uli.content.application.review import Review
-from saber_uli.content.domain.errors import EditConflictError
-from saber_uli.content.domain.item import Item
-from saber_uli.identity.application.public import AuthenticatedUser
 
 router = APIRouter(
     prefix="/api/v1/content/items",
@@ -50,22 +46,11 @@ def _review(request: Request) -> Review:
     return service
 
 
-async def _act(
-    request: Request, code: str, user: AuthenticatedUser, action: Callable[[], Awaitable[Item]]
-) -> JSONResponse:
-    try:
-        await action()
-    except EditConflictError:
-        current = await current_item(request, code, user)
-        raise edit_conflict(current, revision=current["revision"]) from None
-    return item_response(await current_item(request, code, user))
-
-
 @router.post("/{itemCode}/approval", operation_id="approveItem")
 async def approve_item(
     request: Request, user: Reviewer, item_code: ItemCode, revision: Revision, body: ApprovalIn
 ) -> JSONResponse:
-    return await _act(
+    return await change_item(
         request,
         item_code,
         user,
@@ -83,7 +68,7 @@ async def approve_item(
 async def return_item(
     request: Request, user: Reviewer, item_code: ItemCode, revision: Revision, body: CommentIn
 ) -> JSONResponse:
-    return await _act(
+    return await change_item(
         request,
         item_code,
         user,
@@ -97,7 +82,7 @@ async def return_item(
 async def reject_item(
     request: Request, user: Reviewer, item_code: ItemCode, revision: Revision, body: ReasonIn
 ) -> JSONResponse:
-    return await _act(
+    return await change_item(
         request,
         item_code,
         user,
@@ -111,7 +96,7 @@ async def reject_item(
 async def retire_item(
     request: Request, user: Reviewer, item_code: ItemCode, revision: Revision, body: ReasonIn
 ) -> JSONResponse:
-    return await _act(
+    return await change_item(
         request,
         item_code,
         user,

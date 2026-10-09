@@ -3,7 +3,13 @@
  * administrador con el banco, e ítems con la forma del contrato.
  */
 import type { Me, Permission } from "@/api/model";
-import type { Item, ItemSummary, ItemVersion } from "@/api/content/model";
+import type {
+  ContentModule,
+  Item,
+  ItemSummary,
+  ItemVersion,
+  TaxonomyNode,
+} from "@/api/content/model";
 import { sessionFor } from "@/features/admin/testing";
 
 export const TEACHER_CONTENT: Permission[] = ["content:author"];
@@ -102,3 +108,76 @@ export function summary(overrides: Partial<ItemSummary> = {}): ItemSummary {
     ...overrides,
   };
 }
+
+function node(
+  id: string,
+  module: ContentModule["code"],
+  kind: TaxonomyNode["kind"],
+  extra: Partial<TaxonomyNode> = {},
+): TaxonomyNode {
+  return {
+    id,
+    module,
+    kind,
+    code: id.toUpperCase(),
+    name: id,
+    active: true,
+    in_use: false,
+    ...extra,
+  };
+}
+
+/** Módulos con su taxonomía mínima: LC (4 opciones, 500 palabras), ING (partes 1 y 2) y CE. */
+export const MODULES: ContentModule[] = [
+  {
+    code: "LC",
+    name: "Lectura crítica",
+    question_type: "selection",
+    options_per_item: 4,
+    max_context_words: 500,
+    exam_questions: 35,
+    bank_target: 100,
+    nodes: [
+      node("lc-c1", "LC", "competence", { name: "Comprensión" }),
+      node("lc-a1", "LC", "assertion", { parent_id: "lc-c1", name: "Identifica contenidos" }),
+      node("lc-a2", "LC", "assertion", { parent_id: "lc-c1", name: "Comprende la estructura" }),
+      node("lc-e1", "LC", "evidence", { parent_id: "lc-a1", name: "Entiende expresiones" }),
+      node("lc-tt", "LC", "text_type", { name: "Continuo informativo" }),
+    ],
+  },
+  {
+    code: "ING",
+    name: "Inglés",
+    question_type: "selection",
+    options_per_item: null,
+    max_context_words: null,
+    exam_questions: 45,
+    bank_target: 100,
+    nodes: [
+      node("ing-p1", "ING", "part", { name: "Parte 1", part_options: 8, part_format: "matching" }),
+      node("ing-p2", "ING", "part", { name: "Parte 2", part_options: 3, part_format: "selection" }),
+    ],
+  },
+  {
+    code: "CE",
+    name: "Comunicación escrita",
+    question_type: "writing",
+    options_per_item: null,
+    max_context_words: null,
+    exam_questions: 1,
+    bank_target: 10,
+    nodes: [],
+  },
+];
+
+export const RUBRICS = [
+  {
+    id: "0b6a0366-9b56-451a-9a19-49cbcbe21c1c",
+    code: "RUB-ARG",
+    name: "Texto argumentativo",
+    note: null,
+    active: true,
+    relevance_condition: {},
+    dimensions: [],
+  },
+];

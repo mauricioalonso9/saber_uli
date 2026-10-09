@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from saber_uli.content.application.unit_of_work import ContentUnitOfWork
 from saber_uli.content.domain.module import Module
+from saber_uli.content.domain.rubric import Rubric
 from saber_uli.content.domain.taxonomy import TaxonomyNode
 
 
@@ -40,3 +41,15 @@ class ListContentModules:
                     NodeView(node=node, in_use=node.id in used)
                 )
         return [ModuleView(module=m, nodes=by_module.get(m.code, [])) for m in modules]
+
+
+class ListRubrics:
+    """Rúbricas de Comunicación escrita para elegir la de una consigna (contrato: `listRubrics`)."""
+
+    def __init__(self, *, uow_factory: Callable[[], ContentUnitOfWork]) -> None:
+        self._uow_factory = uow_factory
+
+    async def execute(self) -> list[Rubric]:
+        async with self._uow_factory() as uow:
+            rubrics = await uow.rubrics.list()
+        return sorted(rubrics, key=lambda rubric: rubric.code)

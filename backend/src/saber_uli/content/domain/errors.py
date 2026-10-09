@@ -45,3 +45,15 @@ class ContentValidationError(RuleViolationError):
     def __init__(self, issues: Sequence[ContentIssue]) -> None:
         super().__init__("El contenido tiene problemas por corregir.")
         self.issues = tuple(issues)
+
+
+class FileTooLargeError(RuleViolationError):
+    """Imagen de más de 1 MB (research R-11); la API responde 413."""
+
+    slug = "file-too-large"
+
+
+class UnsupportedMediaError(RuleViolationError):
+    """No es PNG, JPEG ni WebP válido, o pasa de 4 000 px por lado (R-11); la API responde 415."""
+
+    slug = "unsupported-media-type"

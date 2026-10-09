@@ -76,6 +76,9 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "invalid-transition": "Esa acción no aplica al estado actual del ítem.",
   "code-taken": "Ya existe un elemento con ese código.",
   "duplicate-item": "Ya existe un ítem con el mismo contenido.",
+  "file-too-large": "La imagen pesa más de 1 MB. Redúcela e intenta de nuevo.",
+  "unsupported-media-type":
+    "La imagen debe ser PNG, JPEG o WebP y medir como máximo 4 000 px por lado.",
   // Producidos por el cliente o por el estado HTTP
   "service-unavailable": "El servicio no está disponible en este momento. Intenta más tarde.",
   "network-error": "No hay conexión con el servidor. Revisa tu conexión a internet.",

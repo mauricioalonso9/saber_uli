@@ -1,4 +1,5 @@
-"""Módulos, taxonomía y rúbricas (contrato: `listContentModules`; US9 agrega la edición).
+"""Módulos, taxonomía y rúbricas (contrato: `listContentModules`, `listRubrics`; US9 agrega la
+edición).
 
 Lectura: `content:author` con sesión privilegiada (docentes y administradores, R-08).
 """
@@ -13,9 +14,11 @@ from pydantic import BaseModel
 from saber_uli.content.api.dependencies import Author, reject_unknown_query
 from saber_uli.content.application.queries.modules import (
     ListContentModules,
+    ListRubrics,
     ModuleView,
     NodeView,
 )
+from saber_uli.content.domain.rubric import Rubric
 
 router = APIRouter(
     prefix="/api/v1/content", tags=["taxonomy"], dependencies=[Depends(reject_unknown_query)]
@@ -105,3 +108,66 @@ async def list_content_modules(
 ) -> ContentModuleList:
     views = await _list_modules(request).execute(include_inactive=include_inactive)
     return ContentModuleList(items=[ContentModuleOut.of(view) for view in views])
+
+
+class RelevanceConditionOut(BaseModel):
+    name: str
+    description: str
+
+
+class RubricLevelOut(BaseModel):
+    level: int
+    description: str
+
+
+class RubricDimensionOut(BaseModel):
+    code: str
+    name: str
+    levels: list[RubricLevelOut]
+
+
+class RubricOut(BaseModel):
+    id: UUID
+    code: str
+    name: str
+    note: str | None
+    active: bool
+    relevance_condition: RelevanceConditionOut
+    dimensions: list[RubricDimensionOut]
+
+    @classmethod
+    def of(cls, rubric: Rubric) -> "RubricOut":
+        if rubric.id is None:
+            raise ValueError("la rúbrica aún no se ha guardado")
+        return cls(
+            id=rubric.id,
+            code=rubric.code,
+            name=rubric.name,
+            note=rubric.note,
+            active=rubric.active,
+            relevance_condition=RelevanceConditionOut(
+                name=rubric.relevance_condition.name,
+                description=rubric.relevance_condition.description,
+            ),
+            dimensions=[
+                RubricDimensionOut(
+                    code=dimension.code,
+                    name=dimension.name,
+                    levels=[
+                        RubricLevelOut(level=level.level, description=level.description)
+                        for level in dimension.levels
+                    ],
+                )
+                for dimension in rubric.dimensions
+            ],
+        )
+
+
+class RubricList(BaseModel):
+    items: list[RubricOut]
+
+
+@router.get("/rubrics", operation_id="listRubrics")
+async def list_rubrics(request: Request, _: Author) -> RubricList:
+    service: ListRubrics = request.app.state.content_list_rubrics
+    return RubricList(items=[RubricOut.of(rubric) for rubric in await service.execute()])

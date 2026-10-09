@@ -389,7 +389,7 @@ sigue vigente (quickstart B9 a B13).
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T049 [P] [US3] Prueba: `backend/tests/integration/content/test_authoring.py` (FR-015, FR-016, FR-024, FR-027, FR-032). Cubre:
+- [x] T049 [P] [US3] Prueba: `backend/tests/integration/content/test_authoring.py` (FR-015, FR-016, FR-024, FR-027, FR-032). Cubre:
   - crear un ítem deja un Borrador con el autor como contribuyente;
   - un código existente responde `code-taken`;
   - un contenido igual al de otro ítem (`fingerprint`) responde `duplicate-item`;
@@ -403,6 +403,7 @@ sigue vigente (quickstart B9 a B13).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T056.
 - [ ] T050 [P] [US3] Prueba: `backend/tests/integration/content/test_contexts.py` (FR-005, FR-007, FR-020, FR-026). Cubre:
   - crear un contexto de texto, tabla, imagen u opciones compartidas;
   - la imagen sin `alt_text` responde `alt_text_required`;
@@ -459,8 +460,9 @@ sigue vigente (quickstart B9 a B13).
 
 ### Implementation for User Story 3
 
-- [ ] T056 [US3] Implementar `content/application/authoring.py` (crear, guardar borrador, enviar y comprobar duplicados) para que pase T049 → Qwen
+- [x] T056 [US3] Implementar `content/application/authoring.py` (crear, guardar borrador, enviar y comprobar duplicados) para que pase T049 → Qwen
   - Terminado: T049 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 9 en verde. `content/application/authoring.py` (crear, guardar borrador con `keep_in_review`, enviar). La huella incluye el texto del contexto; un duplicado nombra el código del otro ítem.
 - [ ] T057 [US3] Implementar `content/application/contexts.py` (versionado y propagación a los ítems, FR-020) para que pase T050 → Qwen
   - Terminado: T050 en verde.
 - [ ] T058 [US3] Implementar `content/infrastructure/images.py` (Pillow: firma, límites, re-codificación sin EXIF, SHA-256), `content/application/media.py` y `content/api/media_router.py`, con limitación de peticiones, para que pase T051 → Opus

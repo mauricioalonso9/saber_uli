@@ -152,3 +152,34 @@ def test_un_item_mal_formado_es_un_error_de_esa_entrada(seed_bytes: bytes) -> No
 def test_un_sobre_ilegible_invalida_el_archivo(content: bytes) -> None:
     with pytest.raises(UnreadableFileError):
         read_bundle(content)
+
+
+# --- T035: entradas hostiles no producen errores internos -----------------------------------
+
+
+def test_un_json_profundamente_anidado_es_ilegible_no_un_error_interno() -> None:
+    nested = b'{"esquema_version": "1.0", "items": [' + b"[" * 100_000 + b"]" * 100_000 + b"]}"
+
+    with pytest.raises(UnreadableFileError):
+        read_bundle(nested)
+
+
+@pytest.mark.parametrize("value", ["treinta", None, [30], {"x": 1}])
+def test_preguntas_por_modulo_con_valores_raros_no_rompen_la_lectura(
+    seed_bytes: bytes, value: object
+) -> None:
+    bank = json.loads(seed_bytes)
+    bank["estructura_examen"]["preguntas_por_modulo"]["LC"] = value
+
+    bundle = read_bundle(json.dumps(bank).encode())
+
+    lc = next(spec for spec in bundle.modules if spec.module.code == "LC")
+    assert lc.module.exam_questions == 0
+
+
+def test_un_sobre_con_estructura_examen_que_no_es_objeto(seed_bytes: bytes) -> None:
+    bank = json.loads(seed_bytes)
+    bank["estructura_examen"] = "30 preguntas"
+
+    with pytest.raises(UnreadableFileError):
+        read_bundle(json.dumps(bank).encode())

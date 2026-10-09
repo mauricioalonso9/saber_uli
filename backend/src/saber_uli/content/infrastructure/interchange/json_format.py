@@ -50,6 +50,8 @@ def _decode(content: bytes) -> dict[str, Any]:
         data = json.loads(content.decode("utf-8-sig"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise UnreadableFileError("El archivo no es un JSON en UTF-8.") from error
+    except RecursionError as error:  # anidación excesiva: archivo hostil o dañado (T035)
+        raise UnreadableFileError("El archivo tiene una estructura demasiado anidada.") from error
     if not isinstance(data, dict):
         raise UnreadableFileError("El archivo debe ser un objeto JSON con el banco.")
     if data.get("esquema_version") != SCHEMA_VERSION:
@@ -59,6 +61,8 @@ def _decode(content: bytes) -> dict[str, Any]:
     for key in _LISTS:
         if not isinstance(data.get(key, []), list):
             raise UnreadableFileError(f"«{key}» debe ser una lista.")
+    if not isinstance(data.get("estructura_examen", {}), dict):
+        raise UnreadableFileError("«estructura_examen» debe ser un objeto.")
     unknown = set(data) - {"esquema_version", *_LISTS, *_METADATA}
     if unknown:
         raise UnreadableFileError(
@@ -97,7 +101,16 @@ def read_bundle(content: bytes) -> Bundle:
     data = _decode(content)
     errors: list[EntryError] = []
     exam = data.get("estructura_examen") or {}
-    questions = exam.get("preguntas_por_modulo") if isinstance(exam, dict) else None
+    raw_questions = exam.get("preguntas_por_modulo")
+    questions = (
+        {
+            code: value
+            for code, value in raw_questions.items()
+            if isinstance(value, int) and not isinstance(value, bool)
+        }
+        if isinstance(raw_questions, dict)
+        else None
+    )
     modules: list[Any] = []
     for position, raw in enumerate(data.get("modulos", []), start=1):
         modules.extend(

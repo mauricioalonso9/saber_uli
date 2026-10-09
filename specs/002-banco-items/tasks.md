@@ -244,7 +244,7 @@ historias.**
 - [x] T034 Registrar en `frontend/src/app/router.tsx` las rutas `/banco`, `/banco/revision`, `/banco/items/nuevo`, `/banco/items/$code`, `/banco/contextos/$code`, `/banco/importar`, `/banco/importaciones/$importId`, `/banco/exportar`, `/banco/cobertura` y `/admin/taxonomia` con `lazyRouteComponent` y páginas provisionales. Agregar las entradas de navegación por permiso y las claves `content.*` en `src/shared/i18n/es-CO`, para que pase T033 → Qwen
   - Terminado: T033 en verde; Lighthouse sigue ≥ 0.9.
   - Estado (Opus, 2026-10-09): cerrada. 225 pruebas de Vitest en verde. Rutas bajo demanda con páginas provisionales (`ContentPagePlaceholder`) que reemplazan las historias; `/banco/revision` se evalúa antes que `/banco`. Paquete inicial: 115 KB comprimido (antes 114).
-- [ ] T035 Revisión de seguridad de la fase 2 (Opus), anotada en `specs/002-banco-items/tasks.md`:
+- [x] T035 Revisión de seguridad de la fase 2 (Opus), anotada en `specs/002-banco-items/tasks.md`:
   - permisos y guardias de T029;
   - Markdown sin HTML crudo;
   - permisos de la base (T011);
@@ -253,6 +253,7 @@ historias.**
 
   Cierra la fase → Opus
   - Terminado: hallazgos corregidos o registrados; la fase 2 queda aprobada.
+  - Estado (Opus, 2026-10-09): cerrada. Revisión de la fase 2 aprobada. (1) Permisos y guardias: T029 recorre cada operación implementada (401, 403 por consentimiento, 403 por permiso, 401 sin sesión privilegiada); parámetros de consulta desconocidos responden 422. (2) Markdown: `skipHtml` sin `rehype-raw`, filtro de URL por defecto; T031 lo prueba. (3) Base: T011 (historia, versiones de contexto, imágenes, exportaciones, cambios de taxonomía y cargas: solo inserción; `imports` solo cambia estado y resultado; sin DDL ni `TRUNCATE`). (4) Versiones publicadas o retiradas inmutables en el repositorio (T023). (5) import-linter: 5 contratos. Hallazgos corregidos: el lector JSON devolvía error interno (500) ante una anidación excesiva (`RecursionError`) y ante `preguntas_por_modulo` no numérico; ahora son `unreadable-file` o se ignoran, con pruebas en `test_interchange.py`. Pendiente para US4 (T065): límites de tamaño del archivo antes de leerlo.
 
 **Checkpoint**: base lista; las historias pueden empezar.
 

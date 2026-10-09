@@ -90,7 +90,7 @@ historias.**
 
 ### Esquema de datos
 
-- [ ] T009 Prueba: `backend/tests/integration/content/test_schema.py` sobre la base migrada. Verifica:
+- [x] T009 Prueba: `backend/tests/integration/content/test_schema.py` sobre la base migrada. Verifica:
   - existen las 14 tablas de data-model §2;
   - `UNIQUE (item_id) WHERE state = 'published'` y `UNIQUE (item_id) WHERE state IN ('draft','in_review')` rechazan una segunda versión;
   - los `CHECK` de `state`, `kind`, `origin`, `difficulty`, `content_type IN ('image/png','image/jpeg','image/webp')`, `size_bytes <= 1048576`, `word_count IS NULL OR word_count <= 500`, `kind <> 'image' OR length(trim(alt_text)) > 0` y `state <> 'retired' OR retire_reason IS NOT NULL`;
@@ -99,8 +99,10 @@ historias.**
 
   → Opus
   - Terminado: la prueba falla.
-- [ ] T010 Crear `backend/migrations/versions/0008_content_schema.py` con el esquema `content` y las tablas, índices, `CHECK` y FK exactamente como en data-model §2.1 a §2.13 (FK `contexts.current_version_id` `DEFERRABLE INITIALLY DEFERRED`; FK de taxonomía `ON DELETE RESTRICT`) para que pase T009 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló (12) antes de 0008. Se prueba con `saber_migrator` en una transacción revertida.
+- [x] T010 Crear `backend/migrations/versions/0008_content_schema.py` con el esquema `content` y las tablas, índices, `CHECK` y FK exactamente como en data-model §2.1 a §2.13 (FK `contexts.current_version_id` `DEFERRABLE INITIALLY DEFERRED`; FK de taxonomía `ON DELETE RESTRICT`) para que pase T009 → Qwen
   - Terminado: T009 en verde; `alembic downgrade -1` y `upgrade head` funcionan.
+  - Estado (Opus, 2026-10-09): cerrada. 12 en verde; ida y vuelta 0008 → 0007 → head comprobada. `search` cubre enunciado y explicación (una columna generada no ve otras tablas); data-model y R-12 corregidos.
 - [ ] T011 [P] Prueba de infraestructura: `backend/tests/infra/test_content_grants.py`. Con el rol `saber_app`, `UPDATE` y `DELETE` sobre `content.item_events`, `context_versions`, `media`, `exports`, `taxonomy_changes` y `seed_loads` responden `permission denied`. `UPDATE` de `imports.rows` también responde `permission denied`, pero `UPDATE` de `imports.status` funciona. `DELETE` de `taxonomy_nodes` funciona y `DELETE` de `imports` responde `permission denied` (data-model §2.14) → Opus
   - Terminado: la prueba falla.
 - [ ] T012 Crear `backend/migrations/versions/0009_content_grants.py` con los permisos de data-model §2.14 (incluidos los permisos de columna de `imports`) para que pase T011 → Opus

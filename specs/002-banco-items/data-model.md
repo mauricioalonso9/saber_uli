@@ -181,7 +181,7 @@ La carga del banco inicial crea los cinco módulos. El administrador edita solo 
 | `rubric_id` | uuid NULL FK → `rubrics.id` | CE (FR-004) |
 | `content_hash` | bytea | R-06 |
 | `fingerprint` | bytea | R-06; índice |
-| `search` | tsvector GENERATED | `to_tsvector('spanish', …)`; índice GIN (R-12) |
+| `search` | tsvector GENERATED | `to_tsvector('spanish', stem_md ∥ explanation_md)`; índice GIN (R-12). Una columna generada solo ve su fila: el código del ítem y el título del contexto se buscan con `ILIKE` en la consulta |
 | `author_id` | uuid NULL | quien la creó; NULL en la carga del banco inicial |
 | `contributor_ids` | uuid[] | todas las personas que la crearon o modificaron (FR-012) |
 | `submitted_at`, `submitted_by` | NULL | |

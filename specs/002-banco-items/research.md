@@ -300,7 +300,8 @@ sincronizar); almacenamiento de objetos tipo S3 (servicio externo innecesario a 
 - **Listado**: usa paginación por página (como 001) con filtros indexados: módulo, estado,
   origen, dificultad, categoría de la taxonomía, señales de problema y "pendientes de revisión".
 - **Búsqueda de texto**: usa una columna generada `tsvector` con la configuración `spanish` sobre
-  el código, el enunciado y el título del contexto, con índice GIN. No requiere extensiones.
+  el enunciado y la explicación, con índice GIN, más `ILIKE` sobre el código del ítem (índice
+  `text_pattern_ops`) y el título del contexto. No requiere extensiones.
 - **Cobertura**: se calcula con agregaciones SQL por categoría.
 - **Exportación**: lee por bloques de 500 y escribe el archivo en flujo.
 - **Prueba de escala**: una prueba de integración siembra 10 000 ítems y mide SC-009 y SC-010,

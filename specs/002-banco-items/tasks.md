@@ -369,8 +369,9 @@ docente no ve las acciones (quickstart B5 a B8).
 - [x] T047 [US2] E2E: `frontend/tests/e2e/content-review.spec.ts`, con los escenarios B5 a B8 del quickstart, dos administradores, un docente y axe en `/banco/revision` → Qwen
   - Terminado: en verde con el perfil e2e (Chromium y WebKit).
   - Estado (Opus, 2026-10-09): cerrada. En verde en Chromium contra el stack local reconstruido (WebKit se omite aquí sin la entrada `oidc` en hosts; corre en CI). Los ítems son copias propias de la prueba (`fixtures/content.ts`, códigos `AAA-E2E-…`) para no depender del estado del banco inicial entre corridas; axe en `/banco/revision`.
-- [ ] T048 [US2] Revisión de US2 (Opus), anotada en `specs/002-banco-items/tasks.md`: autoaprobación, permisos, confirmaciones registradas e inmutabilidad de lo publicado → Opus
+- [x] T048 [US2] Revisión de US2 (Opus), anotada en `specs/002-banco-items/tasks.md`: autoaprobación, permisos, confirmaciones registradas e inmutabilidad de lo publicado → Opus
   - Terminado: US2 aprobada.
+  - Estado (Opus, 2026-10-09): cerrada. US2 aprobada. Autoaprobación bloqueada en tres capas: dominio (`involves`), API (403 `self-approval-forbidden`) e interfaz (`can.approve` y aviso). Solo `content:review` decide (T029 y T042); las confirmaciones quedan en `details` del evento `approved`; lo publicado no se modifica (T023); el comentario se lee con el ítem bloqueado, así que el evento devuelto es el propio. Suite completa del backend: 984 pruebas y 65 operaciones de contrato en verde.
 
 **Checkpoint**: los ítems del banco inicial se pueden revisar y publicar.
 

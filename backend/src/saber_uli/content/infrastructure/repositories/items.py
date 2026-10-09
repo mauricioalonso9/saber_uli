@@ -172,6 +172,19 @@ class SqlAlchemyItemRepository:
         )
         return list(rows)
 
+    async def context_usage(self, context_id: UUID) -> list[tuple[str, str]]:
+        rows = await self._db.execute(
+            select(ItemRow.code, ItemVersionRow.state)
+            .join(ItemVersionRow, ItemVersionRow.item_id == ItemRow.id)
+            .join(ContextVersionRow, ContextVersionRow.id == ItemVersionRow.context_version_id)
+            .where(
+                ContextVersionRow.context_id == context_id,
+                ItemVersionRow.state.in_(_LOADED_STATES),
+            )
+            .order_by(ItemRow.code)
+        )
+        return [(code, state) for code, state in rows]
+
     async def versions(self, code: str) -> list[ItemVersion]:
         rows = await self._db.execute(
             select(ItemVersionRow, ContextRow.code)

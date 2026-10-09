@@ -404,7 +404,7 @@ sigue vigente (quickstart B9 a B13).
   → Qwen
   - Terminado: la prueba falla.
   - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T056.
-- [ ] T050 [P] [US3] Prueba: `backend/tests/integration/content/test_contexts.py` (FR-005, FR-007, FR-020, FR-026). Cubre:
+- [x] T050 [P] [US3] Prueba: `backend/tests/integration/content/test_contexts.py` (FR-005, FR-007, FR-020, FR-026). Cubre:
   - crear un contexto de texto, tabla, imagen u opciones compartidas;
   - la imagen sin `alt_text` responde `alt_text_required`;
   - un texto de LC de 501 palabras responde `context_word_limit` con el conteo;
@@ -416,6 +416,7 @@ sigue vigente (quickstart B9 a B13).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. Falló (sin `context_usage`) antes de T057.
 - [ ] T051 [P] [US3] Prueba de seguridad: `backend/tests/integration/content/test_media.py` (FR-009, R-11). Cubre:
   - PNG, JPEG y WebP válidos se guardan re-codificados;
   - un JPEG con EXIF GPS queda sin EXIF;
@@ -463,8 +464,9 @@ sigue vigente (quickstart B9 a B13).
 - [x] T056 [US3] Implementar `content/application/authoring.py` (crear, guardar borrador, enviar y comprobar duplicados) para que pase T049 → Qwen
   - Terminado: T049 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 9 en verde. `content/application/authoring.py` (crear, guardar borrador con `keep_in_review`, enviar). La huella incluye el texto del contexto; un duplicado nombra el código del otro ítem.
-- [ ] T057 [US3] Implementar `content/application/contexts.py` (versionado y propagación a los ítems, FR-020) para que pase T050 → Qwen
+- [x] T057 [US3] Implementar `content/application/contexts.py` (versionado y propagación a los ítems, FR-020) para que pase T050 → Qwen
   - Terminado: T050 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 5 en verde. `content/application/contexts.py` (crear, editar con versión nueva y FR-020 compartido con la carga del banco, consultar el uso). Un contexto inválido no se guarda; una imagen inexistente es `invalid_value`.
 - [ ] T058 [US3] Implementar `content/infrastructure/images.py` (Pillow: firma, límites, re-codificación sin EXIF, SHA-256), `content/application/media.py` y `content/api/media_router.py`, con limitación de peticiones, para que pase T051 → Opus
   - Terminado: T051 en verde.
 - [ ] T059 [US3] Implementar en `content/api/items_router.py` (`createItem`, `saveItemDraft`, `submitItem`, `getItemVersion` con diferencias) y `contexts_router.py` las operaciones de T052, con `content/application/queries/item_version_diff.py` → Qwen

@@ -161,6 +161,10 @@ class ItemRepository(Protocol):
         """Ítems con una versión publicada o abierta que usa alguna versión del contexto."""
         ...
 
+    async def context_usage(self, context_id: UUID) -> list[tuple[str, str]]:
+        """`(código, estado)` de las versiones publicadas o abiertas que usan el contexto."""
+        ...
+
     async def versions(self, code: str) -> list[ItemVersion]:
         """Todas las versiones del ítem, de la primera a la última."""
         ...

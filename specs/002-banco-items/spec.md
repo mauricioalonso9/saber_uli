@@ -53,6 +53,14 @@ la incluye.
 - Q: ¿Qué cubre la plantilla de hoja de cálculo? → A: Solo ítems de selección con su contexto de
   texto, una fila por ítem. Inglés parte 1 (opciones compartidas), los contextos con imagen o
   tabla y las consignas de escritura se importan con el formato del banco inicial.
+- Q: ¿Quién puede editar un ítem que otra persona creó? → A: Cualquier docente edita cualquier
+  ítem; cada cambio queda registrado con su autor y pasa por revisión.
+- Q: Si una versión futura de la aplicación trae un banco inicial con ítems nuevos o corregidos,
+  ¿qué pasa al desplegarla sobre un banco existente? → A: Se agregan los ítems con identificador
+  nuevo (En revisión); los que cambiaron en el archivo crean una versión nueva En revisión; los
+  que no cambiaron se ignoran.
+- Q: ¿Hasta cuántos ítems debe manejar el banco sin perder agilidad? → A: Hasta 10 000 ítems, con
+  búsquedas y filtros que respondan en menos de 2 segundos.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -60,7 +68,8 @@ la incluye.
 
 Como administrador quiero que el banco inicial incluido en el proyecto (43 ítems, 3 consignas,
 8 contextos, la taxonomía de los cinco módulos y la rúbrica de escritura) se cargue al desplegar
-por primera vez, sin duplicar nada si la carga se repite.
+por primera vez, sin duplicar nada si la carga se repite, y que las versiones futuras de la
+aplicación puedan traer ítems nuevos o corregidos sin pisar el trabajo de los docentes.
 
 **Why this priority**: sin banco no hay práctica; es la base de todas las demás historias y la
 Definición de Terminado de la constitución exige esta carga a partir de 002.
@@ -75,14 +84,27 @@ no cambian.
    **When** se completa la carga inicial,
    **Then** el banco contiene los 43 ítems, las 3 consignas y los 8 contextos del archivo, en
    estado En revisión, con su origen marcado, y la taxonomía y la rúbrica quedan disponibles.
-2. **Given** un banco ya cargado,
+2. **Given** un banco ya cargado y el mismo archivo,
    **When** la carga inicial se ejecuta otra vez,
-   **Then** no se crean ítems, contextos ni versiones nuevos y se informa que el banco ya estaba
-   cargado.
-3. **Given** un ítem del banco inicial que un docente ya editó o publicó,
-   **When** la carga inicial se repite,
-   **Then** el ítem conserva el trabajo del docente; la carga no lo sobrescribe.
-4. **Given** un archivo de banco inicial con un error de validación,
+   **Then** no se crean ítems, contextos ni versiones nuevos y se informa que no había cambios.
+3. **Given** un ítem del banco inicial que un docente ya editó o publicó y que no cambió en el
+   archivo,
+   **When** la carga se repite,
+   **Then** el ítem conserva el trabajo del docente; la carga no lo toca.
+4. **Given** una versión nueva de la aplicación cuyo archivo trae ítems con identificador nuevo,
+   **When** se despliega,
+   **Then** esos ítems entran En revisión con su origen, y el resultado informa cuántos se
+   agregaron.
+5. **Given** un ítem cuyo contenido cambió en el archivo desde la última carga,
+   **When** se despliega,
+   **Then** se crea una versión nueva En revisión; la versión publicada, si la hay, sigue
+   entregándose hasta que la nueva se apruebe.
+6. **Given** un ítem que cambió en el archivo y que además tiene una versión en Borrador o En
+   revisión hecha por un docente,
+   **When** se despliega,
+   **Then** el cambio del archivo no se aplica a ese ítem y queda en el resultado de la carga para
+   que un docente lo incorpore a mano.
+7. **Given** un archivo de banco inicial con un error de validación,
    **When** se intenta la carga,
    **Then** no se carga nada y el error identifica el elemento y la regla incumplida.
 
@@ -458,17 +480,24 @@ borrar una evidencia en uso; verificar que solo puede desactivarse.
 
 **Carga inicial**
 
-- **FR-021**: Al desplegar, el sistema DEBE cargar el banco inicial incluido en el proyecto
-  (taxonomía, rúbrica, contextos, ítems y consignas) si aún no está cargado.
-- **FR-022**: Repetir la carga inicial NO DEBE crear duplicados ni sobrescribir ítems que ya
-  existen, aunque los docentes los hayan modificado.
+- **FR-021**: En cada despliegue, el sistema DEBE aplicar el banco inicial incluido en el
+  proyecto (taxonomía, rúbrica, contextos, ítems y consignas): lo carga completo si el banco está
+  vacío y, si ya existe, agrega los elementos con identificador nuevo, En revisión.
+- **FR-022**: Un ítem del banco inicial ya cargado DEBE recibir una versión nueva En revisión
+  solo si su contenido en el archivo cambió desde la última carga; si no cambió, NO DEBE tocarse
+  aunque los docentes lo hayan modificado. Repetir la carga con el mismo archivo NO DEBE crear
+  elementos ni versiones.
+- **FR-022a**: Si un ítem cambió en el archivo y tiene una versión en Borrador o En revisión
+  hecha por un docente, el cambio NO DEBE aplicarse a ese ítem; el resultado de la carga DEBE
+  listarlo para incorporarlo a mano.
 - **FR-023**: Si el archivo del banco inicial tiene errores, la carga NO DEBE aplicar ningún
   cambio y DEBE informar cada error.
 
 **Creación, edición y vista previa**
 
-- **FR-024**: Los docentes DEBEN poder crear y editar ítems, consignas y contextos, con validación
-  de las reglas del módulo o de la parte junto a cada campo.
+- **FR-024**: Los docentes DEBEN poder crear y editar ítems, consignas y contextos, incluidos los
+  que creó otra persona, con validación de las reglas del módulo o de la parte junto a cada campo;
+  cada cambio DEBE quedar registrado con quién lo hizo.
 - **FR-025**: Los docentes DEBEN poder previsualizar un ítem o consigna con su contexto tal como lo
   verá el estudiante en el celular, incluida la retroalimentación de cada opción.
 - **FR-026**: Al editar un contexto compartido, el sistema DEBE mostrar cuántos ítems lo usan y
@@ -566,7 +595,8 @@ borrar una evidencia en uso; verificar que solo puede desactivarse.
 - **SC-001**: El banco inicial (43 ítems, 3 consignas y 8 contextos) se carga sin errores en un
   despliegue desde cero.
 - **SC-002**: Repetir la carga inicial o reimportar el mismo archivo crea 0 ítems y 0 versiones
-  nuevos.
+  nuevos, y una carga con un archivo actualizado no modifica ningún ítem que no haya cambiado en
+  el archivo.
 - **SC-003**: Importar o actualizar 500 ítems válidos, desde que el docente confirma hasta que el
   resultado está disponible, tarda menos de 1 minuto.
 - **SC-004**: La vista previa y el reporte de errores de un archivo de 500 ítems están listos en
@@ -579,13 +609,16 @@ borrar una evidencia en uso; verificar que solo puede desactivarse.
   a revisión en menos de 10 minutos la primera vez, sin ayuda.
 - **SC-008**: Un archivo exportado y reimportado sin cambios produce una vista previa con 0
   cambios.
+- **SC-009**: Con 10 000 ítems en el banco, buscar y filtrar ítems, abrir la cobertura de un módulo
+  y abrir las estadísticas de un ítem muestran el resultado en menos de 2 segundos.
+- **SC-010**: Exportar el banco completo de 10 000 ítems tarda menos de 1 minuto.
 
 ## Assumptions
 
 - Los roles Docente y Administrador, la auditoría y la autenticación vienen de 001; esta
   funcionalidad no crea roles nuevos: la revisión es del rol Administrador (FR-013).
-- La edición es colaborativa: cualquier docente puede editar cualquier ítem del banco; el
-  registro de quién modificó cada versión es lo que impide la autoaprobación (FR-012).
+- El registro de quién modificó cada versión (FR-024) es lo que impide la autoaprobación
+  (FR-012).
 - Debe haber al menos dos administradores para revisar ítems que un administrador creó o
   modificó; con uno solo, esos ítems esperan a que haya otro.
 - Rechazar un ítem en revisión lo lleva a Retirado con su motivo; no se crea un estado
@@ -604,6 +637,7 @@ borrar una evidencia en uso; verificar que solo puede desactivarse.
 - Las imágenes de los contextos se suben en el editor; los archivos de importación las referencian
   por el identificador de una imagen ya cargada en el banco.
 - Los límites por lote (FR-037) se fijan en el plan; deben permitir al menos 500 ítems por archivo.
+- El banco se dimensiona para hasta 10 000 ítems (SC-009); más allá de eso se revisará la meta.
 - La calificación de los textos de Comunicación escrita (010) y la generación de ítems con IA
   (011) son otras funcionalidades; aquí solo se guardan sus consignas, rúbricas y el origen "ia".
 

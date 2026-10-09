@@ -30,5 +30,12 @@ IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset(
         "updateContext",
         # Adelantada de T105 para el editor de consignas (US3)
         "listRubrics",
+        # US4 (T074)
+        "getImportTemplate",
+        "createImport",
+        "listImports",
+        "getImport",
+        "getImportReport",
+        "confirmImport",
     }
 )

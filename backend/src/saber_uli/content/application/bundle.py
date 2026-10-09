@@ -27,6 +27,23 @@ class UnreadableFileError(RuleViolationError):
     slug = "unreadable-file"
 
 
+class UnsupportedFileFormatError(RuleViolationError):
+    """No es JSON ni una plantilla XLSX (un `.xlsm`, otro ZIP u otro tipo de archivo); 415."""
+
+    slug = "unsupported-file-format"
+
+
+class BatchTooLargeError(RuleViolationError):
+    """Más ítems de los que admite un lote (FR-037; research R-05); 413."""
+
+    slug = "batch-too-large"
+
+
+# Límites de un archivo de importación (FR-037; research R-05).
+MAX_IMPORT_BYTES = 10 * 1024 * 1024
+MAX_IMPORT_ITEMS = 1000
+
+
 class EntryKind(StrEnum):
     ITEM = "item"
     WRITING_PROMPT = "writing_prompt"

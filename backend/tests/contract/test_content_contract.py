@@ -44,6 +44,7 @@ BEYOND_SCHEMA = frozenset(
         "submitItem",
         "createContext",
         "updateContext",
+        "createImport",
     }
 )
 

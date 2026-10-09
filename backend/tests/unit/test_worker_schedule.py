@@ -16,6 +16,7 @@ TASKS = {
     "process-retention": "saber_uli.process_retention",
     "process-deletion-requests": "saber_uli.process_deletion_requests",
     "purge-expired-auth-artifacts": "saber_uli.purge_expired_auth_artifacts",
+    "purge-expired-imports": "saber_uli.content.purge_expired_imports",
 }
 
 
@@ -29,7 +30,7 @@ def test_zona_horaria_de_bogota() -> None:
     assert celery_app.conf.enable_utc is True
 
 
-def test_las_cinco_tareas_programadas_y_registradas() -> None:
+def test_las_tareas_programadas_y_registradas() -> None:
     assert set(celery_app.conf.beat_schedule) == set(TASKS)
     for name, task in TASKS.items():
         assert entry(name)["task"] == task
@@ -76,3 +77,7 @@ def test_el_scheduler_escribe_el_latido_en_cada_tick(
     assert heartbeat.exists()
     assert time.time() - heartbeat.stat().st_mtime < 5
     scheduler.close()
+
+
+def test_purge_expired_imports_cada_hora() -> None:
+    assert entry("purge-expired-imports")["schedule"] == crontab(minute=15)

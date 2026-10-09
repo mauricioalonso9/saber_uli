@@ -6,8 +6,10 @@ from datetime import datetime
 from typing import Any, Protocol
 from uuid import UUID
 
+from saber_uli.content.application.bundle import Bundle
 from saber_uli.content.domain.context import Context, ContextVersion
 from saber_uli.content.domain.events import HistoryEvent
+from saber_uli.content.domain.import_job import ImportJob
 from saber_uli.content.domain.item import Item
 from saber_uli.content.domain.item_version import ItemVersion
 from saber_uli.content.domain.media import Media
@@ -227,3 +229,31 @@ class SeedLoadRecord:
 
 class SeedLoadRepository(Protocol):
     async def add(self, record: SeedLoadRecord) -> None: ...
+
+
+class ImportRepository(Protocol):
+    async def add(self, job: ImportJob) -> ImportJob: ...
+
+    async def get(self, import_id: UUID, *, for_update: bool = False) -> ImportJob | None: ...
+
+    async def save(self, job: ImportJob) -> None:
+        """Guarda solo lo que cambia al confirmar o vencer (data-model §2.9)."""
+        ...
+
+    async def list(
+        self, *, created_by: UUID | None, offset: int, limit: int
+    ) -> tuple[list[ImportJob], int]:
+        """Las más recientes primero; `created_by=None` lista todas (administración)."""
+        ...
+
+    async def expire_pending(self, now: datetime) -> int:
+        """Marca vencidas las pendientes cuyo plazo pasó y borra su contenido (R-05)."""
+        ...
+
+
+class BundleCodec(Protocol):
+    """Contenido de una importación pendiente, listo para aplicar al confirmar (`payload`)."""
+
+    def dump(self, bundle: Bundle) -> dict[str, Any]: ...
+
+    def load(self, payload: dict[str, Any]) -> Bundle: ...

@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from saber_uli.content.application.ports import (
     ContextRepository,
+    ImportRepository,
     ItemRepository,
     MediaRepository,
     ModuleRepository,
@@ -22,6 +23,7 @@ from saber_uli.content.infrastructure.repositories.contexts import (
     SqlAlchemyContextRepository,
     SqlAlchemyMediaRepository,
 )
+from saber_uli.content.infrastructure.repositories.imports import SqlAlchemyImportRepository
 from saber_uli.content.infrastructure.repositories.items import SqlAlchemyItemRepository
 from saber_uli.content.infrastructure.repositories.seed_loads import SqlAlchemySeedLoadRepository
 from saber_uli.shared.application.event_bus import EventBus
@@ -58,6 +60,10 @@ class SqlAlchemyContentUnitOfWork(SqlAlchemyUnitOfWork, ContentUnitOfWork):
     @property
     def media(self) -> MediaRepository:
         return SqlAlchemyMediaRepository(self.session)
+
+    @property
+    def imports(self) -> ImportRepository:
+        return SqlAlchemyImportRepository(self.session)
 
     @property
     def seed_loads(self) -> SeedLoadRepository:

@@ -144,9 +144,9 @@ export function refreshAccessToken(): Promise<string> {
 
 async function parse<T>(response: Response): Promise<T> {
   if (response.status === 204) return undefined as T;
-  // Las imágenes del banco (`getContentMedia`) llegan como binario.
+  // Lo que no es JSON es un archivo: imágenes del banco, plantillas y reportes XLSX.
   const type = response.headers.get("Content-Type") ?? "";
-  if (type.startsWith("image/")) return (await response.blob()) as T;
+  if (type && !type.includes("json")) return (await response.blob()) as T;
   const text = await response.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }

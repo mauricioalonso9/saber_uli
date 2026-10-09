@@ -740,6 +740,83 @@
       "uploading": "Subiendo la imagen…",
       "uploaded": "Imagen cargada: {{width}} × {{height}} px.",
       "preview": "Vista de la imagen cargada"
+    },
+    "rules": {
+      "required": "Falta un dato obligatorio",
+      "invalid_value": "Valor no válido",
+      "single_correct_option": "Debe haber exactamente una opción correcta",
+      "option_count": "Número de opciones incorrecto",
+      "option_feedback_required": "Falta la retroalimentación de una opción",
+      "explanation_required": "Falta la explicación general",
+      "taxonomy_unknown": "Categoría inexistente",
+      "taxonomy_inactive": "Categoría desactivada",
+      "taxonomy_mismatch": "Categoría que no corresponde",
+      "context_unknown": "Contexto inexistente",
+      "context_word_limit": "Texto de más de 500 palabras",
+      "alt_text_required": "Falta el texto alternativo de la imagen",
+      "matching_key_unknown": "Clave que no está en el contexto",
+      "duplicate_item": "Duplicado de un ítem del banco",
+      "duplicate_in_file": "Duplicado de otro ítem del archivo",
+      "unsupported_in_template": "No se admite en la plantilla",
+      "context_text_mismatch": "Texto distinto para el mismo contexto",
+      "rubric_unknown": "Rúbrica inexistente",
+      "changed_since_preview": "Cambió después de la vista previa"
+    },
+    "import": {
+      "intro": "Sube el .json con el formato del banco o la plantilla .xlsx. Primero se valida todo y ves el resultado; nada se guarda hasta que confirmes.",
+      "file": "Archivo (.json del banco o .xlsx de la plantilla, hasta 10 MB)",
+      "validate": "Validar el archivo",
+      "validating": "Validando…",
+      "template": "Descargar la plantilla",
+      "recent": "Importaciones recientes",
+      "noRecent": "Todavía no hay importaciones.",
+      "columns": {
+        "file": "Archivo",
+        "status": "Estado",
+        "date": "Fecha",
+        "author": "Quién",
+        "code": "Código",
+        "action": "Resultado",
+        "field": "Campo",
+        "rule": "Regla",
+        "message": "Mensaje"
+      },
+      "statuses": {
+        "pending": "Pendiente",
+        "confirmed": "Confirmada",
+        "expired": "Vencida"
+      },
+      "summary": "Resultado de la validación",
+      "counts": {
+        "create": "Nuevos: {{count}}",
+        "update": "Actualizaciones: {{count}}",
+        "unchanged": "Sin cambios: {{count}}",
+        "error": "Con errores: {{count}}"
+      },
+      "actions": {
+        "create": "Nuevo",
+        "update": "Actualización",
+        "unchanged": "Sin cambios",
+        "error": "Con error"
+      },
+      "show": "Mostrar",
+      "all": "Todas",
+      "rows": "Filas del archivo",
+      "report": "Descargar el reporte de errores",
+      "aiNotice": "Hay ítems generados con IA: entrarán En revisión aunque elijas Borrador.",
+      "targetState": "Estado de los ítems nuevos y de las versiones nuevas",
+      "states": {
+        "draft": "Borrador",
+        "in_review": "En revisión"
+      },
+      "originality": "Declaro que los ítems son originales y no reproducen preguntas del ICFES.",
+      "confirm": "Confirmar importación",
+      "confirmed": "Importación confirmada: {{created}} creados, {{versioned}} con versión nueva y {{skipped}} omitidos.",
+      "skipped": "Omitidos porque cambiaron después de la vista previa: {{codes}}.",
+      "expired": "Esta importación venció (las vistas previas duran 24 horas). Vuelve a subir el archivo.",
+      "expires": "La vista previa vence el {{date}}.",
+      "open": "Ver",
+      "nothingValid": "No hay ítems válidos para importar. Corrige el archivo y vuelve a subirlo."
     }
   }
 }

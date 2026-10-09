@@ -5,6 +5,7 @@
 import type { Me, Permission } from "@/api/model";
 import type {
   ContentModule,
+  ImportDetail,
   Item,
   ItemSummary,
   ItemVersion,
@@ -181,3 +182,61 @@ export const RUBRICS = [
     dimensions: [],
   },
 ];
+
+/** Importación pendiente con 2 nuevos (uno de origen IA), 1 sin cambios y 1 con error. */
+export function importDetail(overrides: Partial<ImportDetail> = {}): ImportDetail {
+  return {
+    id: "6f1b2c3d-0000-4000-8000-000000000001",
+    status: "pending",
+    source_name: "banco.json",
+    format: "json",
+    created_at: "2026-10-09T20:00:00Z",
+    expires_at: "2026-10-10T20:00:00Z",
+    confirmed_at: null,
+    created_by: { id: "u-1", display_name: "Docente" },
+    counts: { create: 2, update: 0, unchanged: 1, error: 1 },
+    rows: [
+      {
+        code: "LC-0101",
+        entity: "item",
+        action: "create",
+        target_state: null,
+        changes: [],
+        errors: [],
+      },
+      {
+        code: "LC-0102",
+        entity: "item",
+        action: "create",
+        target_state: "in_review",
+        changes: [],
+        errors: [],
+      },
+      {
+        code: "LC-0103",
+        entity: "item",
+        action: "unchanged",
+        target_state: null,
+        changes: [],
+        errors: [],
+      },
+      {
+        code: "LC-0104",
+        entity: "item",
+        action: "error",
+        target_state: null,
+        changes: [],
+        errors: [
+          {
+            field: "options[B].feedback",
+            rule: "option_feedback_required",
+            message: "La opción B necesita su retroalimentación.",
+          },
+        ],
+      },
+    ],
+    meta: { page: 1, page_size: 100, total: 4 },
+    result: null,
+    ...overrides,
+  };
+}

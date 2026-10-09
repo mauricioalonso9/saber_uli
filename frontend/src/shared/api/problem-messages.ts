@@ -79,6 +79,11 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "file-too-large": "La imagen pesa más de 1 MB. Redúcela e intenta de nuevo.",
   "unsupported-media-type":
     "La imagen debe ser PNG, JPEG o WebP y medir como máximo 4 000 px por lado.",
+  "unsupported-file-format":
+    "El archivo debe ser el .json del banco o la plantilla .xlsx (sin macros).",
+  "unreadable-file": "No se pudo leer el archivo. Revisa que tenga el formato del banco.",
+  "import-not-pending": "Esta importación ya se confirmó o venció. Vuelve a subir el archivo.",
+  "nothing-to-import": "La importación no tiene ítems válidos para aplicar.",
   // Producidos por el cliente o por el estado HTTP
   "service-unavailable": "El servicio no está disponible en este momento. Intenta más tarde.",
   "network-error": "No hay conexión con el servidor. Revisa tu conexión a internet.",

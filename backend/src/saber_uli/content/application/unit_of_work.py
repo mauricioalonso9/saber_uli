@@ -4,6 +4,7 @@ from abc import abstractmethod
 
 from saber_uli.content.application.ports import (
     ContextRepository,
+    ImportRepository,
     ItemRepository,
     MediaRepository,
     ModuleRepository,
@@ -38,6 +39,10 @@ class ContentUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def media(self) -> MediaRepository: ...
+
+    @property
+    @abstractmethod
+    def imports(self) -> ImportRepository: ...
 
     @property
     @abstractmethod

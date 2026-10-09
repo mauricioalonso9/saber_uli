@@ -508,7 +508,7 @@ y el reporte; confirmar; entran 20 (quickstart B14 y B15).
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T065 [P] [US4] Prueba de seguridad: `backend/tests/unit/content/test_xlsx.py` (research R-04, FR-029). Cubre:
+- [x] T065 [P] [US4] Prueba de seguridad: `backend/tests/unit/content/test_xlsx.py` (research R-04, FR-029). Cubre:
   - la plantilla generada tiene las hojas `items`, `instrucciones` y `listas` y validaciones de celda con los códigos activos;
   - una plantilla llena se lee como el formato v1;
   - varias filas con el mismo código de contexto lo comparten;
@@ -520,7 +520,8 @@ y el reporte; confirmar; entran 20 (quickstart B14 y B15).
 
   → Opus
   - Terminado: la prueba falla.
-- [ ] T066 [P] [US4] Prueba: `backend/tests/integration/content/test_bank_import_preview.py` (FR-030 a FR-033, FR-037). Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T071. 10 casos.
+- [x] T066 [P] [US4] Prueba: `backend/tests/integration/content/test_bank_import_preview.py` (FR-030 a FR-033, FR-037). Cubre:
   - un archivo con 20 ítems válidos y 3 inválidos da 20 `create` y 3 `error` con `field`, `rule` y `message`;
   - un ítem igual a uno del banco con otro código da `duplicate_item`, y dos iguales en el mismo archivo, `duplicate_in_file`;
   - una referencia a un contexto inexistente da `context_unknown`;
@@ -531,7 +532,8 @@ y el reporte; confirmar; entran 20 (quickstart B14 y B15).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T067 [P] [US4] Prueba: `backend/tests/integration/content/test_bank_import_confirm.py` (FR-034 a FR-036). Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T072. 9 casos con PostgreSQL real.
+- [x] T067 [P] [US4] Prueba: `backend/tests/integration/content/test_bank_import_confirm.py` (FR-034 a FR-036). Cubre:
   - confirmar con `originality_declared` y `target_state` crea los válidos en una sola transacción;
   - un fallo inyectado a mitad no deja ninguno;
   - se guardan la declaración, `confirmed_at` y `result`;
@@ -543,7 +545,8 @@ y el reporte; confirmar; entran 20 (quickstart B14 y B15).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T068 [P] [US4] Prueba: `backend/tests/integration/content/test_import_api.py`. Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T073. El fallo a mitad se inyecta en el repositorio de ítems; no queda ningún ítem ni contexto y la importación sigue pendiente.
+- [x] T068 [P] [US4] Prueba: `backend/tests/integration/content/test_import_api.py`. Cubre:
   - `createImport` multipart con 201, 413, 415 y 422 según el contrato;
   - límite de 30 subidas por hora por usuario (429 con `Retry-After`);
   - `getImport` con filtro `action` y paginación;
@@ -555,9 +558,11 @@ y el reporte; confirmar; entran 20 (quickstart B14 y B15).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T069 [P] [US4] Prueba: `backend/tests/integration/content/test_import_tasks.py`. `purge_expired_imports` marca `expired` las pendientes vencidas y pone `payload` en NULL, sin tocar las confirmadas → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T074. 5 casos, incluido el límite de 30 subidas por hora con Retry-After y la ausencia del nombre del archivo en los logs.
+- [x] T069 [P] [US4] Prueba: `backend/tests/integration/content/test_import_tasks.py`. `purge_expired_imports` marca `expired` las pendientes vencidas y pone `payload` en NULL, sin tocar las confirmadas → Qwen
   - Terminado: la prueba falla.
-- [ ] T070 [P] [US4] Prueba de componentes: `frontend/src/features/content/ImportPage.test.tsx` e `ImportPreviewPage.test.tsx`. Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T075.
+- [x] T070 [P] [US4] Prueba de componentes: `frontend/src/features/content/ImportPage.test.tsx` e `ImportPreviewPage.test.tsx`. Cubre:
   - subir un archivo y ver los conteos por acción;
   - tabla de errores filtrable con campo y regla legibles en español;
   - descargar el reporte y la plantilla;
@@ -567,25 +572,34 @@ y el reporte; confirmar; entran 20 (quickstart B14 y B15).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T076. 5 + 3 casos.
 
 ### Implementation for User Story 4
 
-- [ ] T071 [US4] Implementar `content/infrastructure/interchange/xlsx_format.py` (lectura y escritura con openpyxl en `read_only` y `data_only`, defensas previas a abrir el archivo y uso de defusedxml) para que pase T065 → Qwen
+- [x] T071 [US4] Implementar `content/infrastructure/interchange/xlsx_format.py` (lectura y escritura con openpyxl en `read_only` y `data_only`, defensas previas a abrir el archivo y uso de defusedxml) para que pase T065 → Qwen
   - Terminado: T065 en verde.
-- [ ] T072 [US4] Implementar `content/domain/import_job.py` (`ImportRow` y acciones) y la parte de validación y vista previa de `content/application/bank_import.py`, para que pase T066 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 10 en verde. Desvío de R-04: se abre con data_only=False para que una fórmula llegue como el texto que es (con data_only=True llegaría el último valor que guardó Excel, o nada); nunca se evalúa. Las partes de Inglés se escriben como número (2 a 7) con validación de celda. Más de 1 000 filas corta la lectura con batch-too-large.
+- [x] T072 [US4] Implementar `content/domain/import_job.py` (`ImportRow` y acciones) y la parte de validación y vista previa de `content/application/bank_import.py`, para que pase T066 → Qwen
   - Terminado: T066 en verde.
-- [ ] T073 [US4] Implementar la confirmación en `content/application/bank_import.py` para que pase T067 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 9 en verde. El payload es el formato v1 de las entradas válidas más la revisión de cada una al momento de la vista previa; al confirmar se vuelve a leer y a evaluar. Las secciones de módulos y rúbricas de un archivo se ignoran (las administra US9). Las acciones update y unchanged ya se calculan (US5 las prueba a fondo).
+- [x] T073 [US4] Implementar la confirmación en `content/application/bank_import.py` para que pase T067 → Qwen
   - Terminado: T067 en verde.
-- [ ] T074 [US4] Implementar en `content/api/transfer_router.py` `createImport`, `getImport`, `getImportReport`, `confirmImport`, `listImports` y `getImportTemplate`, con limitación de peticiones, para que pase T068 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 5 en verde. saber_app no puede actualizar rows (permisos de columna), así que los omitidos quedan en result.skipped y se marcan changed_since_preview al leer la importación.
+- [x] T074 [US4] Implementar en `content/api/transfer_router.py` `createImport`, `getImport`, `getImportReport`, `confirmImport`, `listImports` y `getImportTemplate`, con limitación de peticiones, para que pase T068 → Qwen
   - Terminado: T068 en verde; las operaciones entran en la suite de T005.
-- [ ] T075 [US4] Implementar `content.purge_expired_imports` en `content/infrastructure/tasks.py` y programarla cada hora en `backend/src/saber_uli/worker.py`, para que pase T069 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 5 en verde; 6 operaciones en la suite de contrato (createImport con las mismas exclusiones que las operaciones validadas por el dominio). La API usa los escritores XLSX de infraestructura para la plantilla y el reporte; solo quien subió el archivo lo confirma; quien tiene content:review ve todas.
+- [x] T075 [US4] Implementar `content.purge_expired_imports` en `content/infrastructure/tasks.py` y programarla cada hora en `backend/src/saber_uli/worker.py`, para que pase T069 → Qwen
   - Terminado: T069 en verde.
-- [ ] T076 [US4] Implementar `ImportPage.tsx` e `ImportPreviewPage.tsx` para que pase T070 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 1 en verde; programada a los 15 minutos de cada hora; la prueba del calendario de Beat la incluye.
+- [x] T076 [US4] Implementar `ImportPage.tsx` e `ImportPreviewPage.tsx` para que pase T070 → Qwen
   - Terminado: T070 en verde.
-- [ ] T077 [US4] E2E: `frontend/tests/e2e/content-import.spec.ts` con los escenarios B14 y B15 y axe en la vista previa → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 8 en verde; Vitest completo 274. customInstance devuelve Blob para toda respuesta que no sea JSON (plantilla y reportes XLSX); saveBlob guarda el archivo. Sin ítems válidos, la vista previa no ofrece confirmar y lo dice. Los nombres de campos y reglas se muestran en español (fields.ts y content.rules).
+- [x] T077 [US4] E2E: `frontend/tests/e2e/content-import.spec.ts` con los escenarios B14 y B15 y axe en la vista previa → Qwen
   - Terminado: en verde.
-- [ ] T078 [US4] Revisión de US4 (Opus), anotada en `specs/002-banco-items/tasks.md`: defensas contra archivos maliciosos, transacción única, declaración de originalidad y límites → Opus
+  - Estado (Opus, 2026-10-09): cerrada. B14 y B15 en verde en pixel-7, junto con B5 a B13. La plantilla descargada se llena con openpyxl dentro del contenedor api (el script viaja en base64 porque Docker en Windows altera las comillas). axe encontró el contenedor con desplazamiento de la tabla sin foco de teclado (corregido en las dos tablas).
+- [x] T078 [US4] Revisión de US4 (Opus), anotada en `specs/002-banco-items/tasks.md`: defensas contra archivos maliciosos, transacción única, declaración de originalidad y límites → Opus
   - Terminado: US4 aprobada.
+  - Estado (Opus, 2026-10-09): cerrada. US4 aprobada. Defensas antes de abrir (10 MB, 50 MB descomprimidos, ZIP con [Content_Types].xml, sin macros), defusedxml contra XXE, anidación JSON limitada, una transacción con prueba de fallo a mitad, declaración obligatoria (Literal[True]) registrada con quién y cuándo, límites de 1 000 ítems y 30 subidas por hora, y logs sin el nombre del archivo. Backend completo 1053 + 80 subtests.
 
 ---
 

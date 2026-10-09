@@ -26,13 +26,16 @@ from saber_uli.content.api.items_router import router as content_items_router
 from saber_uli.content.api.media_router import router as content_media_router
 from saber_uli.content.api.review_router import router as content_review_router
 from saber_uli.content.api.taxonomy_router import router as content_taxonomy_router
+from saber_uli.content.api.transfer_router import router as content_transfer_router
 from saber_uli.content.application.authoring import Authoring
+from saber_uli.content.application.bank_import import BankImport
 from saber_uli.content.application.contexts import Contexts
 from saber_uli.content.application.media import MediaLibrary
 from saber_uli.content.application.queries.items import GetItem, ItemHistoryQuery, ListItems
 from saber_uli.content.application.queries.modules import ListContentModules, ListRubrics
 from saber_uli.content.application.review import Review
 from saber_uli.content.infrastructure.images import PillowImageProcessor
+from saber_uli.content.infrastructure.interchange.codec import READERS, JsonBundleCodec
 from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
 from saber_uli.identity.api.admin_catalogs_router import router as admin_catalogs_router
 from saber_uli.identity.api.admin_users_router import router as admin_users_router
@@ -240,6 +243,9 @@ def create_app(
     app.state.content_item_history = ItemHistoryQuery(uow_factory=content_uow, names=names)
     app.state.content_authoring = Authoring(uow_factory=content_uow, clock=clock)
     app.state.content_contexts = Contexts(uow_factory=content_uow, clock=clock)
+    app.state.content_bank_import = BankImport(
+        uow_factory=content_uow, clock=clock, readers=READERS, codec=JsonBundleCodec()
+    )
     app.state.content_media = MediaLibrary(
         uow_factory=content_uow, processor=PillowImageProcessor(), clock=clock
     )
@@ -268,6 +274,7 @@ def create_app(
     app.include_router(content_review_router, dependencies=v1)
     app.include_router(content_media_router, dependencies=v1)
     app.include_router(content_contexts_router, dependencies=v1)
+    app.include_router(content_transfer_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

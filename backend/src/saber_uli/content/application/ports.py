@@ -9,11 +9,53 @@ from uuid import UUID
 from saber_uli.content.domain.context import Context, ContextVersion
 from saber_uli.content.domain.events import HistoryEvent
 from saber_uli.content.domain.item import Item
+from saber_uli.content.domain.item_version import ItemVersion
 from saber_uli.content.domain.media import Media
 from saber_uli.content.domain.module import Module
 from saber_uli.content.domain.rubric import Rubric
 from saber_uli.content.domain.taxonomy import TaxonomyNode
 from saber_uli.shared.domain.errors import ConflictError
+
+
+class UserNames(Protocol):
+    """Lo que `content` pide de `identity` (su fachada lo implementa; research R-14)."""
+
+    async def display_names(self, user_ids: Collection[UUID]) -> dict[UUID, str]: ...
+
+    async def active_admin_ids(self) -> set[UUID]: ...
+
+
+@dataclass(frozen=True)
+class ItemFilters:
+    """Filtros de `listItems` (contrato). `taxonomy_ids` ya incluye los descendientes."""
+
+    module: str | None = None
+    state: str | None = None
+    origin: str | None = None
+    difficulty: str | None = None
+    taxonomy_ids: frozenset[UUID] | None = None
+    signal: str | None = None
+    q: str | None = None
+    awaiting_review_of: UUID | None = None
+
+
+@dataclass(frozen=True)
+class ItemSummaryRow:
+    code: str
+    module: str
+    kind: str
+    origin: str
+    difficulty: str
+    stem: str
+    context_code: str | None
+    assertion_code: str | None
+    part_code: str | None
+    published_version: int | None
+    open_version: int | None
+    open_state: str | None
+    open_involved: frozenset[UUID]
+    signals: tuple[str, ...]
+    updated_at: datetime
 
 
 class ImmutableVersionError(ConflictError):
@@ -83,6 +125,10 @@ class ContextRepository(Protocol):
         """Código del contexto de cada versión de contexto."""
         ...
 
+    async def version_numbers(self, version_ids: Collection[UUID]) -> dict[UUID, int]:
+        """Número de cada versión de contexto."""
+        ...
+
 
 class ItemRepository(Protocol):
     async def add(self, item: Item) -> Item:
@@ -113,6 +159,22 @@ class ItemRepository(Protocol):
 
     async def codes_using_context(self, context_id: UUID) -> list[str]:
         """Ítems con una versión publicada o abierta que usa alguna versión del contexto."""
+        ...
+
+    async def versions(self, code: str) -> list[ItemVersion]:
+        """Todas las versiones del ítem, de la primera a la última."""
+        ...
+
+    async def count_matching_in_context(
+        self, context_version_id: UUID, *, excluding: UUID | None
+    ) -> int:
+        """Otros ítems de emparejamiento (publicados o abiertos) que usan el mismo contexto."""
+        ...
+
+    async def search(
+        self, filters: ItemFilters, *, offset: int, limit: int
+    ) -> tuple[list[ItemSummaryRow], int]:
+        """Página de ítems ordenada por código y el total (SC-009)."""
         ...
 
 

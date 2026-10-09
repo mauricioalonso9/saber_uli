@@ -42,3 +42,7 @@ class IdentityDirectory:
             user_id: DELETED_ACCOUNT_NAME if deleted else (name or UNNAMED_ACCOUNT_NAME)
             for user_id, (name, deleted) in found.items()
         }
+
+    async def active_admin_ids(self) -> set[UUID]:
+        async with self._uow_factory() as uow:
+            return await uow.users.active_admin_ids()

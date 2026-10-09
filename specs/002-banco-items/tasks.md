@@ -332,7 +332,7 @@ docente no ve las acciones (quickstart B5 a B8).
   → Opus
   - Terminado: la prueba falla.
   - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T044.
-- [ ] T042 [P] [US2] Prueba: `backend/tests/integration/content/test_items_api_review.py`. Cubre:
+- [x] T042 [P] [US2] Prueba: `backend/tests/integration/content/test_items_api_review.py`. Cubre:
   - `approveItem`, `returnItem`, `rejectItem`, `retireItem` y `commentItem` según el contrato, con `If-Match`;
   - un docente recibe 403 en las cuatro primeras y 201 en `commentItem`;
   - `getItem.can`: `approve` es falso con `approve_blocked_reason = self_approval` para un contribuyente;
@@ -342,6 +342,7 @@ docente no ve las acciones (quickstart B5 a B8).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. Escrita y fallando (7 de 7) a la espera de T045.
 - [ ] T043 [P] [US2] Prueba de componentes: `frontend/src/features/content/ReviewQueuePage.test.tsx` y `ReviewActions.test.tsx` (msw). Cubre:
   - la lista filtrada por módulo, con el origen "IA" visible;
   - aprobar exige marcar las dos confirmaciones;
@@ -360,6 +361,7 @@ docente no ve las acciones (quickstart B5 a B8).
   - Estado (Opus, 2026-10-09): cerrada. 12 en verde. `content/application/review.py` (`Review` y `load_for_change`, que bloquea el ítem y compara la revisión esperada: `edit-conflict`). `HistoryEvent` gana `id` (lo asigna la persistencia), que la respuesta de `commentItem` necesita.
 - [ ] T045 [US2] Implementar `content/application/queries/list_items.py`, `get_item.py` (con `can` y `needs_another_reviewer`) e `item_history.py`, con nombres vía `UserDirectory.display_names`, y `content/api/items_router.py` (`listItems`, `getItem`, `getItemHistory`, `commentItem`) y `review_router.py`, para que pase T042 → Qwen
   - Terminado: T042 en verde; las operaciones entran en la suite de T005.
+  - En curso (Opus, 2026-10-09): hechos `active_admin_ids` en la fachada de identity, `content/domain/diff.py`, puertos `UserNames`, `ItemFilters`, `ItemSummaryRow` y en el repositorio `versions`, `count_matching_in_context`, `search` (filtros, texto completo, cola de revisión) y `version_numbers`. Faltan las consultas `get_item`, `list_items` e `item_history`, `content/api/schemas.py`, `items_router.py` y `review_router.py`, y la conexión en `main.py`.
 - [ ] T046 [US2] Implementar `frontend/src/features/content/ReviewQueuePage.tsx`, `ReviewActions.tsx` y la vista de solo lectura de un ítem en `ItemEditorPage.tsx` (contenido con `ContentView` e historia) para que pase T043 → Qwen
   - Terminado: T043 en verde.
 - [ ] T047 [US2] E2E: `frontend/tests/e2e/content-review.spec.ts`, con los escenarios B5 a B8 del quickstart, dos administradores, un docente y axe en `/banco/revision` → Qwen

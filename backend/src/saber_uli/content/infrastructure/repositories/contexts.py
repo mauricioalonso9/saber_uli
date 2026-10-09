@@ -87,6 +87,16 @@ class SqlAlchemyContextRepository:
         )
         return dict(rows.tuples().all())
 
+    async def version_numbers(self, version_ids: Collection[UUID]) -> dict[UUID, int]:
+        if not version_ids:
+            return {}
+        rows = await self._db.execute(
+            select(ContextVersionRow.id, ContextVersionRow.number).where(
+                ContextVersionRow.id.in_(list(version_ids))
+            )
+        )
+        return dict(rows.tuples().all())
+
     async def _insert_version(self, context_id: UUID, version: ContextVersion) -> None:
         content = version.content
         row = ContextVersionRow(

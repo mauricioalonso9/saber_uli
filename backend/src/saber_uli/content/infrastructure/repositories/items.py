@@ -9,10 +9,15 @@ y una abierta por ítem) nunca se violan a mitad de la operación.
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import func, insert, select, update
+from sqlalchemy import Select, Uuid, and_, any_, case, func, insert, literal, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
-from saber_uli.content.application.ports import ImmutableVersionError
+from saber_uli.content.application.ports import (
+    ImmutableVersionError,
+    ItemFilters,
+    ItemSummaryRow,
+)
 from saber_uli.content.domain.context import Origin
 from saber_uli.content.domain.events import HistoryEvent, HistoryEventType
 from saber_uli.content.domain.item import Item
@@ -31,7 +36,10 @@ from saber_uli.content.infrastructure.orm import (
     ItemEventRow,
     ItemRow,
     ItemVersionRow,
+    ItemVersionStatsRow,
+    TaxonomyNodeRow,
 )
+from saber_uli.shared.infrastructure.db import LIKE_ESCAPE, contains_pattern
 
 _LOADED_STATES = ("published", "draft", "in_review")
 _FINAL_STATES = ("published", "retired")
@@ -163,6 +171,45 @@ class SqlAlchemyItemRepository:
             .order_by(ItemRow.code)
         )
         return list(rows)
+
+    async def versions(self, code: str) -> list[ItemVersion]:
+        rows = await self._db.execute(
+            select(ItemVersionRow, ContextRow.code)
+            .join(ItemRow, ItemRow.id == ItemVersionRow.item_id)
+            .outerjoin(ContextVersionRow, ContextVersionRow.id == ItemVersionRow.context_version_id)
+            .outerjoin(ContextRow, ContextRow.id == ContextVersionRow.context_id)
+            .where(ItemRow.code == code)
+            .order_by(ItemVersionRow.number)
+        )
+        return [_version(version, context_code) for version, context_code in rows]
+
+    async def count_matching_in_context(
+        self, context_version_id: UUID, *, excluding: UUID | None
+    ) -> int:
+        same_context = select(ContextVersionRow.context_id).where(
+            ContextVersionRow.id == context_version_id
+        )
+        query = (
+            select(func.count(func.distinct(ItemRow.id)))
+            .join(ItemVersionRow, ItemVersionRow.item_id == ItemRow.id)
+            .join(ContextVersionRow, ContextVersionRow.id == ItemVersionRow.context_version_id)
+            .where(
+                ItemRow.kind == "matching",
+                ItemVersionRow.state.in_(_LOADED_STATES),
+                ContextVersionRow.context_id.in_(same_context.scalar_subquery()),
+            )
+        )
+        if excluding is not None:
+            query = query.where(ItemRow.id != excluding)
+        return int(await self._db.scalar(query) or 0)
+
+    async def search(
+        self, filters: ItemFilters, *, offset: int, limit: int
+    ) -> tuple[list[ItemSummaryRow], int]:
+        query = _summary_query(filters)
+        total = await self._db.scalar(select(func.count()).select_from(query.subquery()))
+        rows = await self._db.execute(query.order_by(ItemRow.code).offset(offset).limit(limit))
+        return [_summary(row) for row in rows], int(total or 0)
 
     # ------------------------------------------------------------------------ apoyo
 
@@ -302,4 +349,135 @@ def _version(row: ItemVersionRow, context_code: str | None) -> ItemVersion:
         retired_at=row.retired_at,
         retired_by=row.retired_by,
         retire_reason=row.retire_reason,
+    )
+
+
+# ---------------------------------------------------------------------------- listado (SC-009)
+
+_OPEN = ("draft", "in_review")
+
+
+def _current_versions() -> Any:
+    """Una versión por ítem para filtrar y resumir: la abierta, si no la publicada, si no la
+    última (retirada)."""
+    priority = case(
+        (ItemVersionRow.state.in_(_OPEN), 0),
+        (ItemVersionRow.state == "published", 1),
+        else_=2,
+    )
+    return (
+        select(ItemVersionRow)
+        .distinct(ItemVersionRow.item_id)
+        .order_by(ItemVersionRow.item_id, priority, ItemVersionRow.number.desc())
+        .subquery("current_version")
+    )
+
+
+def _summary_query(filters: ItemFilters) -> Select[Any]:
+    current = _current_versions()
+    published = aliased(ItemVersionRow, name="published")
+    open_ = aliased(ItemVersionRow, name="open_version")
+    context_version = aliased(ContextVersionRow, name="context_version")
+    context = aliased(ContextRow, name="context")
+    assertion = aliased(TaxonomyNodeRow, name="assertion")
+    part = aliased(TaxonomyNodeRow, name="part")
+    query = (
+        select(
+            ItemRow.code,
+            ItemRow.module_code,
+            ItemRow.kind,
+            ItemRow.origin,
+            current.c.difficulty,
+            current.c.stem_md,
+            context.code.label("context_code"),
+            assertion.code.label("assertion_code"),
+            part.code.label("part_code"),
+            published.number.label("published_number"),
+            open_.number.label("open_number"),
+            open_.state.label("open_state"),
+            open_.author_id.label("open_author"),
+            open_.contributor_ids.label("open_contributors"),
+            ItemVersionStatsRow.signals,
+            current.c.updated_at,
+        )
+        .join(current, current.c.item_id == ItemRow.id)
+        .outerjoin(published, and_(published.item_id == ItemRow.id, published.state == "published"))
+        .outerjoin(open_, and_(open_.item_id == ItemRow.id, open_.state.in_(_OPEN)))
+        .outerjoin(context_version, context_version.id == current.c.context_version_id)
+        .outerjoin(context, context.id == context_version.context_id)
+        .outerjoin(assertion, assertion.id == current.c.assertion_id)
+        .outerjoin(part, part.id == current.c.part_id)
+        .outerjoin(ItemVersionStatsRow, ItemVersionStatsRow.version_id == published.id)
+    )
+    if filters.module:
+        query = query.where(ItemRow.module_code == filters.module)
+    if filters.origin:
+        query = query.where(ItemRow.origin == filters.origin)
+    if filters.difficulty:
+        query = query.where(current.c.difficulty == filters.difficulty)
+    if filters.state == "published":
+        query = query.where(published.id.is_not(None))
+    elif filters.state in _OPEN:
+        query = query.where(open_.state == filters.state)
+    elif filters.state == "retired":
+        query = query.where(published.id.is_(None), open_.id.is_(None))
+    if filters.taxonomy_ids is not None:
+        ids = list(filters.taxonomy_ids)
+        query = query.where(
+            or_(
+                *(
+                    current.c[column].in_(ids)
+                    for column in (
+                        "competence_id",
+                        "assertion_id",
+                        "evidence_id",
+                        "component_id",
+                        "situation_id",
+                        "part_id",
+                    )
+                )
+            )
+        )
+    if filters.signal:
+        query = query.where(ItemVersionStatsRow.signals.contains([filters.signal]))
+    if filters.awaiting_review_of is not None:
+        viewer = filters.awaiting_review_of
+        query = query.where(
+            open_.state == "in_review",
+            or_(open_.author_id.is_(None), open_.author_id != viewer),
+            ~(literal(viewer, Uuid) == any_(open_.contributor_ids)),
+        )
+    if filters.q:
+        text = filters.q.strip()
+        contains = contains_pattern(text)
+        query = query.where(
+            or_(
+                func.lower(ItemRow.code).like(f"{contains[1:]}", escape=LIKE_ESCAPE),
+                current.c.search.op("@@")(func.plainto_tsquery("spanish", text)),
+                func.lower(context_version.title).like(contains, escape=LIKE_ESCAPE),
+            )
+        )
+    return query
+
+
+def _summary(row: Any) -> ItemSummaryRow:
+    involved = frozenset(row.open_contributors or ()) | (
+        frozenset({row.open_author}) if row.open_author is not None else frozenset()
+    )
+    return ItemSummaryRow(
+        code=row.code,
+        module=row.module_code,
+        kind=row.kind,
+        origin=row.origin,
+        difficulty=row.difficulty,
+        stem=row.stem_md,
+        context_code=row.context_code,
+        assertion_code=row.assertion_code,
+        part_code=row.part_code,
+        published_version=row.published_number,
+        open_version=row.open_number,
+        open_state=row.open_state,
+        open_involved=involved,
+        signals=tuple(row.signals or ()),
+        updated_at=row.updated_at,
     )

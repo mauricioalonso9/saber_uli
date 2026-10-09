@@ -66,3 +66,8 @@ class UserDirectory(Protocol):
         se omiten. `content` guarda solo identificadores y pide los nombres aquí.
         """
         ...
+
+    async def active_admin_ids(self) -> set[UUID]:
+        """Administradores activos: la cola de revisión del banco marca los ítems que ninguno
+        puede aprobar porque todos los modificaron (002 FR-012)."""
+        ...

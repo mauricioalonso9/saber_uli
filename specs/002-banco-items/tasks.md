@@ -149,14 +149,16 @@ historias.**
 - [x] T018 Implementar `content/domain/item.py`, `item_version.py`, `context.py` (con `SharedOption`, `ContextVersion` y validación de `kind`) y `errors.py` para que pase T017 → Qwen
   - Terminado: T017 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 53 en verde. `item_version.py` (tipos, `ItemContent`, `validate_item`), `context.py` (`ContextContent`, `ContextVersion`, `Context`, `validate_context`) y `errors.py`. El agregado `item.py` queda con la máquina de estados en T022.
-- [ ] T019 [P] Prueba: `backend/tests/unit/content/test_fingerprint.py` (research R-06):
+- [x] T019 [P] Prueba: `backend/tests/unit/content/test_fingerprint.py` (research R-06):
   - `content_hash` es igual para el mismo contenido con claves en otro orden, con espacios externos o con Unicode NFC o NFD, y distinto si cambia una retroalimentación;
   - `fingerprint` es igual entre dos ítems que solo difieren en mayúsculas, tildes, puntuación, espacios u orden de las opciones, y distinto si cambia el texto de una opción.
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T020 Implementar `content/domain/fingerprint.py` (`ContentHash`, `Fingerprint`, SHA-256 sobre la forma canónica) para que pase T019 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T020.
+- [x] T020 Implementar `content/domain/fingerprint.py` (`ContentHash`, `Fingerprint`, SHA-256 sobre la forma canónica) para que pase T019 → Qwen
   - Terminado: T019 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 60 en verde (dominio). `content_hash` acepta cualquier valor (dataclasses, enums, UUID) y `normalize_text` queda disponible para la importación.
 - [ ] T021 [P] Prueba: `backend/tests/unit/content/test_lifecycle.py` con la máquina de estados de data-model §4. Prueba:
   - cada transición válida y que todas las demás lanzan `InvalidTransitionError` (`invalid-transition`);
   - aprobar con `approver ∈ contributor_ids` lanza `SelfApprovalError` (`self-approval-forbidden`, FR-012);

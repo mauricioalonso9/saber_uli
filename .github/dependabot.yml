@@ -1,4 +1,6 @@
 # Actualizaciones de dependencias (T014; constitución IX).
+#
+# Los `ignore` llevan su motivo: se quitan cuando deja de aplicar.
 version: 2
 updates:
   - package-ecosystem: uv
@@ -8,6 +10,10 @@ updates:
     groups:
       backend:
         patterns: ["*"]
+    ignore:
+      # redis 8 obliga a kombu 5.7 en beta (2026-10); esperar a una kombu estable.
+      - dependency-name: redis
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /frontend
@@ -16,6 +22,15 @@ updates:
     groups:
       frontend:
         patterns: ["*"]
+    ignore:
+      # eslint-plugin-jsx-a11y 6.10.2 no admite ESLint 10 (2026-10).
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      # typescript-eslint 8.71 exige TypeScript < 6.1 (2026-10).
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: docker
     directories:
@@ -23,6 +38,10 @@ updates:
       - /frontend
     schedule:
       interval: weekly
+    ignore:
+      # Solo versiones LTS de Node (pares); el salto a la siguiente LTS se hace a mano.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /

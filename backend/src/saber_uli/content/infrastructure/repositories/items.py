@@ -149,6 +149,20 @@ class SqlAlchemyItemRepository:
             for event, number in rows
         ]
 
+    async def codes_using_context(self, context_id: UUID) -> list[str]:
+        rows = await self._db.scalars(
+            select(ItemRow.code)
+            .join(ItemVersionRow, ItemVersionRow.item_id == ItemRow.id)
+            .join(ContextVersionRow, ContextVersionRow.id == ItemVersionRow.context_version_id)
+            .where(
+                ContextVersionRow.context_id == context_id,
+                ItemVersionRow.state.in_(_LOADED_STATES),
+            )
+            .distinct()
+            .order_by(ItemRow.code)
+        )
+        return list(rows)
+
     # ------------------------------------------------------------------------ apoyo
 
     async def _check_immutable(self, versions: list[ItemVersion]) -> None:

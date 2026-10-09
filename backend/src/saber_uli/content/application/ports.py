@@ -1,7 +1,9 @@
 """Puertos del contexto `content` (research R-01). Los implementa `content.infrastructure`."""
 
 from collections.abc import Collection
-from typing import Protocol
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Protocol
 from uuid import UUID
 
 from saber_uli.content.domain.context import Context, ContextVersion
@@ -109,6 +111,10 @@ class ItemRepository(Protocol):
         """Eventos del ítem en orden de ocurrencia."""
         ...
 
+    async def codes_using_context(self, context_id: UUID) -> list[str]:
+        """Ítems con una versión publicada o abierta que usa alguna versión del contexto."""
+        ...
+
 
 class MediaRepository(Protocol):
     async def add(self, media: Media) -> Media: ...
@@ -116,3 +122,18 @@ class MediaRepository(Protocol):
     async def get(self, media_id: UUID) -> Media | None: ...
 
     async def get_by_sha256(self, sha256: bytes) -> Media | None: ...
+
+
+@dataclass(frozen=True)
+class SeedLoadRecord:
+    """Una carga del banco inicial (data-model §2.12)."""
+
+    loaded_at: datetime
+    file_sha256: bytes
+    schema_version: str
+    summary: dict[str, Any]
+    pending_manual: list[str] = field(default_factory=list)
+
+
+class SeedLoadRepository(Protocol):
+    async def add(self, record: SeedLoadRecord) -> None: ...

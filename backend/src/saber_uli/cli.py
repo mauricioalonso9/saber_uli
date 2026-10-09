@@ -17,6 +17,7 @@ Subcomandos actuales:
   `INSTITUTIONAL_EMAIL_DOMAINS`; el worker envía el correo. Sale con 0 si creó la invitación, 1
   si una regla la impidió (correo institucional, invitación vigente) y 2 si los datos no sirven.
 
+- `content load-seed [--file RUTA]`: carga idempotente del banco inicial (spec 002, R-07).
 - `identity grant-admin --email <correo>`: asigna el rol Administrador a una cuenta
   institucional que ya ingresó una vez (R-28), con actor sistema. Usa `DATABASE_URL`. Sale con
   0 si quedó asignado (o ya lo estaba) y 1 si la cuenta no existe o no es institucional.
@@ -33,8 +34,17 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+import structlog
 from sqlalchemy.engine import make_url
 
+from saber_uli.content.application.bundle import UnreadableFileError
+from saber_uli.content.application.seed_loader import (
+    SeedInvalidError,
+    SeedLoader,
+    SeedLoadResult,
+)
+from saber_uli.content.infrastructure.interchange.json_format import read_bundle
+from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
 from saber_uli.identity.application.admin_users import AdminUsersService
 from saber_uli.identity.application.import_programs import (
     ImportPrograms,
@@ -242,6 +252,63 @@ def _grant_admin(email: str) -> int:
     return EXIT_OK
 
 
+def default_seed_file() -> Path:
+    """`SABER_SEEDS_DIR` (imagen Docker: /app/seeds) o `backend/seeds`, como las migraciones."""
+    configured = os.environ.get("SABER_SEEDS_DIR")
+    base = Path(configured) if configured else Path(__file__).resolve().parents[2] / "seeds"
+    return base / "banco_inicial_saber_uli.json"
+
+
+async def _run_load_seed(url: str, content: bytes) -> SeedLoadResult:
+    engine = create_engine(url)
+    try:
+        session_factory = create_session_factory(engine)
+        bus = EventBus()
+        loader = SeedLoader(
+            uow_factory=lambda: SqlAlchemyContentUnitOfWork(session_factory, bus),
+            clock=SystemClock(),
+            reader=read_bundle,
+        )
+        return await loader.execute(content)
+    finally:
+        await engine.dispose()
+
+
+def _load_seed(file: str | None) -> int:
+    """Carga idempotente del banco inicial (spec 002, US1; research R-07).
+
+    Usa `DATABASE_URL` (saber_app) o, en el servicio `migrate`, `MIGRATION_DATABASE_URL`. Los logs
+    llevan conteos y, si falla, el código de cada elemento (`item`; la clave `code` se enmascara
+    porque así se llama el código de OAuth) con su regla; nunca textos de ítems ni rutas de
+    archivo (principio V).
+    """
+    url = os.environ.get("DATABASE_URL") or os.environ.get("MIGRATION_DATABASE_URL")
+    if not url:
+        print("Error: falta DATABASE_URL o MIGRATION_DATABASE_URL.", file=sys.stderr)
+        return EXIT_USAGE
+    path = Path(file) if file else default_seed_file()
+    try:
+        content = path.read_bytes()
+    except OSError:
+        print("Error: no se pudo leer el archivo del banco inicial.", file=sys.stderr)
+        return EXIT_USAGE
+    configure_logging(os.environ.get("LOG_LEVEL", "INFO"))
+    log = structlog.get_logger("saber_uli.content.seed")
+    try:
+        result = asyncio.run(_run_load_seed(url, content))
+    except SeedInvalidError as error:
+        log.error(
+            "content_seed_failed",
+            problems=[{"item": p.code, "rule": p.rule.value} for p in error.problems],
+        )
+        return EXIT_FAILURE
+    except UnreadableFileError:
+        log.error("content_seed_failed", problems=[{"item": "archivo", "rule": "unreadable"}])
+        return EXIT_FAILURE
+    log.info("content_seed_loaded", **result.summary())
+    return EXIT_OK
+
+
 def _utf8_output() -> None:
     """Mensajes en español también en consolas de Windows con otra página de códigos."""
     for stream in (sys.stdout, sys.stderr):
@@ -279,6 +346,15 @@ def app(argv: Sequence[str] | None = None) -> None:
     )
     grant_admin.add_argument("--email", required=True, help="correo institucional de la persona")
 
+    content = commands.add_parser("content", help="banco de ítems")
+    content_commands = content.add_subparsers(dest="action", required=True, metavar="acción")
+    load_seed = content_commands.add_parser(
+        "load-seed", help="carga o actualiza el banco inicial sin duplicar (idempotente)"
+    )
+    load_seed.add_argument(
+        "--file", default=None, help="archivo JSON del banco (por defecto, el del proyecto)"
+    )
+
     _utf8_output()
     args = parser.parse_args(argv)
     if args.command == "migrate":
@@ -289,6 +365,8 @@ def app(argv: Sequence[str] | None = None) -> None:
         sys.exit(_invite_guest(args.email, args.days, args.name))
     if args.command == "identity" and args.action == "grant-admin":
         sys.exit(_grant_admin(args.email))
+    if args.command == "content" and args.action == "load-seed":
+        sys.exit(_load_seed(args.file))
 
 
 if __name__ == "__main__":

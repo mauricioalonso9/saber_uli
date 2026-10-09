@@ -308,6 +308,27 @@ def test_servicios_healthy_y_migrate_exitoso(infra_stack: list[str]) -> None:
     assert by_service["migrate"]["State"] == "exited"
     assert by_service["migrate"]["ExitCode"] == 0
 
+    # 002/T039: `migrate` carga el banco inicial (46 ítems y consignas) y repetirlo no duplica.
+    count_items = [
+        *infra_stack,
+        "exec",
+        "-T",
+        "db",
+        "psql",
+        "-U",
+        "postgres",
+        "-d",
+        "saber_uli",
+        "-tAc",
+        "SELECT count(*) FROM content.items",
+    ]
+    first = run(count_items, timeout=60)
+    assert first.returncode == 0, first.stderr
+    assert first.stdout.strip() == "46"
+    again = run([*infra_stack, "run", "--rm", "migrate"])
+    assert again.returncode == 0, (again.stdout + again.stderr)[-2000:]
+    assert run(count_items, timeout=60).stdout.strip() == "46"
+
 
 @pytest.mark.full_stack
 def test_flujo_de_ci() -> None:

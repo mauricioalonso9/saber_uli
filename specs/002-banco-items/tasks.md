@@ -270,7 +270,7 @@ nuevos y se versionan los cambiados (quickstart B1 a B4).
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T036 [P] [US1] Prueba: `backend/tests/integration/content/test_seed_loader.py` (FR-021 a FR-023, R-07). Casos:
+- [x] T036 [P] [US1] Prueba: `backend/tests/integration/content/test_seed_loader.py` (FR-021 a FR-023, R-07). Casos:
   - **Primera carga**: 5 módulos, la taxonomía con `target_weight` de `peso_aprox`, 1 rúbrica, 8 contextos (LC con `word_count`) y 46 ítems En revisión con origen `ai`, `author_id` NULL, evento `seed_loaded` y `seed_hash` guardado.
   - **Segunda carga igual**: 0 agregados y 0 versionados.
   - **Ítem editado por un docente**: queda intacto en la recarga.
@@ -283,19 +283,23 @@ nuevos y se versionan los cambiados (quickstart B1 a B4).
 
   → Opus
   - Terminado: la prueba falla.
-- [ ] T037 [P] [US1] Prueba: `backend/tests/integration/content/test_cli_load_seed.py`. Comprueba que:
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T038 (8 casos).
+- [x] T037 [P] [US1] Prueba: `backend/tests/integration/content/test_cli_load_seed.py`. Comprueba que:
   - `saber-uli content load-seed` termina con código 0 y registra el log `content_seed_loaded` con conteos (`added`, `versioned`, `unchanged`, `pending_manual`), sin textos de ítems ni rutas de archivo;
   - con `--file` inválido termina con código 1 y el log `content_seed_failed` trae solo el código del elemento y la regla.
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. Falló antes de T039. El log de errores usa la clave `item` (no `code`): el procesador de logs de 001 enmascara `code` porque así se llama el código de OAuth.
 
 ### Implementation for User Story 1
 
-- [ ] T038 [US1] Implementar `content/application/seed_loader.py` (`SeedLoader`, con validación completa antes de aplicar, transacción única, *advisory lock* y comparación por `seed_hash`) para que pase T036 → Qwen
+- [x] T038 [US1] Implementar `content/application/seed_loader.py` (`SeedLoader`, con validación completa antes de aplicar, transacción única, *advisory lock* y comparación por `seed_hash`) para que pase T036 → Qwen
   - Terminado: T036 en verde.
-- [ ] T039 [US1] Agregar a `backend/src/saber_uli/cli.py` el subcomando `content load-seed [--file RUTA]`, con la ruta por defecto `/app/seeds/banco_inicial_saber_uli.json` o `backend/seeds/…` en desarrollo. Cambiar el comando del servicio `migrate` en `compose.yaml` y en `infra/docker/backend-entrypoint.sh` para que ejecute `migrate` y luego `content load-seed`. Actualizar `backend/tests/infra/test_containers.py`, que debe comprobar que `migrate` termina con código 0 y que `content.items` tiene 46 filas tras `up`, para que pase T037 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 8 en verde. `seed_loader.py` (validación completa antes de aplicar, *advisory lock*, `seed_hash` por contexto e ítem, `pending_manual`), `resolution.py` (códigos → identificadores, huellas) y `context_changes.py` (FR-020, compartido con T057). Hallazgo: las columnas JSONB anulables guardaban el JSON `null` en vez de NULL desde sentencias explícitas; ahora usan `JSONB(none_as_null=True)`. Un ítem marcado publicado o retirado en el banco entra En revisión (constitución VI).
+- [x] T039 [US1] Agregar a `backend/src/saber_uli/cli.py` el subcomando `content load-seed [--file RUTA]`, con la ruta por defecto `/app/seeds/banco_inicial_saber_uli.json` o `backend/seeds/…` en desarrollo. Cambiar el comando del servicio `migrate` en `compose.yaml` y en `infra/docker/backend-entrypoint.sh` para que ejecute `migrate` y luego `content load-seed`. Actualizar `backend/tests/infra/test_containers.py`, que debe comprobar que `migrate` termina con código 0 y que `content.items` tiene 46 filas tras `up`, para que pase T037 → Qwen
   - Terminado: T037 en verde; `docker compose up -d --wait` desde cero deja 46 ítems; un segundo `up` no cambia los conteos.
+  - Estado (Opus, 2026-10-09): cerrada. 4 en verde. `saber-uli content load-seed [--file]` (usa `DATABASE_URL` o, en `migrate`, `MIGRATION_DATABASE_URL`); el punto de entrada de `migrate` encadena migraciones y carga; `SABER_SEEDS_DIR=/app/seeds` en la imagen. Comprobado en el stack local: primera ejecución 46 ítems, 8 contextos, 76 categorías y 1 rúbrica; la segunda, todo sin cambios. `tests/infra/test_containers.py` cuenta 46 ítems y repite `migrate` (prueba `full_stack`, se ejecuta en CI).
 - [ ] T040 [US1] Revisión de US1 (Opus), anotada en `specs/002-banco-items/tasks.md`: idempotencia, transacción, *advisory lock*, logs sin datos personales y escenarios B1 a B4 del quickstart → Opus
   - Terminado: B1 a B4 comprobados a mano; US1 aprobada.
 

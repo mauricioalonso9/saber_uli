@@ -8,6 +8,7 @@ from saber_uli.content.application.ports import (
     MediaRepository,
     ModuleRepository,
     RubricRepository,
+    SeedLoadRepository,
     TaxonomyRepository,
 )
 from saber_uli.shared.application.unit_of_work import UnitOfWork
@@ -37,3 +38,12 @@ class ContentUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def media(self) -> MediaRepository: ...
+
+    @property
+    @abstractmethod
+    def seed_loads(self) -> SeedLoadRepository: ...
+
+    @abstractmethod
+    async def lock_seed(self) -> None:
+        """Bloqueo de la transacción para la carga del banco inicial (research R-07)."""
+        ...

@@ -33,6 +33,8 @@ from saber_uli.shared.infrastructure.db import Base
 
 SCHEMA = "content"
 _UUIDV7 = text("uuidv7()")
+# Las columnas JSONB que admiten nulos usan `none_as_null`: sin él, un `None` de Python se guarda
+# como el JSON `null` y no como NULL de SQL (los CHECK de data-model esperan NULL).
 _NOW = text("now()")
 
 
@@ -175,7 +177,7 @@ class ContextVersionRow(Base):
         Uuid, _fk("taxonomy_nodes.id", "fk_context_versions_part", ondelete="RESTRICT")
     )
     subtype: Mapped[str | None] = mapped_column(Text)
-    shared_options: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
+    shared_options: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB(none_as_null=True))
     word_count: Mapped[int | None] = mapped_column(Integer)
     origin: Mapped[str] = mapped_column(Text)
     content_hash: Mapped[bytes] = mapped_column(LargeBinary)
@@ -263,7 +265,7 @@ class ItemVersionRow(Base):
     situation_id: Mapped[UUID | None] = _taxonomy_fk("situation")
     part_id: Mapped[UUID | None] = _taxonomy_fk("part")
     stem_md: Mapped[str] = mapped_column(Text)
-    options: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB)
+    options: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB(none_as_null=True))
     answer_key: Mapped[str | None] = mapped_column(Text)
     explanation_md: Mapped[str] = mapped_column(Text)
     prompt_context_md: Mapped[str | None] = mapped_column(Text)
@@ -331,11 +333,11 @@ class ImportRow(Base):
     expires_at: Mapped[datetime] = _ts()
     summary: Mapped[dict[str, Any]] = mapped_column(JSONB)
     rows: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)
-    payload: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    payload: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
     target_state: Mapped[str | None] = mapped_column(Text)
     originality_declared: Mapped[bool | None] = mapped_column(Boolean)
     confirmed_at: Mapped[datetime | None] = _ts(nullable=True)
-    result: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    result: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
 
 
 # §2.10 --------------------------------------------------------------------------------------
@@ -364,8 +366,8 @@ class TaxonomyChangeRow(Base):
     target: Mapped[str] = mapped_column(Text)
     target_id: Mapped[str] = mapped_column(Text)
     action: Mapped[str] = mapped_column(Text)
-    before: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
-    after: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    before: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
+    after: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
 
 
 # §2.12 --------------------------------------------------------------------------------------
@@ -396,7 +398,7 @@ class ItemVersionStatsRow(Base):
     )
     first_responses: Mapped[int] = mapped_column(Integer)
     correct_rate: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))
-    option_rates: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    option_rates: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
     discrimination: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))
     signals: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default=text("'{}'::text[]"))
     computed_at: Mapped[datetime] = _ts()

@@ -103,10 +103,12 @@ historias.**
 - [x] T010 Crear `backend/migrations/versions/0008_content_schema.py` con el esquema `content` y las tablas, índices, `CHECK` y FK exactamente como en data-model §2.1 a §2.13 (FK `contexts.current_version_id` `DEFERRABLE INITIALLY DEFERRED`; FK de taxonomía `ON DELETE RESTRICT`) para que pase T009 → Qwen
   - Terminado: T009 en verde; `alembic downgrade -1` y `upgrade head` funcionan.
   - Estado (Opus, 2026-10-09): cerrada. 12 en verde; ida y vuelta 0008 → 0007 → head comprobada. `search` cubre enunciado y explicación (una columna generada no ve otras tablas); data-model y R-12 corregidos.
-- [ ] T011 [P] Prueba de infraestructura: `backend/tests/infra/test_content_grants.py`. Con el rol `saber_app`, `UPDATE` y `DELETE` sobre `content.item_events`, `context_versions`, `media`, `exports`, `taxonomy_changes` y `seed_loads` responden `permission denied`. `UPDATE` de `imports.rows` también responde `permission denied`, pero `UPDATE` de `imports.status` funciona. `DELETE` de `taxonomy_nodes` funciona y `DELETE` de `imports` responde `permission denied` (data-model §2.14) → Opus
+- [x] T011 [P] Prueba de infraestructura: `backend/tests/infra/test_content_grants.py`. Con el rol `saber_app`, `UPDATE` y `DELETE` sobre `content.item_events`, `context_versions`, `media`, `exports`, `taxonomy_changes` y `seed_loads` responden `permission denied`. `UPDATE` de `imports.rows` también responde `permission denied`, pero `UPDATE` de `imports.status` funciona. `DELETE` de `taxonomy_nodes` funciona y `DELETE` de `imports` responde `permission denied` (data-model §2.14) → Opus
   - Terminado: la prueba falla.
-- [ ] T012 Crear `backend/migrations/versions/0009_content_grants.py` con los permisos de data-model §2.14 (incluidos los permisos de columna de `imports`) para que pase T011 → Opus
+  - Estado (Opus, 2026-10-09): cerrada. Va en `backend/tests/integration/content/test_db_grants.py` (Testcontainers, como `identity/test_db_grants.py`), no en `tests/infra/` (que levanta Compose). Falló con 11 errores antes de 0009.
+- [x] T012 Crear `backend/migrations/versions/0009_content_grants.py` con los permisos de data-model §2.14 (incluidos los permisos de columna de `imports`) para que pase T011 → Opus
   - Terminado: T011 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 11 en verde. Además de §2.14: sin `DELETE` sobre ítems ni versiones, y sin DDL ni `TRUNCATE`.
 
 ### Dominio común
 

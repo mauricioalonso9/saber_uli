@@ -21,6 +21,10 @@ dependencies = [
     "limits>=3.14",
     "holidays>=0.60",
     "jinja2>=3.1",
+    "python-multipart>=0.0.20",
+    "openpyxl>=3.1",
+    "defusedxml>=0.7",
+    "pillow>=11",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +47,7 @@ dev = [
     "import-linter>=2.1",
     "pyyaml>=6.0",
     "types-pyyaml>=6.0",
+    "types-openpyxl>=3.1.5.20260827",
 ]
 
 [build-system]

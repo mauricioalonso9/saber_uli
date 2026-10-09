@@ -21,6 +21,7 @@ containers =
     saber_uli.shared
     saber_uli.identity
     saber_uli.notifications
+    saber_uli.content
 layers =
     api
     infrastructure
@@ -34,6 +35,7 @@ source_modules =
     saber_uli.shared.domain
     saber_uli.identity.domain
     saber_uli.notifications.domain
+    saber_uli.content.domain
 forbidden_modules =
     fastapi
     starlette
@@ -45,6 +47,9 @@ forbidden_modules =
     httpx
     authlib
     jinja2
+    multipart
+    openpyxl
+    PIL
     saber_uli.config
 
 [importlinter:contract:aplicacion-sin-frameworks]
@@ -54,6 +59,7 @@ source_modules =
     saber_uli.shared.application
     saber_uli.identity.application
     saber_uli.notifications.application
+    saber_uli.content.application
 forbidden_modules =
     fastapi
     starlette
@@ -64,20 +70,26 @@ forbidden_modules =
     httpx
     authlib
     jinja2
+    multipart
+    openpyxl
+    PIL
     saber_uli.config
 
 [importlinter:contract:contextos-independientes]
-name = identity y notifications solo se comunican por su fachada pública
+name = Los contextos solo se comunican por su fachada pública
 type = independence
 modules =
     saber_uli.identity
     saber_uli.notifications
+    saber_uli.content
 # `warn` (no `error`) porque mientras ningún módulo importe las fachadas la excepción no tiene
 # coincidencias y lint-imports abortaría; la regla arquitectónica no cambia.
 unmatched_ignore_imports_alerting = warn
 ignore_imports =
     saber_uli.identity.** -> saber_uli.notifications.application.public
     saber_uli.notifications.** -> saber_uli.identity.application.public
+    saber_uli.content.** -> saber_uli.identity.application.public
+    saber_uli.identity.** -> saber_uli.content.application.public
 
 [importlinter:contract:kernel-compartido]
 name = El kernel compartido no depende de los contextos salvo por su fachada pública
@@ -87,7 +99,9 @@ source_modules =
 forbidden_modules =
     saber_uli.identity
     saber_uli.notifications
+    saber_uli.content
 unmatched_ignore_imports_alerting = warn
 ignore_imports =
     saber_uli.shared.** -> saber_uli.identity.application.public
     saber_uli.shared.** -> saber_uli.notifications.application.public
+    saber_uli.shared.** -> saber_uli.content.application.public

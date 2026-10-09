@@ -343,7 +343,7 @@ docente no ve las acciones (quickstart B5 a B8).
   → Qwen
   - Terminado: la prueba falla.
   - Estado (Opus, 2026-10-09): cerrada. Escrita y fallando (7 de 7) a la espera de T045.
-- [ ] T043 [P] [US2] Prueba de componentes: `frontend/src/features/content/ReviewQueuePage.test.tsx` y `ReviewActions.test.tsx` (msw). Cubre:
+- [x] T043 [P] [US2] Prueba de componentes: `frontend/src/features/content/ReviewQueuePage.test.tsx` y `ReviewActions.test.tsx` (msw). Cubre:
   - la lista filtrada por módulo, con el origen "IA" visible;
   - aprobar exige marcar las dos confirmaciones;
   - devolver exige comentario y rechazar o retirar, motivo;
@@ -353,6 +353,7 @@ docente no ve las acciones (quickstart B5 a B8).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. Falló (componentes inexistentes) antes de T046. Datos de ejemplo en `src/features/content/testing.ts`.
 
 ### Implementation for User Story 2
 
@@ -362,8 +363,9 @@ docente no ve las acciones (quickstart B5 a B8).
 - [x] T045 [US2] Implementar `content/application/queries/list_items.py`, `get_item.py` (con `can` y `needs_another_reviewer`) e `item_history.py`, con nombres vía `UserDirectory.display_names`, y `content/api/items_router.py` (`listItems`, `getItem`, `getItemHistory`, `commentItem`) y `review_router.py`, para que pase T042 → Qwen
   - Terminado: T042 en verde; las operaciones entran en la suite de T005.
   - Estado (Opus, 2026-10-09): cerrada. T042 en verde (7) y el contrato de las 10 operaciones de US2 sin fallos de Schemathesis. Consultas en `content/application/queries/items.py` (`GetItem` con `can` y problemas de la versión abierta, `ListItems` con descendientes de la taxonomía y `needs_another_reviewer`, `ItemHistoryQuery` con diferencias por versión), `content/application/validation.py`, `content/domain/diff.py`, `content/api/schemas.py`, `items_router.py` (incluye `getItemVersion`) y `review_router.py` (412 con el ítem actual). La fachada de identity suma `active_admin_ids`. Hallazgos que corrigió el contrato: `If-Match` pasa a obligatorio con patrón y un valor mal formado responde 428 (antes 412); el filtro `signal` fallaba con 500 porque el ORM usaba el `ARRAY` genérico (ahora `postgresql.ARRAY`). El arnés registra la autenticación con `AuthProvider` y excluye la cabecera `Allow` en rutas con métodos aún sin implementar.
-- [ ] T046 [US2] Implementar `frontend/src/features/content/ReviewQueuePage.tsx`, `ReviewActions.tsx` y la vista de solo lectura de un ítem en `ItemEditorPage.tsx` (contenido con `ContentView` e historia) para que pase T043 → Qwen
+- [x] T046 [US2] Implementar `frontend/src/features/content/ReviewQueuePage.tsx`, `ReviewActions.tsx` y la vista de solo lectura de un ítem en `ItemEditorPage.tsx` (contenido con `ContentView` e historia) para que pase T043 → Qwen
   - Terminado: T043 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 12 en verde; Vitest completo 237. `ReviewQueuePage`, `ReviewActions` (If-Match con la revisión vista; formulario en línea con confirmaciones, comentario o motivo) y una vista de solo lectura en `ItemEditorPage` (versión abierta y publicada con `ContentView` y retroalimentación); el editor llega en T061. El contexto se muestra por su código hasta que `getContext` exista (US3). Mensajes de error del banco en `problem-messages.ts`.
 - [ ] T047 [US2] E2E: `frontend/tests/e2e/content-review.spec.ts`, con los escenarios B5 a B8 del quickstart, dos administradores, un docente y axe en `/banco/revision` → Qwen
   - Terminado: en verde con el perfil e2e (Chromium y WebKit).
 - [ ] T048 [US2] Revisión de US2 (Opus), anotada en `specs/002-banco-items/tasks.md`: autoaprobación, permisos, confirmaciones registradas e inmutabilidad de lo publicado → Opus

@@ -570,6 +570,81 @@
       "export": "Exportar el banco",
       "coverage": "Cobertura del banco",
       "taxonomy": "Taxonomía"
+    },
+    "version": "versión {{number}}",
+    "openVersion": "Versión abierta",
+    "publishedVersion": "Versión publicada",
+    "modules": {
+      "LC": "Lectura crítica",
+      "RC": "Razonamiento cuantitativo",
+      "CC": "Competencias ciudadanas",
+      "ING": "Inglés",
+      "CE": "Comunicación escrita"
+    },
+    "origins": {
+      "ai": "IA",
+      "teacher": "Docente",
+      "seed": "Banco inicial"
+    },
+    "states": {
+      "draft": "Borrador",
+      "in_review": "En revisión",
+      "published": "Publicado",
+      "retired": "Retirado"
+    },
+    "fields": {
+      "module": "Módulo",
+      "context": "Contexto"
+    },
+    "filters": {
+      "all": "Todos"
+    },
+    "columns": {
+      "code": "Código",
+      "module": "Módulo",
+      "stem": "Enunciado",
+      "origin": "Origen",
+      "note": "Nota"
+    },
+    "review": {
+      "actions": "Acciones de revisión",
+      "table": "Ítems por revisar",
+      "empty": "No hay ítems por revisar.",
+      "needsAnother": "Necesita otro administrador: todos los disponibles lo modificaron.",
+      "selfApproval": "Modificaste esta versión: la debe aprobar otro administrador.",
+      "aiOrigin": "Este ítem fue generado con IA: verifícalo con cuidado antes de aprobarlo.",
+      "lastComment": "Comentario de la revisión",
+      "confirmations": "Antes de publicar, confirma:",
+      "confirmsAlignment": "Verifiqué que está alineado con la guía del ICFES (competencia, afirmación y evidencia).",
+      "confirmsOriginality": "Verifiqué que es original y no reproduce preguntas del ICFES.",
+      "cancel": "Cancelar",
+      "open": {
+        "approve": "Aprobar",
+        "return": "Devolver",
+        "reject": "Rechazar",
+        "retire": "Retirar",
+        "comment": "Comentar"
+      },
+      "submit": {
+        "approve": "Publicar",
+        "return": "Devolver al autor",
+        "reject": "Rechazar el ítem",
+        "retire": "Retirar el ítem",
+        "comment": "Publicar comentario"
+      },
+      "textLabel": {
+        "return": "Comentario para el autor",
+        "reject": "Motivo",
+        "retire": "Motivo",
+        "comment": "Comentario"
+      },
+      "done": {
+        "approve": "El ítem quedó publicado.",
+        "return": "El ítem volvió a Borrador.",
+        "reject": "El ítem quedó rechazado.",
+        "retire": "El ítem quedó retirado.",
+        "comment": "Comentario publicado."
+      }
     }
   }
 }

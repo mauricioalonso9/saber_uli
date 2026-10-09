@@ -68,6 +68,14 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "program-code-exists": "Ya existe un programa con ese código.",
   "not-institutional-account": "Solo una cuenta institucional puede tener ese rol.",
   "deletion-already-requested": "Ya hay una solicitud de supresión de tu cuenta en curso.",
+  // Banco de ítems (002)
+  "self-approval-forbidden":
+    "No puedes aprobar lo que creaste o modificaste. Lo debe aprobar otro administrador.",
+  "edit-conflict": "Otra persona cambió este contenido mientras lo editabas.",
+  "precondition-required": "Recarga la página e intenta de nuevo.",
+  "invalid-transition": "Esa acción no aplica al estado actual del ítem.",
+  "code-taken": "Ya existe un elemento con ese código.",
+  "duplicate-item": "Ya existe un ítem con el mismo contenido.",
   // Producidos por el cliente o por el estado HTTP
   "service-unavailable": "El servicio no está disponible en este momento. Intenta más tarde.",
   "network-error": "No hay conexión con el servidor. Revisa tu conexión a internet.",

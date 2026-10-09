@@ -145,6 +145,7 @@ class SqlAlchemyItemRepository:
                 comment=event.comment,
                 reason=event.reason,
                 details=dict(event.details),
+                id=event.id,
             )
             for event, number in rows
         ]

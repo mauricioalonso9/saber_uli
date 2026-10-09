@@ -37,3 +37,4 @@ class HistoryEvent:
     comment: str | None = None
     reason: str | None = None
     details: dict[str, Any] = field(default_factory=dict)
+    id: UUID | None = None  # lo asigna la persistencia

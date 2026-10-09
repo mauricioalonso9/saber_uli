@@ -319,7 +319,7 @@ docente no ve las acciones (quickstart B5 a B8).
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T041 [P] [US2] Prueba: `backend/tests/integration/content/test_review.py` (FR-010 a FR-015, FR-018). Cubre:
+- [x] T041 [P] [US2] Prueba: `backend/tests/integration/content/test_review.py` (FR-010 a FR-015, FR-018). Cubre:
   - **Aprobar**: requiere `confirms_alignment` y `confirms_originality`; deja `published`, `reviewed_by`, `published_at` y el evento `approved` con las confirmaciones en `details`; si había otra publicada, pasa a `retired` con el evento `superseded`.
   - **Autoaprobación**: aprobar siendo contribuyente lanza `self-approval-forbidden`.
   - **Devolver**: deja `draft` con el comentario.
@@ -331,6 +331,7 @@ docente no ve las acciones (quickstart B5 a B8).
 
   → Opus
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T044.
 - [ ] T042 [P] [US2] Prueba: `backend/tests/integration/content/test_items_api_review.py`. Cubre:
   - `approveItem`, `returnItem`, `rejectItem`, `retireItem` y `commentItem` según el contrato, con `If-Match`;
   - un docente recibe 403 en las cuatro primeras y 201 en `commentItem`;
@@ -354,8 +355,9 @@ docente no ve las acciones (quickstart B5 a B8).
 
 ### Implementation for User Story 2
 
-- [ ] T044 [US2] Implementar `content/application/review.py` (`Review`: aprobar, devolver, rechazar, retirar y comentar, con eventos de historia) para que pase T041 → Qwen
+- [x] T044 [US2] Implementar `content/application/review.py` (`Review`: aprobar, devolver, rechazar, retirar y comentar, con eventos de historia) para que pase T041 → Qwen
   - Terminado: T041 en verde.
+  - Estado (Opus, 2026-10-09): cerrada. 12 en verde. `content/application/review.py` (`Review` y `load_for_change`, que bloquea el ítem y compara la revisión esperada: `edit-conflict`). `HistoryEvent` gana `id` (lo asigna la persistencia), que la respuesta de `commentItem` necesita.
 - [ ] T045 [US2] Implementar `content/application/queries/list_items.py`, `get_item.py` (con `can` y `needs_another_reviewer`) e `item_history.py`, con nombres vía `UserDirectory.display_names`, y `content/api/items_router.py` (`listItems`, `getItem`, `getItemHistory`, `commentItem`) y `review_router.py`, para que pase T042 → Qwen
   - Terminado: T042 en verde; las operaciones entran en la suite de T005.
 - [ ] T046 [US2] Implementar `frontend/src/features/content/ReviewQueuePage.tsx`, `ReviewActions.tsx` y la vista de solo lectura de un ítem en `ItemEditorPage.tsx` (contenido con `ContentView` e historia) para que pase T043 → Qwen

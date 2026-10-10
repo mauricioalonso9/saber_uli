@@ -102,7 +102,26 @@ son las cuentas del paso 1.
 | B22 | Escala (SC-009, SC-010) | `test_performance_budgets.py` con 10 000 ítems | Búsqueda, filtros, cobertura y estadísticas en menos de 2 s; exportación completa en menos de 1 minuto |
 | B23 | Logs sin datos personales (principio V) | Revisar `docker compose logs api worker` tras B5–B17 | Solo códigos, conteos e identificadores; sin textos de ítems, nombres de archivo, correos ni nombres |
 
-## 5. Notas para producción
+## 5. Diferencias encontradas en la implementación
+
+- **Comandos en Windows**: en Git Bash, los comandos con rutas del contenedor (`/app/...`) se
+  ejecutan con `MSYS_NO_PATHCONV=1`; en PowerShell funcionan tal cual.
+- **B17**: la plantilla deja fuera, además de la parte 1 de Inglés, las consignas de Comunicación
+  escrita y los ítems cuyo contexto no es de texto (imagen, tabla u opciones compartidas). En el
+  banco inicial, LC-CTX-003 es una tabla: LC-0007 y LC-0008 se exportan solo en JSON.
+- **Plantilla XLSX**: tiene la columna opcional `contexto_subtipo` (al final) para no perder el
+  subtipo de los textos de Lectura crítica al reimportar. Una plantilla anterior sin esa columna
+  se sigue leyendo.
+- **Códigos**: los de un archivo importado deben tener el formato de la API (`LC-0001`,
+  `ING-CTX-P1-001`); otro código es un error de esa entrada.
+- **B19 y B20**: las estadísticas y la taxonomía están en la página de cada ítem y en
+  `/admin/taxonomia`. La lista del banco con filtros (`/banco`), incluido el filtro de señales de
+  problema, sigue pendiente de una tarea (decisión pendiente en T095 y T101); la API ya filtra
+  (`listItems?signal=…`).
+- **WebKit**: como en 001, los e2e en `iphone-14` necesitan `127.0.0.1 oidc` en el archivo hosts y
+  `E2E_OIDC_RESOLVES=1`.
+
+## 6. Notas para producción
 
 - El banco inicial se actualiza con cada versión de la aplicación que traiga un archivo nuevo. El
   resumen de la carga queda en `content.seed_loads` y en el log de `migrate`. Los códigos en

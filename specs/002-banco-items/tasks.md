@@ -879,13 +879,14 @@ punta a punta.
 - [x] T115 Revisión ASVS 4.0.3 nivel 2 de la funcionalidad en `docs/security/asvs-002-banco-items.md`: V5 (Markdown, salida), V12 (archivos: XLSX, JSON e imágenes), V4 (permisos y autoaprobación), V7 (logs) y V13 (API) → Opus
   - Terminado: documento sin hallazgos abiertos o con su plan.
   - Estado (Opus, 2026-10-10): cerrada. `docs/security/asvs-002-banco-items.md` con V4, V5, V7, V12 y V13. Tres hallazgos corregidos en esta tarea: H1, los códigos de un archivo importado no seguían el formato de la API (ahora el patrón está en los modelos del formato; JSON Schema regenerado); H2, el reporte de errores XLSX escribía como fórmula un texto que empezaba por "="; H3, Nginx cortaba en 2 MB las importaciones de hasta 10 MB (ubicación anidada con 11 MB solo para `POST /api/v1/content/imports`). Decisión pendiente O1: `exportItems` sin límite de peticiones (requeriría 429 en el contrato). Backend content y unitarias: 737 en verde.
-- [ ] T116 [P] Documentación:
+- [x] T116 [P] Documentación:
   - `README.md`: el banco y cómo cargarlo;
   - `specs/002-banco-items/quickstart.md`: cualquier diferencia encontrada;
   - `docs/SABER_ULI_KIT_SDD.md` §8.2: que la validación usa `backend/schemas/banco_items.schema.json`.
 
   → Qwen
   - Terminado: los comandos de los documentos funcionan tal como están escritos.
+  - Estado (Opus, 2026-10-10): cerrada. README: estado de 002 y sección "Banco de ítems" (carga automática y manual, pantallas, formato). Quickstart: sección 5 "Diferencias encontradas" (Git Bash y `MSYS_NO_PATHCONV=1`, lo que la plantilla deja fuera, columna `contexto_subtipo`, formato de códigos, lista `/banco` pendiente, WebKit). Kit §8.2: la validación con el esquema y cómo se carga un lote. Comprobados contra el stack: `docker compose logs migrate | grep content_seed_loaded` y la carga manual (0 agregados, 46 sin cambios).
 - [ ] T117 Validación de punta a punta, anotada en `specs/002-banco-items/tasks.md`:
   - escenarios B1 a B23 del quickstart sobre `docker compose up` desde cero;
   - cobertura ≥ 80 % en `content.domain` y `content.application`;

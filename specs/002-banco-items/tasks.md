@@ -897,6 +897,10 @@ punta a punta.
 
   → Opus
   - Terminado: todo lo anterior comprobado y anotado bajo esta tarea.
+  - Estado (Opus, 2026-10-10): abierta.
+    - Cobertura (unitarias, integración de content y contrato; 740 en verde): `content.domain` 96,3 % y `content.application` 89,9 % (líneas y ramas).
+    - `/speckit.analyze`: 1 crítico corregido (D1: la prueba de infraestructura del límite del proxy, que faltaba según el principio IV); E1 (7 FR cubiertos sin su ID en las tareas) e I1 (R-04 sin la columna `contexto_subtipo`) a la espera de aprobar las ediciones; E2 (lista `/banco` y filtro de señales) y O1 (límite de `exportItems`), decisiones pendientes.
+    - Falta: escenarios B1 a B23 sobre un stack desde cero; CI en verde en el PR (requiere push y PR); SC-007 con un docente real; WebKit de T114.
 
 ---
 

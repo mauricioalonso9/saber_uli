@@ -9,6 +9,7 @@ from saber_uli.content.application.ports import (
     ItemRepository,
     MediaRepository,
     ModuleRepository,
+    PersonalDataReader,
     RubricRepository,
     SeedLoadRepository,
     TaxonomyChangeRepository,
@@ -53,6 +54,10 @@ class ContentUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def taxonomy_changes(self) -> TaxonomyChangeRepository: ...
+
+    @property
+    @abstractmethod
+    def personal_data(self) -> PersonalDataReader: ...
 
     @property
     @abstractmethod

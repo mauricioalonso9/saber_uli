@@ -10,6 +10,7 @@ from saber_uli.content.application.ports import (
     ItemRepository,
     MediaRepository,
     ModuleRepository,
+    PersonalDataReader,
     RubricRepository,
     SeedLoadRepository,
     TaxonomyChangeRepository,
@@ -31,6 +32,9 @@ from saber_uli.content.infrastructure.repositories.exports import (
 )
 from saber_uli.content.infrastructure.repositories.imports import SqlAlchemyImportRepository
 from saber_uli.content.infrastructure.repositories.items import SqlAlchemyItemRepository
+from saber_uli.content.infrastructure.repositories.personal_data import (
+    SqlAlchemyPersonalDataReader,
+)
 from saber_uli.content.infrastructure.repositories.seed_loads import SqlAlchemySeedLoadRepository
 from saber_uli.shared.application.event_bus import EventBus
 from saber_uli.shared.infrastructure.db import SqlAlchemyUnitOfWork
@@ -78,6 +82,10 @@ class SqlAlchemyContentUnitOfWork(SqlAlchemyUnitOfWork, ContentUnitOfWork):
     @property
     def taxonomy_changes(self) -> TaxonomyChangeRepository:
         return SqlAlchemyTaxonomyChangeRepository(self.session)
+
+    @property
+    def personal_data(self) -> PersonalDataReader:
+        return SqlAlchemyPersonalDataReader(self.session)
 
     @property
     def seed_loads(self) -> SeedLoadRepository:

@@ -358,6 +358,12 @@ class TaxonomyChangeRepository(Protocol):
     async def add(self, change: TaxonomyChange) -> None: ...
 
 
+class PersonalDataReader(Protocol):
+    async def collect(self, user_id: UUID) -> dict[str, Any]:
+        """La sección `banco_de_items` de «Mis datos»: solo lo de esa persona (FR-031 de 001)."""
+        ...
+
+
 class ExportRepository(Protocol):
     async def add(self, record: ExportRecord) -> None: ...
 

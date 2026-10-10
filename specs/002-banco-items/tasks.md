@@ -851,8 +851,9 @@ desactivarla; un docente no puede cambiar la taxonomía (quickstart B20).
 **Purpose**: Mis datos, rendimiento, contrato completo, seguridad, documentación y validación de
 punta a punta.
 
-- [ ] T109 [P] Prueba e implementación de la sección `banco_de_items` de "Mis datos". La prueba va en `backend/tests/integration/content/test_data_export.py`: lista los códigos de los ítems y versiones que la persona creó, modificó o revisó, sin contenido de otras personas. La implementación va en `content/application/data_export.py`, registrada en `DataExportRegistry` desde `main.py` (FR-031 de 001, research R-14) → Qwen
+- [x] T109 [P] Prueba e implementación de la sección `banco_de_items` de "Mis datos". La prueba va en `backend/tests/integration/content/test_data_export.py`: lista los códigos de los ítems y versiones que la persona creó, modificó o revisó, sin contenido de otras personas. La implementación va en `content/application/data_export.py`, registrada en `DataExportRegistry` desde `main.py` (FR-031 de 001, research R-14) → Qwen
   - Terminado: prueba en verde; `GET /api/v1/me/data-export` incluye la sección.
+  - Estado (Opus, 2026-10-10): cerrada. La sección trae `versiones` (con la participación: autor, colaborador, revisor o retiro), `eventos` de la persona con su comentario o motivo, `importaciones` (sin el nombre del archivo, que puede nombrar a terceros), `exportaciones` y `cambios_taxonomia`. La prueba comprueba que no aparecen textos de ítems, comentarios de otras personas ni ítems ajenos. La lee `SqlAlchemyPersonalDataReader` (`uow.personal_data`).
 - [ ] T110 [P] Prueba de rendimiento: `backend/tests/integration/content/test_performance_budgets.py` (SC-003, SC-004, SC-009, SC-010, R-18). Siembra 10 000 ítems con la marca `carga-002-` y mide:
   - vista previa y confirmación de 500 ítems;
   - `listItems` con búsqueda y filtros;

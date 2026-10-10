@@ -33,6 +33,7 @@ from saber_uli.content.application.bank_export import BankExport
 from saber_uli.content.application.bank_import import BankImport
 from saber_uli.content.application.contexts import Contexts
 from saber_uli.content.application.coverage import Coverage
+from saber_uli.content.application.data_export import ContentDataExport
 from saber_uli.content.application.media import MediaLibrary
 from saber_uli.content.application.queries.items import GetItem, ItemHistoryQuery, ListItems
 from saber_uli.content.application.queries.modules import ListContentModules, ListRubrics
@@ -257,6 +258,7 @@ def create_app(
         uow_factory=content_uow, clock=clock, writers=EXPORT_WRITERS
     )
     app.state.content_coverage = Coverage(uow_factory=content_uow)
+    app.state.data_export_registry.register(ContentDataExport(uow_factory=content_uow))
     app.state.content_taxonomy_admin = TaxonomyAdmin(uow_factory=content_uow, clock=clock)
     app.state.content_rubric_admin = RubricAdmin(uow_factory=content_uow, clock=clock)
     app.state.content_item_statistics = ItemStatisticsQuery(uow_factory=content_uow)

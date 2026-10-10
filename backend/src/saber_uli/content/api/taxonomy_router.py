@@ -186,6 +186,7 @@ async def list_rubrics(request: Request, _: Author) -> RubricList:
 
 # ------------------------------------------------------------------------------- cambios (US9)
 
+
 def _storable(value: str) -> str:
     """PostgreSQL no guarda el carácter NUL ni un sustituto UTF-16 suelto: es un 422, no un 500."""
     if "\x00" in value:

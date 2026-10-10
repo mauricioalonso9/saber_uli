@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from saber_uli.content.application.ports import (
+    CoverageCounts,
     ExportedItem,
     ImmutableVersionError,
     ItemFilters,
@@ -196,6 +197,31 @@ class SqlAlchemyItemRepository:
             .order_by(ItemVersionRow.number)
         )
         return [_version(version, context_code) for version, context_code in rows]
+
+    async def coverage_counts(self, module_code: str, tag: str) -> CoverageCounts:
+        # Cada ítem tiene a lo sumo una versión publicada y una abierta: contar versiones es
+        # contar ítems.
+        node = getattr(ItemVersionRow, tag)
+        rows = await self._db.execute(
+            select(node, ItemVersionRow.state, func.count())
+            .join(ItemRow, ItemRow.id == ItemVersionRow.item_id)
+            .where(
+                ItemRow.module_code == module_code,
+                ItemVersionRow.state.in_(("published", "in_review")),
+            )
+            .group_by(node, ItemVersionRow.state)
+        )
+        totals = {"published": 0, "in_review": 0}
+        by_node: dict[UUID, list[int]] = {}
+        for node_id, state, count in rows:
+            totals[state] += count
+            if node_id is not None:
+                by_node.setdefault(node_id, [0, 0])[0 if state == "published" else 1] += count
+        return CoverageCounts(
+            published_total=totals["published"],
+            in_review_total=totals["in_review"],
+            by_node={node_id: (p, r) for node_id, (p, r) in by_node.items()},
+        )
 
     async def export_batch(
         self, filters: ItemFilters, *, latest: bool, after: str | None, limit: int

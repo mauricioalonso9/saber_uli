@@ -22,6 +22,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from saber_uli.config import Settings, get_settings
 from saber_uli.content.api.contexts_router import router as content_contexts_router
+from saber_uli.content.api.insights_router import router as content_insights_router
 from saber_uli.content.api.items_router import router as content_items_router
 from saber_uli.content.api.media_router import router as content_media_router
 from saber_uli.content.api.review_router import router as content_review_router
@@ -31,6 +32,7 @@ from saber_uli.content.application.authoring import Authoring
 from saber_uli.content.application.bank_export import BankExport
 from saber_uli.content.application.bank_import import BankImport
 from saber_uli.content.application.contexts import Contexts
+from saber_uli.content.application.coverage import Coverage
 from saber_uli.content.application.media import MediaLibrary
 from saber_uli.content.application.queries.items import GetItem, ItemHistoryQuery, ListItems
 from saber_uli.content.application.queries.modules import ListContentModules, ListRubrics
@@ -251,6 +253,7 @@ def create_app(
     app.state.content_bank_export = BankExport(
         uow_factory=content_uow, clock=clock, writers=EXPORT_WRITERS
     )
+    app.state.content_coverage = Coverage(uow_factory=content_uow)
     app.state.content_media = MediaLibrary(
         uow_factory=content_uow, processor=PillowImageProcessor(), clock=clock
     )
@@ -280,6 +283,7 @@ def create_app(
     app.include_router(content_media_router, dependencies=v1)
     app.include_router(content_contexts_router, dependencies=v1)
     app.include_router(content_transfer_router, dependencies=v1)
+    app.include_router(content_insights_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

@@ -704,7 +704,7 @@ sus publicados, En revisión, porcentaje, peso y "Faltan N" (quickstart B18).
 
 ### Tests for User Story 7 ⚠️
 
-- [ ] T091 [P] [US7] Prueba: `backend/tests/integration/content/test_coverage.py` (FR-039, FR-040, R-16). Cubre:
+- [x] T091 [P] [US7] Prueba: `backend/tests/integration/content/test_coverage.py` (FR-039, FR-040, R-16). Cubre:
   - la agrupación por el tipo de categoría que tiene pesos: LC por afirmación, RC y CC por competencia e Inglés por parte (research R-16);
   - `published`, `in_review` y `published_share`;
   - `missing = max(0, ceil(bank_target × target_weight) − published)` y `below_target`;
@@ -713,22 +713,27 @@ sus publicados, En revisión, porcentaje, peso y "Faltan N" (quickstart B18).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T092 [P] [US7] Prueba de componentes: `frontend/src/features/content/CoveragePage.test.tsx`. Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. 6 casos con el banco inicial real (incluida la API y el 403 de un estudiante); fallaron antes de T093. Las ayudas del banco inicial pasaron a `tests/integration/content/seed_bank.py`, que comparte con test_bank_export.py.
+- [x] T092 [P] [US7] Prueba de componentes: `frontend/src/features/content/CoveragePage.test.tsx`. Cubre:
   - la tabla por categoría con "Faltan N" en texto (no solo color) y orden por faltantes;
   - cada categoría enlaza a `/banco` filtrado por ella;
   - axe sin violaciones.
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. 4 casos; fallaron antes de T094.
 
 ### Implementation for User Story 7
 
-- [ ] T093 [US7] Implementar `content/application/coverage.py` y `getModuleCoverage` en `content/api/insights_router.py` para que pase T091 → Qwen
+- [x] T093 [US7] Implementar `content/application/coverage.py` y `getModuleCoverage` en `content/api/insights_router.py` para que pase T091 → Qwen
   - Terminado: T091 en verde; la operación entra en la suite de T005.
-- [ ] T094 [US7] Implementar `CoveragePage.tsx` para que pase T092 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 6 en verde; getModuleCoverage en la suite de contrato. El tipo de agrupación no está fijo en el código: es el tipo de categoría de ítem con más categorías activas con peso (FR-040). Los conteos salen de una consulta agrupada (`coverage_counts`). Decisión: el contrato exige `grouped_by`; para CE, sin pesos, va `competence` con `categories` vacío.
+- [x] T094 [US7] Implementar `CoveragePage.tsx` para que pase T092 → Qwen
   - Terminado: T092 en verde.
-- [ ] T095 [US7] Revisión de US7 (Opus), anotada en `specs/002-banco-items/tasks.md`, con el escenario B18 → Opus
+  - Estado (Opus, 2026-10-09): cerrada. 4 en verde; Vitest completo 287. Orden por faltantes; "Faltan N"/"Cumple el objetivo" en texto; cada categoría enlaza a `/banco?module=…&taxonomy_node=…` (la ruta `/banco` ganó `validateSearch` con esos dos filtros).
+- [x] T095 [US7] Revisión de US7 (Opus), anotada en `specs/002-banco-items/tasks.md`, con el escenario B18 → Opus
   - Terminado: US7 aprobada.
+  - Estado (Opus, 2026-10-09): cerrada. US7 aprobada. B18 en `frontend/tests/e2e/content-coverage.spec.ts`, en verde en pixel-7 con axe. Faltante con `ceil(meta × peso)` en Decimal; retirados y borradores no cuentan. Decisión pendiente (no es de US7): la lista del banco en `/banco` (listItems con filtros) no tiene tarea; sigue la página provisional y los enlaces de la cobertura llegan a ella.
 
 ---
 

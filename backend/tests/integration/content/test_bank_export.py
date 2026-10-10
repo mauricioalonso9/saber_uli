@@ -8,12 +8,10 @@ lleva lo que puede representar y cuenta el resto. Cada exportación queda regist
 import io
 import json
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 import httpx
-import pytest
 from openpyxl import load_workbook
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -24,11 +22,8 @@ from saber_uli.content.application.bank_export import (
     ExportFile,
     ExportRequest,
 )
-from saber_uli.content.application.review import Review
-from saber_uli.content.application.seed_loader import SeedLoader
 from saber_uli.content.domain.item_version import VersionState
 from saber_uli.content.infrastructure.interchange.export_format import EXPORT_WRITERS
-from saber_uli.content.infrastructure.interchange.json_format import read_bundle
 from saber_uli.content.infrastructure.interchange.xlsx_format import COLUMNS
 from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
 from saber_uli.identity.domain.roles import Role
@@ -37,47 +32,16 @@ from saber_uli.shared.domain.clock import FixedClock
 from saber_uli.shared.infrastructure.db import create_session_factory
 from tests.integration.content.conftest import UowFactory
 from tests.integration.content.imports import importer
+from tests.integration.content.seed_bank import bank, publish, seed, seed_codes
 from tests.integration.identity.staff import StaffFactory
 
-SEED = Path(__file__).parents[3] / "seeds" / "banco_inicial_saber_uli.json"
+__all__ = ["bank"]  # fixture
+
 NOW = datetime(2026, 10, 9, 21, 0, tzinfo=UTC)
 TEACHER = uuid4()
-ADMIN = uuid4()
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 ING_PART_1 = [f"ING-{n:04d}" for n in range(1, 6)]
 TABLE_ITEMS = ["LC-0007", "LC-0008"]  # su contexto LC-CTX-003 es una tabla
-
-
-def seed() -> dict[str, Any]:
-    data: dict[str, Any] = json.loads(SEED.read_text(encoding="utf-8"))
-    return data
-
-
-def seed_codes(module: str | None = None) -> list[str]:
-    bank = seed()
-    entries = bank["items"] + bank["consignas_escritura"]
-    return sorted(e["id"] for e in entries if module is None or e["modulo"] == module)
-
-
-@pytest.fixture
-async def bank(content_uow: UowFactory) -> None:
-    loader = SeedLoader(uow_factory=content_uow, clock=FixedClock(NOW), reader=read_bundle)
-    await loader.execute(SEED.read_bytes())
-
-
-async def publish(uow: UowFactory, *codes: str) -> None:
-    review = Review(uow_factory=uow, clock=FixedClock(NOW))
-    for code in codes:
-        async with uow() as unit:
-            item = await unit.items.get_by_code(code)
-        assert item is not None
-        await review.approve(
-            code,
-            ADMIN,
-            expected_revision=item.revision,
-            confirms_alignment=True,
-            confirms_originality=True,
-        )
 
 
 def exporter(uow: UowFactory, *, batch_size: int = EXPORT_BATCH_SIZE) -> BankExport:

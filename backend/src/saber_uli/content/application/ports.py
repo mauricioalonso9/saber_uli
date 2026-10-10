@@ -133,6 +133,15 @@ class ContextRepository(Protocol):
 
 
 @dataclass(frozen=True)
+class CoverageCounts:
+    """Conteos de la cobertura: `(publicados, en revisión)` en total y por categoría."""
+
+    published_total: int
+    in_review_total: int
+    by_node: dict[UUID, tuple[int, int]]
+
+
+@dataclass(frozen=True)
 class ExportedItem:
     """Un ítem con la versión que se exporta (con el código de su contexto)."""
 
@@ -192,6 +201,11 @@ class ItemRepository(Protocol):
         self, filters: ItemFilters, *, offset: int, limit: int
     ) -> tuple[list[ItemSummaryRow], int]:
         """Página de ítems ordenada por código y el total (SC-009)."""
+        ...
+
+    async def coverage_counts(self, module_code: str, tag: str) -> CoverageCounts:
+        """Ítems Publicados y En revisión del módulo, en total y por la categoría `tag`
+        (`assertion_id`, `competence_id`, `part_id`…) de esa versión (FR-039)."""
         ...
 
     async def export_batch(

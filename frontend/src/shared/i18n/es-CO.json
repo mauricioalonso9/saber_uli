@@ -574,6 +574,22 @@
     "version": "versión {{number}}",
     "openVersion": "Versión abierta",
     "publishedVersion": "Versión publicada",
+    "coverage": {
+      "summary": "Meta del banco: {{target}} ítems. Hay {{published}} publicados y {{inReview}} en revisión.",
+      "noWeights": "Este módulo no tiene distribución objetivo por categorías: solo se muestran los totales.",
+      "table": "Cobertura de {{module}}",
+      "columns": {
+        "category": "Categoría",
+        "published": "Publicados",
+        "inReview": "En revisión",
+        "share": "Porcentaje real",
+        "target": "Porcentaje objetivo",
+        "status": "Estado"
+      },
+      "missing_one": "Falta {{count}}",
+      "missing_other": "Faltan {{count}}",
+      "met": "Cumple el objetivo"
+    },
     "export": {
       "intro": "Descarga el banco, o una parte, en el mismo formato con que se importa. Puedes editar el archivo y volver a importarlo: solo cambia lo que modifiques.",
       "format": "Formato",

@@ -15,6 +15,10 @@ class ItemNotFoundError(NotFoundError):
     slug = "not-found"
 
 
+class ModuleNotFoundError(NotFoundError):
+    slug = "not-found"
+
+
 class InvalidTransitionError(ConflictError):
     slug = "invalid-transition"
 

@@ -900,7 +900,13 @@ punta a punta.
   - Estado (Opus, 2026-10-10): abierta.
     - Cobertura (unitarias, integración de content y contrato; 740 en verde): `content.domain` 96,3 % y `content.application` 89,9 % (líneas y ramas).
     - `/speckit.analyze`: 1 crítico corregido (D1: la prueba de infraestructura del límite del proxy, que faltaba según el principio IV); E1 (7 FR cubiertos sin su ID en las tareas) e I1 (R-04 sin la columna `contexto_subtipo`) a la espera de aprobar las ediciones; E2 (lista `/banco` y filtro de señales) y O1 (límite de `exportItems`), decisiones pendientes.
-    - Falta: escenarios B1 a B23 sobre un stack desde cero; CI en verde en el PR (requiere push y PR); SC-007 con un docente real; WebKit de T114.
+    - Stack desde cero (proyecto aparte `saber-uli-t117`, volúmenes nuevos, 2026-10-10): `docker compose up -d --build --wait` en 124 s.
+      - B1: `migrate` cargó 5 módulos, 76 categorías, 1 rúbrica, 8 contextos y 46 ítems. La parte de interfaz ("46 ítems en `/banco`") no se puede comprobar: la lista del banco no existe (decisión pendiente E2/T095).
+      - B2: repetir `load-seed` da 0 agregados y 46 sin cambios. B3 y B4: `test_seed_loader.py` y `test_cli_load_seed.py` (integración, en verde).
+      - B5 a B20: suite e2e completa contra ese stack en pixel-7 y estado-global: 56 en verde, 0 fallos; 39 omitidas (WebKit, por el archivo hosts).
+      - B21: con `saber_app`, `UPDATE content.item_events` y `DELETE content.item_versions` responden `permission denied`.
+      - B22: T110. B23: 1 789 líneas de log de api, worker y beat tras la suite, sin nombres, correos, enunciados, comentarios ni nombres de archivo.
+    - Falta: CI en verde en el PR (requiere push y PR); SC-007 con un docente real; WebKit de T114; la parte de interfaz de B1 (lista del banco).
 
 ---
 

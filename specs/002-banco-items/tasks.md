@@ -854,7 +854,7 @@ punta a punta.
 - [x] T109 [P] Prueba e implementación de la sección `banco_de_items` de "Mis datos". La prueba va en `backend/tests/integration/content/test_data_export.py`: lista los códigos de los ítems y versiones que la persona creó, modificó o revisó, sin contenido de otras personas. La implementación va en `content/application/data_export.py`, registrada en `DataExportRegistry` desde `main.py` (FR-031 de 001, research R-14) → Qwen
   - Terminado: prueba en verde; `GET /api/v1/me/data-export` incluye la sección.
   - Estado (Opus, 2026-10-10): cerrada. La sección trae `versiones` (con la participación: autor, colaborador, revisor o retiro), `eventos` de la persona con su comentario o motivo, `importaciones` (sin el nombre del archivo, que puede nombrar a terceros), `exportaciones` y `cambios_taxonomia`. La prueba comprueba que no aparecen textos de ítems, comentarios de otras personas ni ítems ajenos. La lee `SqlAlchemyPersonalDataReader` (`uow.personal_data`).
-- [ ] T110 [P] Prueba de rendimiento: `backend/tests/integration/content/test_performance_budgets.py` (SC-003, SC-004, SC-009, SC-010, R-18). Siembra 10 000 ítems con la marca `carga-002-` y mide:
+- [x] T110 [P] Prueba de rendimiento: `backend/tests/integration/content/test_performance_budgets.py` (SC-003, SC-004, SC-009, SC-010, R-18). Siembra 10 000 ítems con la marca `carga-002-` y mide:
   - vista previa y confirmación de 500 ítems;
   - `listItems` con búsqueda y filtros;
   - cobertura;
@@ -863,8 +863,10 @@ punta a punta.
 
   Registra los tiempos y los exige solo con `PERF_BUDGETS_ENFORCE=1` → Qwen
   - Terminado: corre en CI sin exigir; los tiempos quedan anotados en esta tarea.
-- [ ] T111 Ajustar índices o consultas de `backend/migrations/versions/` y `content/application/queries/` si T110 supera las metas (con `EXPLAIN ANALYZE`) y registrar las mediciones en `specs/002-banco-items/tasks.md` → Opus
+  - Estado (Opus, 2026-10-10): cerrada. Mediciones en local (Windows 11, Docker Desktop, PostgreSQL 18 en Testcontainers, app ASGI en el mismo proceso), con 10 000 ítems publicados de LC: vista previa de 500 1,15 s (meta 30 s); confirmación de 500 3,00 s (60 s); listItems con búsqueda y filtros 0,19 s y por categoría 0,12 s (2 s); cobertura de LC 0,07 s (2 s); estadísticas de un ítem 0,13 s (2 s); exportación completa en JSON 0,90 s (60 s).
+- [x] T111 Ajustar índices o consultas de `backend/migrations/versions/` y `content/application/queries/` si T110 supera las metas (con `EXPLAIN ANALYZE`) y registrar las mediciones en `specs/002-banco-items/tasks.md` → Opus
   - Terminado: metas cumplidas en local o decisión pendiente registrada con datos para el servidor de referencia.
+  - Estado (Opus, 2026-10-10): cerrada sin cambios: T110 cumple todas las metas en local con margen de 10 a 60 veces, así que no hizo falta EXPLAIN ANALYZE ni índices nuevos. La medición en el servidor de referencia queda junto con la pendiente de 001/T176.
 - [ ] T112 Completar la suite de contrato de T005: las 35 operaciones de `specs/002-banco-items/contracts/openapi.yaml` implementadas y sin fallos de Schemathesis; la verificación de `main.py` no reporta operaciones faltantes → Opus
   - Terminado: `uv run pytest tests/contract` en verde con las dos suites.
 - [x] T113 [P] Prueba de logs sin datos personales: `backend/tests/integration/content/test_content_logs.py` captura los logs de la carga, la importación (incluido el nombre del archivo), la revisión y la exportación, y comprueba que no hay textos de ítems, nombres, correos ni nombres de archivo (principio V) → Opus

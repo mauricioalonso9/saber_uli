@@ -218,6 +218,18 @@ def test_cabeceras_de_seguridad_del_proxy(infra_stack: list[str]) -> None:
     assert headers["X-Frame-Options"] == "DENY"
 
 
+def test_el_proxy_admite_importaciones_de_hasta_10_mb(infra_stack: list[str]) -> None:
+    # La importación del banco admite archivos de 10 MB (FR-037; 002/T115, H3); el resto de la
+    # API sigue limitado a 2 MB. Sin la API en esta pila, lo que pasa el proxy responde 502.
+    body = {"file": ("banco.json", b"0" * (3 * 1024 * 1024), "application/json")}
+
+    imports = httpx.post(f"{PROXY_URL}/api/v1/content/imports", files=body, timeout=30)
+    other = httpx.post(f"{PROXY_URL}/api/v1/content/media", files=body, timeout=30)
+
+    assert imports.status_code != 413
+    assert other.status_code == 413
+
+
 def test_el_proxy_no_registra_consultas_ni_ip(infra_stack: list[str]) -> None:
     # Las búsquedas de los listados (`?q=`) pueden llevar correos o nombres (T178).
     marker = f"t178-{secrets.token_hex(4)}"

@@ -183,3 +183,19 @@ def test_un_sobre_con_estructura_examen_que_no_es_objeto(seed_bytes: bytes) -> N
 
     with pytest.raises(UnreadableFileError):
         read_bundle(json.dumps(bank).encode())
+
+
+@pytest.mark.parametrize("code", ["=HYPERLINK(1)", "lc-0001", "LC 0001", "LC-0001-A-B-C"])
+def test_un_codigo_fuera_del_formato_es_un_error_de_la_entrada(
+    seed_bytes: bytes, code: str
+) -> None:
+    """T115: los códigos del archivo siguen el formato de la API (`LC-0001`, `ING-CTX-P1-001`)."""
+    data = json.loads(seed_bytes)
+    data["items"][0]["id"] = code
+    data["contextos"][0]["id"] = code
+
+    bundle = read_bundle(json.dumps(data).encode())
+
+    assert code not in {item.code for item in bundle.items}
+    assert code not in {context.code for context in bundle.contexts}
+    assert {e.entity.value for e in bundle.errors if e.code == code} == {"item", "context"}

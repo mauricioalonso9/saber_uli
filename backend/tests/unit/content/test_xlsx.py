@@ -26,6 +26,7 @@ from saber_uli.content.infrastructure.interchange.xlsx_format import (
     OPTIONAL_COLUMNS,
     UnsupportedFileFormatError,
     read_xlsx,
+    write_report,
     write_template,
 )
 
@@ -204,3 +205,15 @@ def test_el_xml_con_entidades_externas_se_rechaza() -> None:
 
     with pytest.raises(UnreadableFileError):
         read_xlsx(_zip(files))
+
+
+def test_el_reporte_escribe_como_texto_lo_que_empieza_por_igual() -> None:
+    """T115 (ASVS 5.3.1): un código o mensaje del archivo nunca llega como fórmula."""
+    hostile = '=HYPERLINK("http://ev.il","x")'
+    content = write_report([(hostile, "item", "code", "invalid_value", "=1+1")])
+
+    sheet = load_workbook(io.BytesIO(content))["errores"]
+
+    assert sheet["A2"].value == hostile
+    assert sheet["A2"].data_type == "s"
+    assert sheet["E2"].data_type == "s"

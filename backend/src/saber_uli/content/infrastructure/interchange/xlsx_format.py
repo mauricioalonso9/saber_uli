@@ -323,7 +323,7 @@ def write_template(nodes: Iterable[TaxonomyNode]) -> bytes:
         letter = get_column_letter(position)
         lists.cell(row=1, column=position, value=title)
         for line, value in enumerate(values, start=2):
-            lists.cell(row=line, column=position, value=value)
+            _as_text(lists, value, row=line, column=position)
         if values:
             _validate(items, target, f"listas!${letter}$2:${letter}${len(values) + 1}")
 
@@ -436,6 +436,13 @@ def _row(item: ItemSpec, context: ContextSpec | None) -> list[Any]:
     return [values.get(name) for name in _ALL_COLUMNS]
 
 
+def _as_text(sheet: Any, value: Any, *, row: int, column: int) -> None:
+    """Un texto que empieza por "=" va como texto, nunca como fórmula (ASVS 5.3.1; T115)."""
+    cell = sheet.cell(row=row, column=column, value=value)
+    if isinstance(value, str) and value.startswith("="):
+        cell.data_type = "s"
+
+
 # ------------------------------------------------------------------------------- reporte
 
 _REPORT_HEADER = ("Código", "Entidad", "Campo", "Regla", "Mensaje")
@@ -448,7 +455,9 @@ def write_report(rows: Iterable[tuple[str, str, str, str, str]]) -> bytes:
     sheet = workbook.create_sheet("errores")
     sheet.append(list(_REPORT_HEADER))
     for row in rows:
-        sheet.append(list(row))
+        line = sheet.max_row + 1
+        for column, value in enumerate(row, start=1):
+            _as_text(sheet, value, row=line, column=column)
     for letter, width in zip("ABCDE", (16, 14, 28, 26, 80), strict=True):
         sheet.column_dimensions[letter].width = width
     buffer = io.BytesIO()

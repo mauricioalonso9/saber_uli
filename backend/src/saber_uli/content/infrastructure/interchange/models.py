@@ -25,6 +25,9 @@ Dificultad = Literal["baja", "media", "alta"]
 Estado = Literal["borrador", "en_revision", "publicado", "retirado"]
 Origen = Literal["ia", "docente", "banco_inicial"]
 Clave = str
+# El mismo formato de código que la API (`LC-0001`, `ING-CTX-P1-001`): un ítem o contexto con otro
+# código no se podría abrir después y, en una hoja de cálculo, podría ser una fórmula (T115).
+CODE_PATTERN = r"^[A-Z]{2,3}(-[A-Z0-9]+){1,3}$"
 
 
 class _Strict(BaseModel):
@@ -91,7 +94,7 @@ class Imagen(_Strict):
 
 
 class Contexto(_Strict):
-    id: str = Field(min_length=1, max_length=32)
+    id: str = Field(min_length=1, max_length=32, pattern=CODE_PATTERN)
     modulo: Literal["LC", "RC", "CC", "ING", "CE"]
     titulo: str
     tipo: Literal["texto", "tabla", "imagen", "opciones_compartidas"] | None = None
@@ -115,13 +118,13 @@ class Opcion(_Strict):
 
 
 class Item(_Strict):
-    id: str = Field(min_length=1, max_length=32)
+    id: str = Field(min_length=1, max_length=32, pattern=CODE_PATTERN)
     modulo: Literal["LC", "RC", "CC", "ING"]
     dificultad: Dificultad
     enunciado: str
     explicacion: str = ""
     version: int | None = Field(default=None, ge=1)
-    contexto_id: str | None = None
+    contexto_id: str | None = Field(default=None, max_length=32, pattern=CODE_PATTERN)
     competencia: str | None = None
     afirmacion: str | None = None
     evidencia: str | None = None
@@ -136,7 +139,7 @@ class Item(_Strict):
 
 
 class Consigna(_Strict):
-    id: str = Field(min_length=1, max_length=32)
+    id: str = Field(min_length=1, max_length=32, pattern=CODE_PATTERN)
     modulo: Literal["CE"]
     dificultad: Dificultad
     contexto: str

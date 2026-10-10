@@ -867,8 +867,9 @@ punta a punta.
   - Terminado: metas cumplidas en local o decisión pendiente registrada con datos para el servidor de referencia.
 - [ ] T112 Completar la suite de contrato de T005: las 35 operaciones de `specs/002-banco-items/contracts/openapi.yaml` implementadas y sin fallos de Schemathesis; la verificación de `main.py` no reporta operaciones faltantes → Opus
   - Terminado: `uv run pytest tests/contract` en verde con las dos suites.
-- [ ] T113 [P] Prueba de logs sin datos personales: `backend/tests/integration/content/test_content_logs.py` captura los logs de la carga, la importación (incluido el nombre del archivo), la revisión y la exportación, y comprueba que no hay textos de ítems, nombres, correos ni nombres de archivo (principio V) → Opus
+- [x] T113 [P] Prueba de logs sin datos personales: `backend/tests/integration/content/test_content_logs.py` captura los logs de la carga, la importación (incluido el nombre del archivo), la revisión y la exportación, y comprueba que no hay textos de ítems, nombres, correos ni nombres de archivo (principio V) → Opus
   - Terminado: prueba en verde.
+  - Estado (Opus, 2026-10-10): cerrada. En verde sin cambios en el código: con logs a nivel DEBUG, la carga del banco con errores (por la CLI), la importación con un nombre de archivo único, el reporte, la confirmación, la devolución con comentario, el comentario del docente, el rechazo con motivo, un 422 con el enunciado en el cuerpo y la exportación no dejan ningún nombre, correo, enunciado, texto de contexto, comentario, motivo ni nombre de archivo.
 - [ ] T114 [P] Agregar `/banco`, `/banco/items/nuevo` (con la vista previa abierta), `/banco/importaciones/$id` y `/banco/cobertura` al recorrido de accesibilidad de `frontend/tests/e2e/a11y.spec.ts`, y comprobar en el viewport móvil que no hay desplazamiento horizontal → Qwen
   - Terminado: axe sin violaciones en Chromium y WebKit.
 - [ ] T115 Revisión ASVS 4.0.3 nivel 2 de la funcionalidad en `docs/security/asvs-002-banco-items.md`: V5 (Markdown, salida), V12 (archivos: XLSX, JSON e imágenes), V4 (permisos y autoaprobación), V7 (logs) y V13 (API) → Opus

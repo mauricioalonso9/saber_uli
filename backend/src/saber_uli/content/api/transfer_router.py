@@ -1,5 +1,6 @@
-"""Importación del banco (contrato: `getImportTemplate`, `createImport`, `listImports`, `getImport`,
-`getImportReport`, `confirmImport`; FR-028 a FR-037; research R-04 y R-05).
+"""Importación y exportación del banco (contrato: `getImportTemplate`, `createImport`,
+`listImports`, `getImport`, `getImportReport`, `confirmImport` y `exportItems`; FR-028 a FR-038;
+research R-04, R-05 y R-18).
 
 Permiso `content:author` con sesión privilegiada. Cada docente ve sus importaciones; quien revisa
 (administración) las ve todas. Solo quien subió el archivo lo confirma. Subir cuenta para el
@@ -10,7 +11,7 @@ from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Path, Query, Request, UploadFile
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict
 
 from saber_uli.content.api import schemas
@@ -20,6 +21,7 @@ from saber_uli.content.api.dependencies import (
     privileged_with,
     reject_unknown_query,
 )
+from saber_uli.content.application.bank_export import BankExport, ExportRequest
 from saber_uli.content.application.bank_import import BankImport
 from saber_uli.content.application.bundle import MAX_IMPORT_BYTES
 from saber_uli.content.domain.errors import FileTooLargeError
@@ -188,3 +190,39 @@ async def confirm_import(
         originality_declared=body.originality_declared,
     )
     return await _detail(request, job, PageParams())
+
+
+@router.get("/export", operation_id="exportItems")
+async def export_items(
+    request: Request,
+    user: Author,
+    format: Annotated[Literal["json", "xlsx"], Query()],
+    version: Annotated[Literal["published", "latest"], Query()] = "published",
+    module: Annotated[Literal["LC", "RC", "CC", "ING", "CE"] | None, Query()] = None,
+    state: Annotated[Literal["draft", "in_review", "published", "retired"] | None, Query()] = None,
+    origin: Annotated[Literal["seed", "teacher", "ai"] | None, Query()] = None,
+    difficulty: Annotated[Literal["low", "medium", "high"] | None, Query()] = None,
+    taxonomy_node: Annotated[UUID | None, Query()] = None,
+) -> StreamingResponse:
+    """El archivo sale en flujo; `X-Skipped-Items` cuenta lo que la plantilla no representa."""
+    service: BankExport = request.app.state.content_bank_export
+    exported = await service.export(
+        ExportRequest(
+            format=format,
+            version=version,
+            module=module,
+            state=state,
+            origin=origin,
+            difficulty=difficulty,
+            taxonomy_node=taxonomy_node,
+        ),
+        user.id,
+    )
+    return StreamingResponse(
+        exported.chunks,
+        media_type=exported.media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{exported.filename}"',
+            "X-Skipped-Items": str(exported.skipped),
+        },
+    )

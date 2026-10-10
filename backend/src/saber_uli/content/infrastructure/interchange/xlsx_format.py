@@ -17,6 +17,7 @@ from collections.abc import Iterable, Iterator
 from typing import Any
 
 from openpyxl import Workbook, load_workbook
+from openpyxl.cell import WriteOnlyCell
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from pydantic import ValidationError
@@ -33,7 +34,9 @@ from saber_uli.content.application.bundle import (
     UnreadableFileError,
     UnsupportedFileFormatError,
 )
+from saber_uli.content.domain.context import ContextKind
 from saber_uli.content.domain.errors import FileTooLargeError
+from saber_uli.content.domain.item_version import ItemKind
 from saber_uli.content.domain.taxonomy import TaxonomyNode, TaxonomyNodeKind
 from saber_uli.content.domain.validation import ContentIssue, ValidationRule
 from saber_uli.content.infrastructure.interchange import mapping
@@ -47,7 +50,9 @@ __all__ = [
     "COLUMNS",
     "MAX_FILE_BYTES",
     "MAX_UNCOMPRESSED_BYTES",
+    "OPTIONAL_COLUMNS",
     "UnsupportedFileFormatError",
+    "XlsxExportWriter",
     "read_xlsx",
     "write_template",
 ]
@@ -75,6 +80,8 @@ COLUMNS: tuple[str, ...] = (
     "clave_correcta",
     "explicacion",
 )
+# Columnas que una plantilla anterior puede no tener.
+OPTIONAL_COLUMNS: tuple[str, ...] = ("contexto_subtipo",)
 
 _INSTRUCTIONS: tuple[tuple[str, str], ...] = (
     ("id", "Código del ítem, por ejemplo LC-0101. Si ya existe, se crea una versión nueva."),
@@ -91,6 +98,7 @@ _INSTRUCTIONS: tuple[tuple[str, str], ...] = (
         "contexto que ya está en el banco, deje ambos vacíos.",
     ),
     ("contexto_tipo_texto", "Solo Lectura crítica: el tipo de texto del contexto."),
+    ("contexto_subtipo", "Opcional: el subtipo del texto (por ejemplo, columna de opinión)."),
     ("enunciado", "La pregunta. Admite Markdown."),
     ("opcion_A … opcion_D", "Texto de cada opción (Inglés partes 2 a 5: A a C)."),
     ("retroalimentacion_A … D", "Por qué es correcta, o el error que representa."),
@@ -134,9 +142,12 @@ def _rows(content: bytes) -> Iterator[tuple[int, dict[str, Any]]]:
         missing = [name for name in COLUMNS if name not in header]
         if missing:
             raise UnreadableFileError(f"Faltan columnas de la plantilla: {', '.join(missing)}.")
-        index = {name: header.index(name) for name in COLUMNS}
+        index = {
+            name: header.index(name) for name in (*COLUMNS, *OPTIONAL_COLUMNS) if name in header
+        }
         for number, values in enumerate(rows, start=2):
-            record = {
+            record = dict.fromkeys(OPTIONAL_COLUMNS)
+            record |= {
                 name: _clean(values[position] if position < len(values) else None)
                 for name, position in index.items()
             }
@@ -229,6 +240,7 @@ def _context(
         "tipo": "texto",
         "contenido_md": text,
         "tipo_texto": _text(record["contexto_tipo_texto"]),
+        "subtipo": _text(record["contexto_subtipo"]),
         "parte": record["parte"],
         "origen": record["origen"] or "docente",
     }
@@ -297,19 +309,9 @@ def write_template(nodes: Iterable[TaxonomyNode]) -> bytes:
     workbook = Workbook()
     workbook.remove(workbook.worksheets[0])
     items = workbook.create_sheet(SHEET)
-    items.append(list(COLUMNS))
+    _items_header(items)
     items.freeze_panes = "B2"
-    for position, name in enumerate(COLUMNS, start=1):
-        items.column_dimensions[get_column_letter(position)].width = (
-            40 if name in ("enunciado", "contexto_texto", "explicacion") else 18
-        )
-
-    instructions = workbook.create_sheet("instrucciones")
-    instructions.append(["Columna", "Qué escribir"])
-    for row in _INSTRUCTIONS:
-        instructions.append(list(row))
-    instructions.column_dimensions["A"].width = 32
-    instructions.column_dimensions["B"].width = 100
+    _instructions(workbook)
 
     lists = workbook.create_sheet("listas")
     columns: list[tuple[str, str, list[str]]] = [
@@ -335,6 +337,23 @@ def write_template(nodes: Iterable[TaxonomyNode]) -> bytes:
     return buffer.getvalue()
 
 
+def _items_header(sheet: Any) -> None:
+    for position, name in enumerate(_ALL_COLUMNS, start=1):
+        sheet.column_dimensions[get_column_letter(position)].width = (
+            40 if name in ("enunciado", "contexto_texto", "explicacion") else 18
+        )
+    sheet.append(list(_ALL_COLUMNS))
+
+
+def _instructions(workbook: Workbook) -> None:
+    sheet = workbook.create_sheet("instrucciones")
+    sheet.column_dimensions["A"].width = 32
+    sheet.column_dimensions["B"].width = 100
+    sheet.append(["Columna", "Qué escribir"])
+    for row in _INSTRUCTIONS:
+        sheet.append(list(row))
+
+
 def _range(column: str) -> str:
     letter = get_column_letter(COLUMNS.index(column) + 1)
     return f"{letter}2:{letter}{TEMPLATE_ROWS + 1}"
@@ -345,6 +364,76 @@ def _validate(sheet: Any, column: str, source: str) -> None:
     validation.error = "Elige un valor de la lista."
     sheet.add_data_validation(validation)
     validation.add(_range(column))
+
+
+# ------------------------------------------------------------------------------- exportación
+
+_ALL_COLUMNS = (*COLUMNS, *OPTIONAL_COLUMNS)
+_TEMPLATE_MODULES = frozenset({"LC", "RC", "CC", "ING"})
+XLSX_MEDIA_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+class XlsxExportWriter:
+    """Exportación en la plantilla (FR-038): solo lo que la plantilla puede representar.
+
+    Quedan fuera las consignas, los ítems de emparejamiento (Inglés parte 1) y los que usan un
+    contexto que no es de texto (imagen, tabla u opciones compartidas).
+    """
+
+    media_type = XLSX_MEDIA_TYPE
+    extension = "xlsx"
+    streams = False
+
+    def __init__(self) -> None:
+        self._workbook = Workbook(write_only=True)
+        self._sheet = self._workbook.create_sheet(SHEET)
+        _items_header(self._sheet)
+
+    def accepts(self, item: ItemSpec, context: ContextSpec | None) -> bool:
+        return (
+            item.kind is ItemKind.SELECTION
+            and item.module_code in _TEMPLATE_MODULES
+            and all(option.key in KEYS for option in item.options or ())
+            and (
+                context is None
+                or (context.kind is ContextKind.TEXT and context.shared_options is None)
+            )
+        )
+
+    def begin(self) -> bytes:
+        return b""
+
+    def items(self, entries: Iterable[tuple[ItemSpec, ContextSpec | None]]) -> bytes:
+        for item, context in entries:
+            self._sheet.append([self._cell(value) for value in _row(item, context)])
+        return b""
+
+    def end(self, tail: Bundle) -> bytes:  # noqa: ARG002 - cada fila ya lleva su contexto
+        _instructions(self._workbook)
+        buffer = io.BytesIO()
+        self._workbook.save(buffer)
+        return buffer.getvalue()
+
+    def _cell(self, value: Any) -> Any:
+        cell = WriteOnlyCell(self._sheet, value=value)
+        if isinstance(value, str) and value.startswith("="):
+            cell.data_type = "s"  # texto, nunca una fórmula que Excel evaluaría
+        return cell
+
+
+def _row(item: ItemSpec, context: ContextSpec | None) -> list[Any]:
+    values: dict[str, Any] = mapping.item_out(item)
+    if context is not None:
+        values["contexto_titulo"] = context.title
+        values["contexto_tipo_texto"] = context.text_type_code
+        values["contexto_texto"] = context.body_md
+        values["contexto_subtipo"] = context.subtype
+    for option in item.options or ():
+        values[f"opcion_{option.key}"] = option.text
+        values[f"retroalimentacion_{option.key}"] = option.feedback
+        if option.correct:
+            values["clave_correcta"] = option.key
+    return [values.get(name) for name in _ALL_COLUMNS]
 
 
 # ------------------------------------------------------------------------------- reporte

@@ -28,6 +28,7 @@ from saber_uli.content.api.review_router import router as content_review_router
 from saber_uli.content.api.taxonomy_router import router as content_taxonomy_router
 from saber_uli.content.api.transfer_router import router as content_transfer_router
 from saber_uli.content.application.authoring import Authoring
+from saber_uli.content.application.bank_export import BankExport
 from saber_uli.content.application.bank_import import BankImport
 from saber_uli.content.application.contexts import Contexts
 from saber_uli.content.application.media import MediaLibrary
@@ -36,6 +37,7 @@ from saber_uli.content.application.queries.modules import ListContentModules, Li
 from saber_uli.content.application.review import Review
 from saber_uli.content.infrastructure.images import PillowImageProcessor
 from saber_uli.content.infrastructure.interchange.codec import READERS, JsonBundleCodec
+from saber_uli.content.infrastructure.interchange.export_format import EXPORT_WRITERS
 from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
 from saber_uli.identity.api.admin_catalogs_router import router as admin_catalogs_router
 from saber_uli.identity.api.admin_users_router import router as admin_users_router
@@ -245,6 +247,9 @@ def create_app(
     app.state.content_contexts = Contexts(uow_factory=content_uow, clock=clock)
     app.state.content_bank_import = BankImport(
         uow_factory=content_uow, clock=clock, readers=READERS, codec=JsonBundleCodec()
+    )
+    app.state.content_bank_export = BankExport(
+        uow_factory=content_uow, clock=clock, writers=EXPORT_WRITERS
     )
     app.state.content_media = MediaLibrary(
         uow_factory=content_uow, processor=PillowImageProcessor(), clock=clock

@@ -144,3 +144,69 @@ describe("vista previa de una importación", () => {
     expect(screen.queryByRole("button", { name: "Confirmar importación" })).not.toBeInTheDocument();
   });
 });
+
+/** T080: una reimportación con 1 actualización y 2 sin cambios (US5; FR-035). */
+function updateDetail(): ImportDetail {
+  const unchanged = (code: string) => ({
+    code,
+    entity: "item" as const,
+    action: "unchanged" as const,
+    target_state: null,
+    changes: [],
+    errors: [],
+  });
+  return importDetail({
+    counts: { create: 0, update: 1, unchanged: 2, error: 0 },
+    rows: [
+      {
+        code: "LC-0201",
+        entity: "item",
+        action: "update",
+        target_state: null,
+        changes: [
+          { field: "difficulty", before: "medium", after: "high" },
+          { field: "stem_md", before: "¿Qué sostiene el autor?", after: "¿Qué propone el autor?" },
+          { field: "rubric_id", before: null, after: "R-1" },
+        ],
+        errors: [],
+      },
+      unchanged("LC-0202"),
+      unchanged("LC-0203"),
+    ],
+    meta: { page: 1, page_size: 100, total: 3 },
+  });
+}
+
+describe("vista previa de una actualización en lote", () => {
+  beforeEach(() => {
+    server.use(http.get(`/api/v1/content/imports/${ID}`, () => HttpResponse.json(updateDetail())));
+  });
+
+  it("despliega el antes y el después de cada campo de una actualización", async () => {
+    renderPreview(updateDetail());
+    const user = userEvent.setup();
+    const toggle = await screen.findByRole("button", { name: "Ver los cambios de LC-0201 (3)" });
+
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("table", { name: "Cambios de LC-0201" })).not.toBeInTheDocument();
+    await user.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    const changes = screen.getByRole("table", { name: "Cambios de LC-0201" });
+    const rows = within(changes).getAllByRole("row");
+    expect(rows[0]).toHaveTextContent("CampoAntesDespués");
+    expect(rows[1]).toHaveTextContent("DificultadMediaAlta");
+    expect(rows[2]).toHaveTextContent("Enunciado¿Qué sostiene el autor?¿Qué propone el autor?");
+    expect(rows[3]).toHaveTextContent("Rúbrica(vacío)R-1");
+  });
+
+  it("agrupa los que no cambian en una sola fila", async () => {
+    renderPreview(updateDetail());
+
+    const table = await screen.findByRole("table", { name: "Filas del archivo" });
+    await vi.waitFor(() => expect(within(table).getAllByRole("row")).toHaveLength(3));
+    const rows = within(table).getAllByRole("row");
+    expect(rows[1]).toHaveTextContent("LC-0201");
+    expect(rows[2]).toHaveTextContent("Sin cambios (2): LC-0202, LC-0203");
+  });
+});

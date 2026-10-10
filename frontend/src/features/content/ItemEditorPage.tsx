@@ -25,6 +25,7 @@ import { useGetContext } from "@/api/content/contexts";
 import { useListContentModules, useListRubrics } from "@/api/content/taxonomy";
 import { isReauth, problemText, ReauthAlert } from "@/features/admin/common";
 import { EditConflictDialog } from "@/features/content/EditConflictDialog";
+import { ItemHistory } from "@/features/content/ItemHistory";
 import { ItemPreview } from "@/features/content/ItemPreview";
 import { useObjectUrl } from "@/features/content/MediaUpload";
 import { ReviewActions } from "@/features/content/ReviewActions";
@@ -676,6 +677,7 @@ export function ItemEditorPage() {
               label={t("content.publishedVersion")}
             />
           ) : null}
+          <ItemHistory code={item.code} />
         </>
       ) : null}
     </section>

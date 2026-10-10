@@ -6,7 +6,7 @@ archivo se lee; un sobre ilegible lanza `UnreadableFileError`.
 """
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from functools import partial
 from typing import Any
 
@@ -14,16 +14,19 @@ from pydantic import BaseModel, ValidationError
 
 from saber_uli.content.application.bundle import (
     Bundle,
+    ContextSpec,
     EntryError,
     EntryKind,
+    ItemSpec,
     ModuleSpec,
     UnreadableFileError,
 )
+from saber_uli.content.domain.item_version import ItemKind
 from saber_uli.content.domain.validation import ContentIssue, ValidationRule
 from saber_uli.content.infrastructure.interchange import mapping
 from saber_uli.content.infrastructure.interchange import models as m
 
-__all__ = ["UnreadableFileError", "read_bundle", "write_bundle"]
+__all__ = ["JsonExportWriter", "UnreadableFileError", "read_bundle", "write_bundle"]
 
 SCHEMA_VERSION = "1.0"
 _LISTS = ("modulos", "contextos", "items", "consignas_escritura", "rubricas")
@@ -155,8 +158,6 @@ def read_bundle(content: bytes) -> Bundle:
 
 
 def write_bundle(bundle: Bundle) -> bytes:
-    from saber_uli.content.domain.item_version import ItemKind
-
     out: dict[str, Any] = {"esquema_version": SCHEMA_VERSION, **bundle.metadata}
     out["modulos"] = [mapping.module_out(spec) for spec in bundle.modules]
     out["contextos"] = [mapping.context_out(spec) for spec in bundle.contexts]
@@ -168,3 +169,50 @@ def write_bundle(bundle: Bundle) -> bytes:
     ]
     out["rubricas"] = [mapping.rubric_out(value) for value in bundle.rubrics]
     return (json.dumps(out, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+
+
+class JsonExportWriter:
+    """Exportación en el formato v1, en flujo (FR-038; research R-18).
+
+    Los ítems salen a medida que se leen; las consignas, que van en su propia lista, y los
+    contextos, módulos y rúbricas se escriben al final.
+    """
+
+    media_type = "application/json"
+    extension = "json"
+    streams = True
+
+    def __init__(self) -> None:
+        self._first = True
+        self._prompts: list[dict[str, Any]] = []
+
+    def accepts(self, item: ItemSpec, context: ContextSpec | None) -> bool:  # noqa: ARG002
+        return True  # el JSON representa todo
+
+    def begin(self) -> bytes:
+        return f'{{\n"esquema_version": "{SCHEMA_VERSION}",\n"items": ['.encode()
+
+    def items(self, entries: Iterable[tuple[ItemSpec, ContextSpec | None]]) -> bytes:
+        parts: list[str] = []
+        for item, _ in entries:
+            out = mapping.item_out(item)
+            if item.kind is ItemKind.WRITING_PROMPT:
+                self._prompts.append(out)
+                continue
+            parts.append(("\n" if self._first else ",\n") + _dump(out))
+            self._first = False
+        return "".join(parts).encode("utf-8")
+
+    def end(self, tail: Bundle) -> bytes:
+        sections = {
+            "consignas_escritura": self._prompts,
+            "contextos": [mapping.context_out(spec) for spec in tail.contexts],
+            "modulos": [mapping.module_out(spec) for spec in tail.modules],
+            "rubricas": [mapping.rubric_out(value) for value in tail.rubrics],
+        }
+        body = "".join(f',\n"{name}": {_dump(value)}' for name, value in sections.items())
+        return f"\n]{body}\n}}\n".encode()
+
+
+def _dump(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, indent=2)

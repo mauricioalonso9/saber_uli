@@ -383,13 +383,17 @@ async def _evaluate_item(
     if stored is None:
         action, revision = A.CREATE, None
     else:
-        # La versión vigente: la abierta, si no la publicada, si no la última (retirada).
-        current = stored.open or stored.published or stored.versions[-1]
+        # La versión vigente: la abierta, si no la publicada, si no la última (retirada, que el
+        # agregado no carga).
+        current = stored.open or stored.published or (await uow.items.versions(spec.code))[-1]
         revision = stored.revision
-        if current.content_hash == hash_ and current.state is not VersionState.RETIRED:
-            action = A.UNCHANGED
+        changes = diff_content(current.content, content)
+        # Un retirado vuelve con una versión nueva aunque el contenido sea igual; lo demás se
+        # actualiza solo si cambió algún campo (FR-035).
+        if current.state is VersionState.RETIRED or (current.content_hash != hash_ and changes):
+            action = A.UPDATE
         else:
-            action, changes = A.UPDATE, diff_content(current.content, content)
+            action = A.UNCHANGED
     evaluation.items[spec.code] = _ItemPlan(spec, content, action, revision)
     evaluation.rows.append(
         ImportRow(spec.code, entity, action, target_state=target, changes=changes)
@@ -499,7 +503,7 @@ async def _apply_item(
     stored = await uow.items.get_by_code(plan.spec.code, for_update=True)
     if stored is None:  # pragma: no cover - la evaluación lo acaba de ver
         return False
-    stored.edit(
+    version = stored.edit(
         plan.content,
         hash_,
         print_,
@@ -511,5 +515,8 @@ async def _apply_item(
         event_type=HistoryEventType.IMPORTED,
         details=details,
     )
+    if state is VersionState.IN_REVIEW and version.state is VersionState.DRAFT:
+        # Un Borrador actualizado entra a revisión si quien importa eligió ese estado (FR-016).
+        stored.submit(actor, now)
     await uow.items.save(stored)
     return False

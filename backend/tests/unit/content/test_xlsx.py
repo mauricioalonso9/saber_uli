@@ -23,6 +23,7 @@ from saber_uli.content.infrastructure.interchange.xlsx_format import (
     COLUMNS,
     MAX_FILE_BYTES,
     MAX_UNCOMPRESSED_BYTES,
+    OPTIONAL_COLUMNS,
     UnsupportedFileFormatError,
     read_xlsx,
     write_template,
@@ -84,7 +85,7 @@ def test_la_plantilla_tiene_hojas_y_validaciones_con_codigos_activos() -> None:
     workbook = load_workbook(io.BytesIO(write_template(NODES)))
 
     assert workbook.sheetnames == ["items", "instrucciones", "listas"]
-    assert [cell.value for cell in workbook["items"][1]] == list(COLUMNS)
+    assert [cell.value for cell in workbook["items"][1]] == [*COLUMNS, *OPTIONAL_COLUMNS]
     listed = {str(cell.value) for column in workbook["listas"].iter_cols() for cell in column[1:]}
     assert {"LC-C1", "LC-A1", "LC-E1", "LC-TT-CI"} <= listed
     assert "LC-E9" not in listed

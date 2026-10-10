@@ -151,7 +151,8 @@ async function parse<T>(response: Response): Promise<T> {
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
-export async function customInstance<T>(url: string, options: RequestInit = {}): Promise<T> {
+/** La petición con el token; si vence, lo renueva una vez y repite. Lanza el `ApiProblem`. */
+async function request(url: string, options: RequestInit): Promise<Response> {
   let response = await send(url, options, useSessionStore.getState().accessToken);
 
   if (response.status === 401 && !url.startsWith(AUTH_PREFIX)) {
@@ -162,5 +163,24 @@ export async function customInstance<T>(url: string, options: RequestInit = {}):
   }
 
   if (!response.ok) throw await toProblem(response);
-  return parse<T>(response);
+  return response;
+}
+
+export async function customInstance<T>(url: string, options: RequestInit = {}): Promise<T> {
+  return parse<T>(await request(url, options));
+}
+
+export interface DownloadedFile {
+  blob: Blob;
+  /** Nombre que sugiere el servidor en `Content-Disposition`, si lo hay. */
+  filename: string | null;
+  headers: Headers;
+}
+
+/** Descarga un archivo de la API con sus encabezados, aunque su tipo sea JSON (exportaciones). */
+export async function downloadFile(url: string): Promise<DownloadedFile> {
+  const response = await request(url, { method: "GET" });
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? null;
+  return { blob: await response.blob(), filename, headers: response.headers };
 }

@@ -613,7 +613,7 @@ nuevas, con diferencias; reimportar el mismo archivo: 0 cambios (quickstart B16)
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T079 [P] [US5] Prueba: `backend/tests/integration/content/test_bank_import_update.py` (FR-015, FR-016, FR-035, SC-002). Cubre:
+- [x] T079 [P] [US5] Prueba: `backend/tests/integration/content/test_bank_import_update.py` (FR-015, FR-016, FR-035, SC-002). Cubre:
   - un código existente con contenido cambiado da `update` con `changes` campo por campo;
   - un contenido idéntico (`content_hash`) da `unchanged`;
   - al confirmar: lo publicado crea la versión N+1 en el estado elegido y la publicada sigue vigente;
@@ -624,24 +624,30 @@ nuevas, con diferencias; reimportar el mismo archivo: 0 cambios (quickstart B16)
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T080 [P] [US5] Prueba de componentes: `frontend/src/features/content/ImportPreviewPage.test.tsx` (casos de actualización) e `ItemHistory.test.tsx`. Cubre:
+  - Estado (Opus, 2026-10-09): cerrada. 6 casos; fallaron 2 antes de T081 (ítem retirado y Borrador que se envía a revisión).
+- [x] T080 [P] [US5] Prueba de componentes: `frontend/src/features/content/ImportPreviewPage.test.tsx` (casos de actualización) e `ItemHistory.test.tsx`. Cubre:
   - las filas `update` se despliegan con "antes" y "después" por campo;
   - "sin cambios" aparece agrupado;
   - la historia muestra cada versión con estado, autor, revisor, fechas y campos cambiados (FR-018).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. 2 casos nuevos en la vista previa y 2 de la historia; fallaron antes de T082.
 
 ### Implementation for User Story 5
 
-- [ ] T081 [US5] Implementar en `content/application/bank_import.py` la acción `update`, con diferencias por campo (reutilizando `item_version_diff.py`), para que pase T079 → Qwen
+- [x] T081 [US5] Implementar en `content/application/bank_import.py` la acción `update`, con diferencias por campo (reutilizando `item_version_diff.py`), para que pase T079 → Qwen
   - Terminado: T079 en verde.
-- [ ] T082 [US5] Implementar la vista de diferencias en `ImportPreviewPage.tsx` y completar `ItemHistory.tsx` para que pase T080 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 6 en verde. La versión vigente de un ítem retirado se lee aparte (el agregado no carga las retiradas). Un Borrador actualizado pasa a revisión si quien importa elige "En revisión". "Actualización" solo si algún campo cambió (o si el ítem estaba retirado): una huella distinta sin campos distintos queda "sin cambios".
+- [x] T082 [US5] Implementar la vista de diferencias en `ImportPreviewPage.tsx` y completar `ItemHistory.tsx` para que pase T080 → Qwen
   - Terminado: T080 en verde.
-- [ ] T083 [US5] E2E: agregar a `frontend/tests/e2e/content-import.spec.ts` el escenario B16 (exportar → cambiar → reimportar → 3 versiones → reimportar → 0 cambios) → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. Las actualizaciones se despliegan con un botón (aria-expanded) y una tabla Campo/Antes/Después; los "sin cambios" van en una sola fila. `ItemHistory` se muestra en la página del ítem (versiones de la más reciente a la primera y eventos).
+- [x] T083 [US5] E2E: agregar a `frontend/tests/e2e/content-import.spec.ts` el escenario B16 (exportar → cambiar → reimportar → 3 versiones → reimportar → 0 cambios) → Qwen
   - Terminado: en verde.
-- [ ] T084 [US5] Revisión de US5 (Opus), anotada en `specs/002-banco-items/tasks.md`: idempotencia, diferencias y reglas de versiones → Opus
+  - Estado (Opus, 2026-10-09): cerrada. B16 en verde en pixel-7, después de T087 (empieza exportando). Los 10 ítems de la prueba se publican por SQL (`publishItems`) y el archivo editado lleva solo esos. content-review.spec.ts: el comentario de devolución ahora aparece también en la historia; la aserción se acotó.
+- [x] T084 [US5] Revisión de US5 (Opus), anotada en `specs/002-banco-items/tasks.md`: idempotencia, diferencias y reglas de versiones → Opus
   - Terminado: US5 aprobada.
+  - Estado (Opus, 2026-10-09): cerrada. US5 aprobada. Idempotencia (repetir no crea versiones ni sube la revisión), diferencias por campo con domain/diff.py y reglas de FR-015/FR-016: lo publicado sigue vigente con la versión N+1, lo abierto se actualiza en su lugar, lo retirado vuelve con versión nueva y el importador queda como contribuyente (no puede aprobar).
 
 ---
 
@@ -656,7 +662,7 @@ B17).
 
 ### Tests for User Story 6 ⚠️
 
-- [ ] T085 [P] [US6] Prueba: `backend/tests/integration/content/test_bank_export.py` (FR-038, SC-008). Cubre:
+- [x] T085 [P] [US6] Prueba: `backend/tests/integration/content/test_bank_export.py` (FR-038, SC-008). Cubre:
   - JSON con los filtros `module`, `state`, `origin`, `difficulty` y `taxonomy_node`;
   - `version=published` frente a `latest`;
   - incluye los contextos usados, las categorías usadas y las rúbricas de las consignas;
@@ -667,19 +673,25 @@ B17).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T086 [P] [US6] Prueba de componentes: `frontend/src/features/content/ExportPage.test.tsx`. Cubre los filtros, el formato, la versión y el aviso "N ítems no caben en la plantilla" a partir de `X-Skipped-Items` → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 8 casos con el banco inicial real; fallaron antes de T087.
+- [x] T086 [P] [US6] Prueba de componentes: `frontend/src/features/content/ExportPage.test.tsx`. Cubre los filtros, el formato, la versión y el aviso "N ítems no caben en la plantilla" a partir de `X-Skipped-Items` → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-09): cerrada. 5 casos; fallaron antes de T088.
 
 ### Implementation for User Story 6
 
-- [ ] T087 [US6] Implementar `content/application/bank_export.py` y `exportItems` en `content/api/transfer_router.py` (respuesta en flujo con `Content-Disposition`) para que pase T085 → Qwen
+- [x] T087 [US6] Implementar `content/application/bank_export.py` y `exportItems` en `content/api/transfer_router.py` (respuesta en flujo con `Content-Disposition`) para que pase T085 → Qwen
   - Terminado: T085 en verde; la operación entra en la suite de T005.
-- [ ] T088 [US6] Implementar `ExportPage.tsx` para que pase T086 → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 8 en verde; exportItems en la suite de contrato sin la comprobación del esquema de respuesta (el contrato declara el archivo `format: binary` también en application/json). Lectura por código en bloques de 500 (`export_batch`); el JSON sale en flujo y la plantilla se arma completa (X-Skipped-Items va en los encabezados). Se registra en content.exports al terminar. La plantilla deja fuera consignas, emparejamiento y contextos que no son de texto (LC-CTX-003 es una tabla). Desvío de R-04: la plantilla gana la columna opcional `contexto_subtipo` (sin ella, reimportar un texto de LC perdía el subtipo y versionaba el contexto); las celdas que empiezan por "=" se escriben como texto.
+- [x] T088 [US6] Implementar `ExportPage.tsx` para que pase T086 → Qwen
   - Terminado: T086 en verde.
-- [ ] T089 [US6] E2E: `frontend/tests/e2e/content-export.spec.ts` con el escenario B17 y la reimportación con 0 cambios → Qwen
+  - Estado (Opus, 2026-10-09): cerrada. 5 en verde; Vitest completo 283. `downloadFile` en http.ts entrega el archivo con sus encabezados (customInstance convertía el JSON exportado en objeto y no exponía X-Skipped-Items). La categoría aparece al elegir el módulo.
+- [x] T089 [US6] E2E: `frontend/tests/e2e/content-export.spec.ts` con el escenario B17 y la reimportación con 0 cambios → Qwen
   - Terminado: en verde.
-- [ ] T090 [US6] Revisión de US6 (Opus), anotada en `specs/002-banco-items/tasks.md`: exportación con filtros, ida y vuelta sin cambios y escenario B17 → Opus
+  - Estado (Opus, 2026-10-09): cerrada. B17 y la ida y vuelta en verde en pixel-7. La ida y vuelta usa CC, que ninguna otra prueba cambia, para no chocar con B16 en paralelo. `readItemRows` lee el XLSX con openpyxl en el contenedor api.
+- [x] T090 [US6] Revisión de US6 (Opus), anotada en `specs/002-banco-items/tasks.md`: exportación con filtros, ida y vuelta sin cambios y escenario B17 → Opus
   - Terminado: US6 aprobada.
+  - Estado (Opus, 2026-10-09): cerrada. US6 aprobada. Filtros (módulo, estado, origen, dificultad y categoría con sus descendientes) sobre la versión exportada, publicada o última; contextos en su versión vigente, módulos con solo las categorías usadas y sus ancestros, rúbricas de las consignas; reimportar el banco inicial completo exportado da 54 sin cambios (SC-008). Backend content 265 y contrato en verde.
 
 ---
 

@@ -17,6 +17,7 @@ from schemathesis.specs.openapi.checks import (
     allow_header_conformance,
     missing_required_header,
     positive_data_acceptance,
+    response_schema_conformance,
     unsupported_method,
 )
 from sqlalchemy import text
@@ -47,6 +48,11 @@ BEYOND_SCHEMA = frozenset(
         "createImport",
     }
 )
+
+
+# Descargas cuyo cuerpo es un archivo: el contrato lo declara binario (`format: binary`) aun en
+# `application/json`, y Schemathesis validaría el JSON del archivo contra `type: string`.
+FILE_DOWNLOADS = frozenset({"exportItems"})
 
 
 def _contract_operations() -> dict[str, str]:
@@ -152,8 +158,11 @@ if IMPLEMENTED_CONTENT_OPERATIONS:
             # Sin If-Match la API responde 428 (RFC 6585, documentado en el contrato); la
             # comprobación genérica espera 400, 406 o 422.
             excluded.append(missing_required_header)
-        if case.operation.definition.raw.get("operationId") in BEYOND_SCHEMA:
+        operation_id = case.operation.definition.raw.get("operationId")
+        if operation_id in BEYOND_SCHEMA:
             excluded.append(positive_data_acceptance)
+        if operation_id in FILE_DOWNLOADS:
+            excluded.append(response_schema_conformance)
         case.call_and_validate(
             headers=content_contract_headers, allow_redirects=False, excluded_checks=excluded
         )

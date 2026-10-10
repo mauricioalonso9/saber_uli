@@ -90,7 +90,12 @@ test("B5–B8: aprobar, autoaprobación, docente que comenta, devolver y rechaza
     second.page.getByRole("status").filter({ hasText: "El ítem volvió a Borrador." }),
   ).toBeVisible();
   await teacher.page.goto(`/banco/items/${toReturn}`);
-  await expect(teacher.page.getByText("Revisa la opción C.")).toBeVisible();
+  await expect(
+    teacher.page.getByText("Comentario de la revisión: Revisa la opción C."),
+  ).toBeVisible();
+  await expect(
+    teacher.page.getByRole("list", { name: "Eventos" }).getByText("Revisa la opción C."),
+  ).toBeVisible();
 
   await second.page.goto(`/banco/items/${toReject}`);
   await second.page.getByRole("button", { name: "Rechazar" }).click();

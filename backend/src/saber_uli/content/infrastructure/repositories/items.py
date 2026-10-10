@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
 from saber_uli.content.application.ports import (
+    ExportedItem,
     ImmutableVersionError,
     ItemFilters,
     ItemSummaryRow,
@@ -196,6 +197,56 @@ class SqlAlchemyItemRepository:
         )
         return [_version(version, context_code) for version, context_code in rows]
 
+    async def export_batch(
+        self, filters: ItemFilters, *, latest: bool, after: str | None, limit: int
+    ) -> list[ExportedItem]:
+        if latest:
+            chosen = (
+                select(ItemVersionRow)
+                .distinct(ItemVersionRow.item_id)
+                .order_by(ItemVersionRow.item_id, ItemVersionRow.number.desc())
+                .subquery("exported")
+            )
+        else:
+            chosen = (
+                select(ItemVersionRow)
+                .where(ItemVersionRow.state == "published")
+                .subquery("exported")
+            )
+        version = aliased(ItemVersionRow, chosen)
+        query = (
+            select(ItemRow, version, ContextRow.code)
+            .join(version, version.item_id == ItemRow.id)
+            .outerjoin(ContextVersionRow, ContextVersionRow.id == version.context_version_id)
+            .outerjoin(ContextRow, ContextRow.id == ContextVersionRow.context_id)
+            .order_by(ItemRow.code)
+            .limit(limit)
+        )
+        if after is not None:
+            query = query.where(ItemRow.code > after)
+        if filters.module:
+            query = query.where(ItemRow.module_code == filters.module)
+        if filters.origin:
+            query = query.where(ItemRow.origin == filters.origin)
+        if filters.difficulty:
+            query = query.where(version.difficulty == filters.difficulty)
+        if filters.state:
+            query = query.where(version.state == filters.state)
+        if filters.taxonomy_ids is not None:
+            ids = list(filters.taxonomy_ids)
+            query = query.where(or_(*(column.in_(ids) for column in _tag_columns(version))))
+        rows = await self._db.execute(query)
+        return [
+            ExportedItem(
+                code=item.code,
+                module_code=item.module_code,
+                kind=ItemKind(item.kind),
+                origin=Origin(item.origin),
+                version=_version(row, context_code),
+            )
+            for item, row, context_code in rows
+        ]
+
     async def count_matching_in_context(
         self, context_version_id: UUID, *, excluding: UUID | None
     ) -> int:
@@ -276,6 +327,17 @@ class SqlAlchemyItemRepository:
                 for event in events
             ],
         )
+
+
+def _tag_columns(version: Any) -> tuple[Any, ...]:
+    return (
+        version.competence_id,
+        version.assertion_id,
+        version.evidence_id,
+        version.component_id,
+        version.situation_id,
+        version.part_id,
+    )
 
 
 def _version_values(version: ItemVersion) -> dict[str, Any]:

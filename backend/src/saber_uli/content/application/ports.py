@@ -7,11 +7,11 @@ from typing import Any, Protocol
 from uuid import UUID
 
 from saber_uli.content.application.bundle import Bundle
-from saber_uli.content.domain.context import Context, ContextVersion
+from saber_uli.content.domain.context import Context, ContextVersion, Origin
 from saber_uli.content.domain.events import HistoryEvent
 from saber_uli.content.domain.import_job import ImportJob
 from saber_uli.content.domain.item import Item
-from saber_uli.content.domain.item_version import ItemVersion
+from saber_uli.content.domain.item_version import ItemKind, ItemVersion
 from saber_uli.content.domain.media import Media
 from saber_uli.content.domain.module import Module
 from saber_uli.content.domain.rubric import Rubric
@@ -132,6 +132,17 @@ class ContextRepository(Protocol):
         ...
 
 
+@dataclass(frozen=True)
+class ExportedItem:
+    """Un ítem con la versión que se exporta (con el código de su contexto)."""
+
+    code: str
+    module_code: str
+    kind: ItemKind
+    origin: Origin
+    version: ItemVersion
+
+
 class ItemRepository(Protocol):
     async def add(self, item: Item) -> Item:
         """Guarda un ítem nuevo con sus versiones y su historia pendiente."""
@@ -181,6 +192,16 @@ class ItemRepository(Protocol):
         self, filters: ItemFilters, *, offset: int, limit: int
     ) -> tuple[list[ItemSummaryRow], int]:
         """Página de ítems ordenada por código y el total (SC-009)."""
+        ...
+
+    async def export_batch(
+        self, filters: ItemFilters, *, latest: bool, after: str | None, limit: int
+    ) -> list[ExportedItem]:
+        """Bloque de ítems para exportar, por código, con los códigos mayores que `after`.
+
+        De cada ítem va su versión publicada o, con `latest`, la de número mayor; los filtros de
+        estado, dificultad y taxonomía se aplican a esa versión (FR-038; research R-18).
+        """
         ...
 
 
@@ -249,6 +270,23 @@ class ImportRepository(Protocol):
     async def expire_pending(self, now: datetime) -> int:
         """Marca vencidas las pendientes cuyo plazo pasó y borra su contenido (R-05)."""
         ...
+
+
+@dataclass(frozen=True)
+class ExportRecord:
+    """Una exportación del banco (data-model §2.10; solo inserción)."""
+
+    created_by: UUID
+    created_at: datetime
+    format: str
+    filter: dict[str, Any]
+    version_choice: str
+    item_count: int
+    skipped_count: int
+
+
+class ExportRepository(Protocol):
+    async def add(self, record: ExportRecord) -> None: ...
 
 
 class BundleCodec(Protocol):

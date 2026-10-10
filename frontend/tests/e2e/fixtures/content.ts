@@ -95,3 +95,18 @@ export function cloneContext(source: string, code: string): void {
     { code, source },
   );
 }
+
+/**
+ * Publica la versión abierta de los ítems cuyo código empieza por `prefix` (como si un
+ * administrador los aprobara), sin tocar su contenido ni su huella.
+ */
+export function publishItems(prefix: string): void {
+  psqlExec(
+    `UPDATE content.item_versions v SET state = 'published', published_at = now(),
+       reviewed_at = now(), updated_at = now()
+     FROM content.items i
+     WHERE i.id = v.item_id AND i.code LIKE :'prefix' || '%'
+       AND v.state IN ('draft', 'in_review');`,
+    { prefix },
+  );
+}

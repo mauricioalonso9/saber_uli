@@ -3,7 +3,7 @@ import { useParams } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { ImportAction, ImportDetail } from "@/api/content/model";
+import type { FieldChange, ImportAction, ImportDetail, ImportRow } from "@/api/content/model";
 import { confirmImport, getImport, getImportReport, useGetImport } from "@/api/content/transfer";
 import { isReauth, problemText, ReauthAlert } from "@/features/admin/common";
 import { fieldLabel } from "@/features/content/fields";
@@ -13,6 +13,83 @@ import { Button } from "@/shared/ui/button";
 
 const ACTIONS: ImportAction[] = ["create", "update", "unchanged", "error"];
 const ROWS_PER_PAGE = 100;
+const COLUMNS = ["code", "action", "field", "rule", "message"] as const;
+
+/** Un valor de una diferencia, legible: la dificultad traducida y lo vacío explícito. */
+function useValueText() {
+  const { t } = useTranslation();
+  return (field: string, value: unknown): string => {
+    if (value === null || value === undefined || value === "") return t("content.import.empty");
+    if (field === "difficulty" && typeof value === "string") {
+      return t(`content.editor.difficulties.${value}`);
+    }
+    if (typeof value === "boolean") return t(value ? "content.import.yes" : "content.import.no");
+    if (typeof value === "object") return JSON.stringify(value);
+    return String(value);
+  };
+}
+
+/** Una fila de actualización con sus diferencias desplegables (US5; FR-035). */
+function UpdateRow({ row }: { row: ImportRow }) {
+  const { t } = useTranslation();
+  const valueText = useValueText();
+  const [open, setOpen] = useState(false);
+  const caption = useId();
+  const changes: FieldChange[] = row.changes ?? [];
+  return (
+    <>
+      <tr className="border-b">
+        <td className="p-2 font-mono">{row.code}</td>
+        <td className="p-2">{t("content.import.actions.update")}</td>
+        <td className="p-2" colSpan={3}>
+          <Button
+            type="button"
+            variant="outline"
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+          >
+            {t("content.import.showChanges", { code: row.code, count: changes.length })}
+          </Button>
+        </td>
+      </tr>
+      {open ? (
+        <tr className="border-b">
+          <td colSpan={COLUMNS.length} className="p-2">
+            <table aria-labelledby={caption} className="w-full text-left text-sm">
+              <caption id={caption} className="sr-only">
+                {t("content.import.changesOf", { code: row.code })}
+              </caption>
+              <thead>
+                <tr>
+                  {(["field", "before", "after"] as const).map((column) => (
+                    <th key={column} scope="col" className="border-b p-2">
+                      {t(`content.import.columns.${column}`)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {changes.map((change) => (
+                  <tr key={change.field} className="border-b align-top">
+                    <th scope="row" className="p-2 font-normal">
+                      {fieldLabel(change.field)}
+                    </th>
+                    <td className="whitespace-pre-wrap p-2 line-through decoration-red-700">
+                      {valueText(change.field, change.before)}
+                    </td>
+                    <td className="whitespace-pre-wrap p-2">
+                      {valueText(change.field, change.after)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      ) : null}
+    </>
+  );
+}
 
 /**
  * Vista previa de una importación (US4; FR-030 a FR-036): conteos, filas filtrables con cada error
@@ -40,6 +117,8 @@ export function ImportPreview({
       getImport(job.id, { ...(action ? { action } : {}), page: 1, page_size: ROWS_PER_PAGE }),
   });
   const shown = rows.data?.rows ?? (action ? [] : job.rows);
+  // Lo que no cambia se agrupa en una sola fila (FR-035).
+  const unchanged = shown.filter((row) => row.action === "unchanged").map((row) => row.code);
   const hasAi = (rows.data?.rows ?? job.rows).some((row) => row.target_state === "in_review");
 
   async function confirm() {
@@ -129,7 +208,7 @@ export function ImportPreview({
           </caption>
           <thead>
             <tr>
-              {(["code", "action", "field", "rule", "message"] as const).map((column) => (
+              {COLUMNS.map((column) => (
                 <th key={column} scope="col" className="border-b p-2">
                   {t(`content.import.columns.${column}`)}
                 </th>
@@ -138,16 +217,30 @@ export function ImportPreview({
           </thead>
           <tbody>
             {shown.flatMap((row) =>
-              (row.errors?.length ? row.errors : [null]).map((issue, index) => (
-                <tr key={`${row.entity}-${row.code}-${index}`} className="border-b">
-                  <td className="p-2 font-mono">{row.code}</td>
-                  <td className="p-2">{t(`content.import.actions.${row.action}`)}</td>
-                  <td className="p-2">{issue ? fieldLabel(issue.field) : ""}</td>
-                  <td className="p-2">{issue ? t(`content.rules.${issue.rule}`) : ""}</td>
-                  <td className="p-2">{issue?.message ?? ""}</td>
-                </tr>
-              )),
+              row.action === "unchanged"
+                ? []
+                : row.action === "update"
+                  ? [<UpdateRow key={`${row.entity}-${row.code}`} row={row} />]
+                  : (row.errors?.length ? row.errors : [null]).map((issue, index) => (
+                      <tr key={`${row.entity}-${row.code}-${index}`} className="border-b">
+                        <td className="p-2 font-mono">{row.code}</td>
+                        <td className="p-2">{t(`content.import.actions.${row.action}`)}</td>
+                        <td className="p-2">{issue ? fieldLabel(issue.field) : ""}</td>
+                        <td className="p-2">{issue ? t(`content.rules.${issue.rule}`) : ""}</td>
+                        <td className="p-2">{issue?.message ?? ""}</td>
+                      </tr>
+                    )),
             )}
+            {unchanged.length ? (
+              <tr className="border-b">
+                <td colSpan={COLUMNS.length} className="p-2">
+                  {t("content.import.unchangedGroup", {
+                    count: unchanged.length,
+                    codes: unchanged.join(", "),
+                  })}
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>

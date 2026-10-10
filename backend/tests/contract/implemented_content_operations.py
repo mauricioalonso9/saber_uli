@@ -37,5 +37,7 @@ IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset(
         "getImport",
         "getImportReport",
         "confirmImport",
+        # US6 (T087)
+        "exportItems",
     }
 )

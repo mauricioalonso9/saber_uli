@@ -341,6 +341,23 @@ class ExportRecord:
     skipped_count: int
 
 
+@dataclass(frozen=True)
+class TaxonomyChange:
+    """Un cambio de la taxonomía, de un módulo o de una rúbrica (data-model §2.11)."""
+
+    changed_by: UUID
+    changed_at: datetime
+    target: str  # node, rubric o module
+    target_id: str
+    action: str  # created, updated, deactivated, reactivated o deleted
+    before: dict[str, Any] | None
+    after: dict[str, Any] | None
+
+
+class TaxonomyChangeRepository(Protocol):
+    async def add(self, change: TaxonomyChange) -> None: ...
+
+
 class ExportRepository(Protocol):
     async def add(self, record: ExportRecord) -> None: ...
 

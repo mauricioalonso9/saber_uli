@@ -12,6 +12,7 @@ from saber_uli.content.application.ports import (
     ModuleRepository,
     RubricRepository,
     SeedLoadRepository,
+    TaxonomyChangeRepository,
     TaxonomyRepository,
 )
 from saber_uli.content.application.unit_of_work import ContentUnitOfWork
@@ -24,7 +25,10 @@ from saber_uli.content.infrastructure.repositories.contexts import (
     SqlAlchemyContextRepository,
     SqlAlchemyMediaRepository,
 )
-from saber_uli.content.infrastructure.repositories.exports import SqlAlchemyExportRepository
+from saber_uli.content.infrastructure.repositories.exports import (
+    SqlAlchemyExportRepository,
+    SqlAlchemyTaxonomyChangeRepository,
+)
 from saber_uli.content.infrastructure.repositories.imports import SqlAlchemyImportRepository
 from saber_uli.content.infrastructure.repositories.items import SqlAlchemyItemRepository
 from saber_uli.content.infrastructure.repositories.seed_loads import SqlAlchemySeedLoadRepository
@@ -70,6 +74,10 @@ class SqlAlchemyContentUnitOfWork(SqlAlchemyUnitOfWork, ContentUnitOfWork):
     @property
     def exports(self) -> ExportRepository:
         return SqlAlchemyExportRepository(self.session)
+
+    @property
+    def taxonomy_changes(self) -> TaxonomyChangeRepository:
+        return SqlAlchemyTaxonomyChangeRepository(self.session)
 
     @property
     def seed_loads(self) -> SeedLoadRepository:

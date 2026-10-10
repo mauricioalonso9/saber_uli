@@ -1282,12 +1282,37 @@ components:
         target_weight: { type: [number, 'null'], minimum: 0, maximum: 1 }
         active: { type: boolean }
     Rubric:
-      allOf:
-        - { $ref: '#/components/schemas/RubricInput' }
-        - type: object
-          required: [id]
+      # No es `allOf` de RubricInput: su `additionalProperties: false` rechazaría el `id`.
+      type: object
+      required: [id, code, name, relevance_condition, dimensions, active]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        note: { type: [string, 'null'] }
+        active: { type: boolean }
+        relevance_condition:
+          type: object
+          required: [name, description]
           properties:
-            id: { type: string, format: uuid }
+            name: { type: string }
+            description: { type: string }
+        dimensions:
+          type: array
+          items:
+            type: object
+            required: [code, name, levels]
+            properties:
+              code: { type: string }
+              name: { type: string }
+              levels:
+                type: array
+                items:
+                  type: object
+                  required: [level, description]
+                  properties:
+                    level: { type: integer }
+                    description: { type: string }
     RubricInput:
       type: object
       required: [code, name, relevance_condition, dimensions, active]

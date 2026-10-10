@@ -11,6 +11,7 @@ from saber_uli.content.application.ports import (
     ModuleRepository,
     RubricRepository,
     SeedLoadRepository,
+    TaxonomyChangeRepository,
     TaxonomyRepository,
 )
 from saber_uli.shared.application.unit_of_work import UnitOfWork
@@ -48,6 +49,10 @@ class ContentUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def exports(self) -> ExportRepository: ...
+
+    @property
+    @abstractmethod
+    def taxonomy_changes(self) -> TaxonomyChangeRepository: ...
 
     @property
     @abstractmethod

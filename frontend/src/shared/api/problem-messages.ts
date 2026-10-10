@@ -84,6 +84,10 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "unreadable-file": "No se pudo leer el archivo. Revisa que tenga el formato del banco.",
   "import-not-pending": "Esta importación ya se confirmó o venció. Vuelve a subir el archivo.",
   "nothing-to-import": "La importación no tiene ítems válidos para aplicar.",
+  "taxonomy-code-taken": "Ya existe una categoría con ese código.",
+  "taxonomy-node-in-use":
+    "La categoría está en uso (por ítems, contextos o categorías hijas): desactívala en lugar de borrarla.",
+  "rubric-code-taken": "Ya existe una rúbrica con ese código.",
   // Producidos por el cliente o por el estado HTTP
   "service-unavailable": "El servicio no está disponible en este momento. Intenta más tarde.",
   "network-error": "No hay conexión con el servidor. Revisa tu conexión a internet.",

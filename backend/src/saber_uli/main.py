@@ -38,6 +38,8 @@ from saber_uli.content.application.queries.items import GetItem, ItemHistoryQuer
 from saber_uli.content.application.queries.modules import ListContentModules, ListRubrics
 from saber_uli.content.application.queries.statistics import ItemStatisticsQuery
 from saber_uli.content.application.review import Review
+from saber_uli.content.application.rubrics import RubricAdmin
+from saber_uli.content.application.taxonomy_admin import TaxonomyAdmin
 from saber_uli.content.infrastructure.images import PillowImageProcessor
 from saber_uli.content.infrastructure.interchange.codec import READERS, JsonBundleCodec
 from saber_uli.content.infrastructure.interchange.export_format import EXPORT_WRITERS
@@ -255,6 +257,8 @@ def create_app(
         uow_factory=content_uow, clock=clock, writers=EXPORT_WRITERS
     )
     app.state.content_coverage = Coverage(uow_factory=content_uow)
+    app.state.content_taxonomy_admin = TaxonomyAdmin(uow_factory=content_uow, clock=clock)
+    app.state.content_rubric_admin = RubricAdmin(uow_factory=content_uow, clock=clock)
     app.state.content_item_statistics = ItemStatisticsQuery(uow_factory=content_uow)
     app.state.content_media = MediaLibrary(
         uow_factory=content_uow, processor=PillowImageProcessor(), clock=clock

@@ -805,7 +805,7 @@ desactivarla; un docente no puede cambiar la taxonomía (quickstart B20).
 
 ### Tests for User Story 9 ⚠️
 
-- [ ] T103 [P] [US9] Prueba: `backend/tests/integration/content/test_taxonomy_admin.py` (FR-001, FR-040, FR-045). Cubre:
+- [x] T103 [P] [US9] Prueba: `backend/tests/integration/content/test_taxonomy_admin.py` (FR-001, FR-040, FR-045). Cubre:
   - crear una categoría con el padre del tipo correcto (evidencia → afirmación → competencia); `code` repetido responde `taxonomy-code-taken`;
   - editar el nombre, la descripción o `target_weight`, con `warnings` si la suma del tipo en el módulo queda fuera de [0.95, 1.05];
   - desactivar y reactivar;
@@ -817,7 +817,8 @@ desactivarla; un docente no puede cambiar la taxonomía (quickstart B20).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T104 [P] [US9] Prueba de componentes: `frontend/src/features/content/TaxonomyPage.test.tsx`. Cubre:
+  - Estado (Opus, 2026-10-10): cerrada. 6 casos sobre la API; fallaron antes de T105.
+- [x] T104 [P] [US9] Prueba de componentes: `frontend/src/features/content/TaxonomyPage.test.tsx`. Cubre:
   - el árbol por módulo y tipo;
   - editar el peso con el aviso de la suma;
   - "Desactivar" en lugar de "Borrar" cuando `in_use`;
@@ -826,17 +827,22 @@ desactivarla; un docente no puede cambiar la taxonomía (quickstart B20).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-10): cerrada. 6 casos, con axe; fallaron antes de T106. El árbol son listas anidadas con cada categoría como `listitem` con nombre (un `tree` ARIA con botones y campos dentro viola nested-interactive).
 
 ### Implementation for User Story 9
 
-- [ ] T105 [US9] Implementar `content/application/taxonomy_admin.py`, `rubrics.py` y `content/api/taxonomy_router.py` (`listContentModules`, `updateContentModule`, `createTaxonomyNode`, `updateTaxonomyNode`, `deleteTaxonomyNode`, `listRubrics`, `createRubric`, `updateRubric`) para que pase T103 → Qwen
+- [x] T105 [US9] Implementar `content/application/taxonomy_admin.py`, `rubrics.py` y `content/api/taxonomy_router.py` (`listContentModules`, `updateContentModule`, `createTaxonomyNode`, `updateTaxonomyNode`, `deleteTaxonomyNode`, `listRubrics`, `createRubric`, `updateRubric`) para que pase T103 → Qwen
   - Terminado: T103 en verde; las operaciones entran en la suite de T005.
-- [ ] T106 [US9] Implementar `TaxonomyPage.tsx` para que pase T104 → Qwen
+  - Estado (Opus, 2026-10-10): cerrada. 6 en verde; las 6 operaciones en la suite de contrato. Padre obligatorio y del tipo y módulo correctos solo para afirmación (competencia) y evidencia (afirmación); posición al final del tipo; aviso si los pesos activos del tipo suman fuera de [0,95; 1,05]; borrar lo que está en uso responde taxonomy-node-in-use; cada cambio a content.taxonomy_changes (created/updated/deactivated/reactivated/deleted). `active` es StrictBool y los textos rechazan NUL y sustitutos sueltos (422; antes, 500 de PostgreSQL). createTaxonomyNode, updateTaxonomyNode, createRubric y updateRubric van en BEYOND_SCHEMA. Corrección del contrato: `Rubric` era `allOf` de `RubricInput`, cuyo `additionalProperties: false` rechazaba el `id`; ahora es un esquema explícito (cliente regenerado con Orval). Los objetos anidados de RubricInput no prohíben campos de más, como dice el contrato.
+- [x] T106 [US9] Implementar `TaxonomyPage.tsx` para que pase T104 → Qwen
   - Terminado: T104 en verde.
-- [ ] T107 [US9] E2E: `frontend/tests/e2e/content-taxonomy.spec.ts` con el escenario B20 → Qwen
+  - Estado (Opus, 2026-10-10): cerrada. 6 en verde; Vitest completo 298. Meta del módulo, peso por categoría (acepta "0,3"), Desactivar/Reactivar siempre y Borrar solo sin uso, alta de categorías y editor de rúbricas (niveles uno por línea). Mensajes de taxonomy-code-taken, taxonomy-node-in-use y rubric-code-taken en problem-messages.ts.
+- [x] T107 [US9] E2E: `frontend/tests/e2e/content-taxonomy.spec.ts` con el escenario B20 → Qwen
   - Terminado: en verde.
-- [ ] T108 [US9] Revisión de US9 (Opus), anotada en `specs/002-banco-items/tasks.md`: jerarquía, desactivación, permisos y escenario B20 → Opus
+  - Estado (Opus, 2026-10-10): cerrada. B20 en verde en pixel-7 (dos escenarios: administrador y docente). El uso de la evidencia se prepara por SQL con la página abierta, para comprobar el 409 desde la interfaz.
+- [x] T108 [US9] Revisión de US9 (Opus), anotada en `specs/002-banco-items/tasks.md`: jerarquía, desactivación, permisos y escenario B20 → Opus
   - Terminado: US9 aprobada.
+  - Estado (Opus, 2026-10-10): cerrada. US9 aprobada. Jerarquía, desactivación sin tocar lo que ya usa la categoría, permisos (403 al docente en las 6 operaciones) y B20. Pendiente: la suite de contrato tuvo timeouts intermitentes (10 s sin respuesta) en operaciones distintas en 3 corridas (createRubric, updateContext, exportItems; luego updateContentModule) y pasó completa en la cuarta, con la máquina sin carga; aislada, updateContentModule responde en 0,1 a 0,9 s. No se demostró la causa (entorno o conexiones no liberadas): revisar en T112.
 
 ---
 

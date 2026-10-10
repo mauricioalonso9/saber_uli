@@ -46,6 +46,12 @@ BEYOND_SCHEMA = frozenset(
         "createContext",
         "updateContext",
         "createImport",
+        # La categoría padre debe ser del tipo y módulo correctos (FR-001). Además, PostgreSQL no
+        # guarda texto con el carácter NUL ni sustitutos UTF-16 sueltos, que el esquema admite.
+        "createTaxonomyNode",
+        "updateTaxonomyNode",
+        "createRubric",
+        "updateRubric",
     }
 )
 

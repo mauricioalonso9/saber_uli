@@ -43,5 +43,12 @@ IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset(
         "getModuleCoverage",
         # US8 (T100)
         "getItemStatistics",
+        # US9 (T105)
+        "updateContentModule",
+        "createTaxonomyNode",
+        "updateTaxonomyNode",
+        "deleteTaxonomyNode",
+        "createRubric",
+        "updateRubric",
     }
 )

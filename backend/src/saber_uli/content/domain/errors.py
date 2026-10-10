@@ -61,3 +61,29 @@ class UnsupportedMediaError(RuleViolationError):
     """No es PNG, JPEG ni WebP válido, o pasa de 4 000 px por lado (R-11); la API responde 415."""
 
     slug = "unsupported-media-type"
+
+
+class TaxonomyNodeNotFoundError(NotFoundError):
+    slug = "not-found"
+
+
+class RubricNotFoundError(NotFoundError):
+    slug = "not-found"
+
+
+class TaxonomyCodeTakenError(ConflictError):
+    slug = "taxonomy-code-taken"
+
+
+class TaxonomyNodeInUseError(ConflictError):
+    """La usa algún ítem, contexto o categoría hija: se desactiva, no se borra (FR-045)."""
+
+    slug = "taxonomy-node-in-use"
+
+
+class RubricCodeTakenError(ConflictError):
+    slug = "rubric-code-taken"
+
+
+class InvalidTaxonomyNodeError(RuleViolationError):
+    """La categoría no encaja en la jerarquía (padre de otro tipo o de otro módulo)."""

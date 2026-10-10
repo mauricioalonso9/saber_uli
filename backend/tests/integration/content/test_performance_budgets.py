@@ -69,7 +69,8 @@ async def seeded(migrated_database: dict[str, str], lc_taxonomy: LcTaxonomy) -> 
                    SELECT i.id, 1, 'published',
                           (ARRAY['low', 'medium', 'high'])[1 + (row_number() OVER () % 3)],
                           CAST(:competence AS uuid),
-                          CASE WHEN row_number() OVER () % 2 = 0 THEN CAST(:assertion AS uuid) ELSE CAST(:other AS uuid) END,
+                          CASE WHEN row_number() OVER () % 2 = 0
+                               THEN CAST(:assertion AS uuid) ELSE CAST(:other AS uuid) END,
                           CASE WHEN row_number() OVER () % 2 = 0 THEN CAST(:evidence AS uuid) END,
                           :mark || i.code || ' ¿Qué sostiene el autor sobre la lectura?',
                           jsonb_build_array(

@@ -50,5 +50,7 @@ IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset(
         "deleteTaxonomyNode",
         "createRubric",
         "updateRubric",
+        # T112
+        "listContexts",
     }
 )

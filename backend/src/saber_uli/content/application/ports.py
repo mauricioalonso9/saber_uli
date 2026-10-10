@@ -111,7 +111,25 @@ class RubricRepository(Protocol):
     async def list(self) -> list[Rubric]: ...
 
 
+@dataclass(frozen=True)
+class ContextSummaryRow:
+    code: str
+    module: str
+    kind: str
+    title: str
+    version: int
+    word_count: int | None
+    item_count: int
+    published_item_count: int
+
+
 class ContextRepository(Protocol):
+    async def search(
+        self, *, module: str | None, q: str | None, offset: int, limit: int
+    ) -> tuple[list[ContextSummaryRow], int]:
+        """Página de contextos por código, con cuántos ítems los usan, y el total (FR-026)."""
+        ...
+
     async def add(self, context: Context) -> Context:
         """Guarda el contexto y su primera versión; asigna los `id`."""
         ...

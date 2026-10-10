@@ -13,6 +13,7 @@ from saber_uli.content.application.context_changes import (
     PropagationResult,
     propagate_context_change,
 )
+from saber_uli.content.application.ports import ContextSummaryRow
 from saber_uli.content.application.unit_of_work import ContentUnitOfWork
 from saber_uli.content.application.validation import module_rules
 from saber_uli.content.domain.context import (
@@ -84,6 +85,13 @@ class Contexts:
             )
             await uow.commit()
         return context, result
+
+    async def search(
+        self, *, module: str | None, q: str | None, offset: int, limit: int
+    ) -> tuple[list[ContextSummaryRow], int]:
+        """Contextos para elegir o revisar, con cuántos ítems los usan (`listContexts`)."""
+        async with self._uow_factory() as uow:
+            return await uow.contexts.search(module=module, q=q, offset=offset, limit=limit)
 
     async def get(self, code: str) -> ContextDetails:
         async with self._uow_factory() as uow:

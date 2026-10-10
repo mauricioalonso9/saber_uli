@@ -1,13 +1,13 @@
-"""Contextos compartidos (contrato: `createContext`, `getContext`, `updateContext`; FR-005,
-FR-020, FR-026). Permiso `content:author` con sesión privilegiada.
+"""Contextos compartidos (contrato: `listContexts`, `createContext`, `getContext`,
+`updateContext`; FR-005, FR-020, FR-026). Permiso `content:author` con sesión privilegiada.
 
 Editar exige `If-Match`: crea una versión nueva del contexto y responde qué ítems recibieron una
 versión nueva En revisión y cuáles pasaron a la nueva versión del contexto.
 """
 
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Path, Request
+from fastapi import APIRouter, Depends, Path, Query, Request
 from fastapi.responses import JSONResponse
 
 from saber_uli.content.api import schemas
@@ -16,6 +16,7 @@ from saber_uli.content.api.etag import edit_conflict, etag, if_match_revision
 from saber_uli.content.api.inputs import BusinessCode, ContextContentIn, ContextCreateIn
 from saber_uli.content.application.contexts import Contexts
 from saber_uli.content.domain.errors import EditConflictError
+from saber_uli.shared.api.pagination import PageParams, page_params
 
 router = APIRouter(
     prefix="/api/v1/content/contexts",
@@ -38,6 +39,37 @@ def _response(body: dict[str, Any], *, status_code: int = 200) -> JSONResponse:
 
 async def _current(request: Request, code: str) -> dict[str, Any]:
     return schemas.context(await _contexts(request).get(code))
+
+
+@router.get("", operation_id="listContexts")
+async def list_contexts(
+    request: Request,
+    _: Author,
+    paging: Annotated[PageParams, Depends(page_params)],
+    module: Annotated[Literal["LC", "RC", "CC", "ING", "CE"] | None, Query()] = None,
+    q: Annotated[str | None, Query(max_length=100)] = None,
+) -> dict[str, Any]:
+    # PostgreSQL no admite el carácter NUL en un texto: se quita en vez de fallar.
+    text = (q or "").replace(chr(0), "").strip() or None
+    rows, total = await _contexts(request).search(
+        module=module, q=text, offset=paging.offset, limit=paging.page_size
+    )
+    return {
+        "items": [
+            {
+                "code": row.code,
+                "module": row.module,
+                "kind": row.kind,
+                "title": row.title,
+                "version": row.version,
+                "word_count": row.word_count,
+                "item_count": row.item_count,
+                "published_item_count": row.published_item_count,
+            }
+            for row in rows
+        ],
+        "meta": {"page": paging.page, "page_size": paging.page_size, "total": total},
+    }
 
 
 @router.post("", operation_id="createContext", status_code=201)

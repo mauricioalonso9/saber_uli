@@ -4,10 +4,12 @@ from collections.abc import Collection
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import distinct, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
+from saber_uli.content.application.ports import ContextSummaryRow
 from saber_uli.content.domain.context import (
     Context,
     ContextContent,
@@ -23,11 +25,65 @@ from saber_uli.content.infrastructure.orm import (
     ItemVersionRow,
     MediaRow,
 )
+from saber_uli.shared.infrastructure.db import LIKE_ESCAPE, contains_pattern
 
 
 class SqlAlchemyContextRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._db = session
+
+    async def search(
+        self, *, module: str | None, q: str | None, offset: int, limit: int
+    ) -> tuple[list[ContextSummaryRow], int]:
+        used = ItemVersionRow.state.in_(("published", "draft", "in_review"))
+        usage = (
+            select(
+                ContextVersionRow.context_id,
+                func.count(distinct(ItemVersionRow.item_id)).label("item_total"),
+                func.count(distinct(ItemVersionRow.item_id))
+                .filter(ItemVersionRow.state == "published")
+                .label("published"),
+            )
+            .join(ContextVersionRow, ContextVersionRow.id == ItemVersionRow.context_version_id)
+            .where(used)
+            .group_by(ContextVersionRow.context_id)
+            .subquery("usage")
+        )
+        current = aliased(ContextVersionRow, name="current_version")
+        conditions = []
+        if module:
+            conditions.append(ContextRow.module_code == module)
+        if q:
+            pattern = contains_pattern(q)
+            conditions.append(
+                or_(
+                    func.lower(ContextRow.code).like(pattern, escape=LIKE_ESCAPE),
+                    func.lower(current.title).like(pattern, escape=LIKE_ESCAPE),
+                )
+            )
+        base = select(ContextRow.id).join(current, current.id == ContextRow.current_version_id)
+        total = await self._db.scalar(
+            select(func.count()).select_from(base.where(*conditions).subquery())
+        )
+        rows = await self._db.execute(
+            select(
+                ContextRow.code,
+                ContextRow.module_code,
+                current.kind,
+                current.title,
+                current.number,
+                current.word_count,
+                func.coalesce(usage.c.item_total, 0),
+                func.coalesce(usage.c.published, 0),
+            )
+            .join(current, current.id == ContextRow.current_version_id)
+            .outerjoin(usage, usage.c.context_id == ContextRow.id)
+            .where(*conditions)
+            .order_by(ContextRow.code)
+            .offset(offset)
+            .limit(limit)
+        )
+        return [ContextSummaryRow(*row) for row in rows], int(total or 0)
 
     async def add(self, context: Context) -> Context:
         row = ContextRow(

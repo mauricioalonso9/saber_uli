@@ -36,6 +36,7 @@ from saber_uli.content.application.coverage import Coverage
 from saber_uli.content.application.media import MediaLibrary
 from saber_uli.content.application.queries.items import GetItem, ItemHistoryQuery, ListItems
 from saber_uli.content.application.queries.modules import ListContentModules, ListRubrics
+from saber_uli.content.application.queries.statistics import ItemStatisticsQuery
 from saber_uli.content.application.review import Review
 from saber_uli.content.infrastructure.images import PillowImageProcessor
 from saber_uli.content.infrastructure.interchange.codec import READERS, JsonBundleCodec
@@ -254,6 +255,7 @@ def create_app(
         uow_factory=content_uow, clock=clock, writers=EXPORT_WRITERS
     )
     app.state.content_coverage = Coverage(uow_factory=content_uow)
+    app.state.content_item_statistics = ItemStatisticsQuery(uow_factory=content_uow)
     app.state.content_media = MediaLibrary(
         uow_factory=content_uow, processor=PillowImageProcessor(), clock=clock
     )

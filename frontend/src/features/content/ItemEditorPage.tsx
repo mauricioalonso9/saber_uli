@@ -27,6 +27,7 @@ import { isReauth, problemText, ReauthAlert } from "@/features/admin/common";
 import { EditConflictDialog } from "@/features/content/EditConflictDialog";
 import { ItemHistory } from "@/features/content/ItemHistory";
 import { ItemPreview } from "@/features/content/ItemPreview";
+import { ItemStatistics } from "@/features/content/ItemStatistics";
 import { useObjectUrl } from "@/features/content/MediaUpload";
 import { ReviewActions } from "@/features/content/ReviewActions";
 import { type ContentIssue, validateItem } from "@/features/content/schemas";
@@ -677,6 +678,7 @@ export function ItemEditorPage() {
               label={t("content.publishedVersion")}
             />
           ) : null}
+          {item.kind === "selection" ? <ItemStatistics code={item.code} /> : null}
           <ItemHistory code={item.code} />
         </>
       ) : null}

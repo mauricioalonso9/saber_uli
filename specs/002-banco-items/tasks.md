@@ -748,7 +748,7 @@ B19).
 
 ### Tests for User Story 8 ⚠️
 
-- [ ] T096 [P] [US8] Prueba: `backend/tests/unit/content/test_statistics.py` (FR-041 a FR-043, R-13). Con datos sintéticos de resultado conocido:
+- [x] T096 [P] [US8] Prueba: `backend/tests/unit/content/test_statistics.py` (FR-041 a FR-043, R-13). Con datos sintéticos de resultado conocido:
   - porcentaje de acierto y porcentaje por opción;
   - punto-biserial corregida contra el puntaje del resto, comparada con un cálculo de referencia con tolerancia de 1e-6;
   - menos de 30 primeras respuestas da `sufficient_data = false` y cifras nulas;
@@ -757,7 +757,8 @@ B19).
 
   → Opus
   - Terminado: la prueba falla.
-- [ ] T097 [P] [US8] Prueba: `backend/tests/integration/content/test_statistics_refresh.py`. Cubre:
+  - Estado (Opus, 2026-10-10): cerrada. 8 casos; fallaron antes de T099. La referencia de la correlación es `statistics.correlation`.
+- [x] T097 [P] [US8] Prueba: `backend/tests/integration/content/test_statistics_refresh.py`. Cubre:
   - con una `ResponseStatisticsSource` falsa, `refresh_item_statistics` reemplaza `content.item_version_stats` por versión;
   - la fuente nula de 002 deja todo en "datos insuficientes";
   - `listItems?signal=too_hard` filtra;
@@ -766,7 +767,8 @@ B19).
 
   → Qwen
   - Terminado: la prueba falla.
-- [ ] T098 [P] [US8] Prueba de componentes: `frontend/src/features/content/ItemStatistics.test.tsx`. Cubre:
+  - Estado (Opus, 2026-10-10): cerrada. 3 casos con el banco inicial real; fallaron antes de T100.
+- [x] T098 [P] [US8] Prueba de componentes: `frontend/src/features/content/ItemStatistics.test.tsx`. Cubre:
   - el mensaje "Aún no hay datos suficientes" con el número de respuestas;
   - las cifras con formato es-CO;
   - las señales con texto explicativo;
@@ -774,17 +776,22 @@ B19).
 
   → Qwen
   - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-10): cerrada. 5 casos, con axe; fallaron antes de T101.
 
 ### Implementation for User Story 8
 
-- [ ] T099 [US8] Implementar `content/domain/statistics.py` para que pase T096 → Qwen
+- [x] T099 [US8] Implementar `content/domain/statistics.py` para que pase T096 → Qwen
   - Terminado: T096 en verde.
-- [ ] T100 [US8] Implementar `content/application/statistics_refresh.py`, `content/infrastructure/null_statistics_source.py`, la tarea `content.refresh_item_statistics` (diaria, 03:00 America/Bogota, en `worker.py`), el filtro `signal` en `list_items.py` y `getItemStatistics` en `insights_router.py`, para que pase T097 → Qwen
+  - Estado (Opus, 2026-10-10): cerrada. 8 en verde. Pearson entre acierto (0/1) y puntaje del resto, que la fuente ya entrega sin el ítem; varianza cero da None. Umbrales estrictos (> 0,9 y < 0,2). Una respuesta sin opción cuenta como error.
+- [x] T100 [US8] Implementar `content/application/statistics_refresh.py`, `content/infrastructure/null_statistics_source.py`, la tarea `content.refresh_item_statistics` (diaria, 03:00 America/Bogota, en `worker.py`), el filtro `signal` en `list_items.py` y `getItemStatistics` en `insights_router.py`, para que pase T097 → Qwen
   - Terminado: T097 en verde; la operación entra en la suite de T005.
-- [ ] T101 [US8] Implementar `ItemStatistics.tsx` (pestaña del editor) y el filtro de señales en `BankPage.tsx` para que pase T098 → Qwen
+  - Estado (Opus, 2026-10-10): cerrada. 3 en verde; getItemStatistics en la suite de contrato; tarea `content.refresh_item_statistics` diaria a las 03:00 (prueba del calendario de Beat incluida). Solo ítems de selección; versiones publicadas o retiradas después de publicarse (una rechazada no). La consulta va por `ItemStatisticsQuery` (application/queries/statistics.py). El filtro `signal` de listItems ya existía (US2).
+- [x] T101 [US8] Implementar `ItemStatistics.tsx` (pestaña del editor) y el filtro de señales en `BankPage.tsx` para que pase T098 → Qwen
   - Terminado: T098 en verde.
-- [ ] T102 [US8] Revisión de US8 (Opus), anotada en `specs/002-banco-items/tasks.md`: fórmula, umbrales y agregación sin identificadores → Opus
+  - Estado (Opus, 2026-10-10): cerrada. 5 en verde; Vitest completo 292. `ItemStatistics` va como sección de la página del ítem (solo selección), antes de la historia. Decisión pendiente: el filtro de señales de `BankPage.tsx` depende de la lista del banco, que no tiene tarea (ver T095); la API ya filtra (`listItems?signal=`).
+- [x] T102 [US8] Revisión de US8 (Opus), anotada en `specs/002-banco-items/tasks.md`: fórmula, umbrales y agregación sin identificadores → Opus
   - Terminado: US8 aprobada.
+  - Estado (Opus, 2026-10-10): cerrada. US8 aprobada, salvo el filtro de señales en la interfaz (pendiente con la lista del banco). Fórmula y umbrales según R-13; la respuesta no lleva ningún UUID (comprobado); B19 en `frontend/tests/e2e/content-statistics.spec.ts`, en verde en pixel-7.
 
 ---
 

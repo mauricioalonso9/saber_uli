@@ -1,6 +1,6 @@
 """Puertos del contexto `content` (research R-01). Los implementa `content.infrastructure`."""
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Protocol
@@ -15,6 +15,7 @@ from saber_uli.content.domain.item_version import ItemKind, ItemVersion
 from saber_uli.content.domain.media import Media
 from saber_uli.content.domain.module import Module
 from saber_uli.content.domain.rubric import Rubric
+from saber_uli.content.domain.statistics import FirstResponse, VersionStats
 from saber_uli.content.domain.taxonomy import TaxonomyNode
 from saber_uli.shared.domain.errors import ConflictError
 
@@ -133,6 +134,32 @@ class ContextRepository(Protocol):
 
 
 @dataclass(frozen=True)
+class StatisticsTarget:
+    version_id: UUID
+    options: tuple[str, ...]
+    key: str
+
+
+@dataclass(frozen=True)
+class StoredVersionStats:
+    number: int
+    state: str
+    stats: VersionStats
+    computed_at: datetime | None
+
+
+class ResponseStatisticsSource(Protocol):
+    """Primeras respuestas de cada estudiante por versión, sin identificarlo (FR-044; R-13).
+
+    La implementa la práctica (003) por su fachada; en 002 es nula.
+    """
+
+    async def first_responses(
+        self, version_ids: Collection[UUID]
+    ) -> Mapping[UUID, Sequence[FirstResponse]]: ...
+
+
+@dataclass(frozen=True)
 class CoverageCounts:
     """Conteos de la cobertura: `(publicados, en revisión)` en total y por categoría."""
 
@@ -206,6 +233,21 @@ class ItemRepository(Protocol):
     async def coverage_counts(self, module_code: str, tag: str) -> CoverageCounts:
         """Ítems Publicados y En revisión del módulo, en total y por la categoría `tag`
         (`assertion_id`, `competence_id`, `part_id`…) de esa versión (FR-039)."""
+        ...
+
+    async def statistics_targets(self) -> list[StatisticsTarget]:
+        """Versiones de ítems de selección que se publicaron (vigentes o ya retiradas)."""
+        ...
+
+    async def replace_statistics(
+        self, stats: Sequence[tuple[UUID, VersionStats]], computed_at: datetime
+    ) -> None:
+        """Reemplaza `item_version_stats` completa (research R-13)."""
+        ...
+
+    async def statistics(self, code: str) -> list[StoredVersionStats] | None:
+        """Estadísticas de las versiones publicadas o retiradas del ítem, de la más reciente a la
+        primera; `None` si el ítem no existe."""
         ...
 
     async def export_batch(

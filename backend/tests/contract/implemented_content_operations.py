@@ -41,5 +41,7 @@ IMPLEMENTED_CONTENT_OPERATIONS: frozenset[str] = frozenset(
         "exportItems",
         # US7 (T093)
         "getModuleCoverage",
+        # US8 (T100)
+        "getItemStatistics",
     }
 )

@@ -17,6 +17,7 @@ TASKS = {
     "process-deletion-requests": "saber_uli.process_deletion_requests",
     "purge-expired-auth-artifacts": "saber_uli.purge_expired_auth_artifacts",
     "purge-expired-imports": "saber_uli.content.purge_expired_imports",
+    "refresh-item-statistics": "saber_uli.content.refresh_item_statistics",
 }
 
 
@@ -81,3 +82,7 @@ def test_el_scheduler_escribe_el_latido_en_cada_tick(
 
 def test_purge_expired_imports_cada_hora() -> None:
     assert entry("purge-expired-imports")["schedule"] == crontab(minute=15)
+
+
+def test_refresh_item_statistics_diaria_a_las_3() -> None:
+    assert entry("refresh-item-statistics")["schedule"] == crontab(hour=3, minute=0)

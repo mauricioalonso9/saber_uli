@@ -10,6 +10,7 @@ Tareas programadas (zona America/Bogota):
 - `process_retention`: diaria a las 02:00 (avisos y supresiones automáticas, US7).
 - `process_deletion_requests`: cada 15 min (respaldo del outbox, US7).
 - `content.purge_expired_imports`: cada hora, a los 15 minutos (importaciones vencidas, 002).
+- `content.refresh_item_statistics`: diaria a las 03:00 (estadísticas por versión, 002).
 - `purge_expired_auth_artifacts`: diaria a las 03:30; purga el outbox aquí y las sesiones y
   enlaces vencidos en US4/US7.
 
@@ -66,6 +67,10 @@ celery_app.conf.update(
         "purge-expired-imports": {
             "task": "saber_uli.content.purge_expired_imports",
             "schedule": crontab(minute=15),
+        },
+        "refresh-item-statistics": {
+            "task": "saber_uli.content.refresh_item_statistics",
+            "schedule": crontab(hour=3, minute=0),
         },
         "purge-expired-auth-artifacts": {
             "task": "saber_uli.purge_expired_auth_artifacts",
@@ -298,3 +303,29 @@ async def _purge_expired_imports() -> None:
 @celery_app.task(name="saber_uli.content.purge_expired_imports")
 def content_purge_expired_imports() -> None:
     asyncio.run(_purge_expired_imports())
+
+
+async def _refresh_item_statistics() -> None:
+    from saber_uli.config import get_settings
+    from saber_uli.content.infrastructure.null_statistics_source import NullStatisticsSource
+    from saber_uli.content.infrastructure.tasks import refresh_item_statistics as run
+    from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
+    from saber_uli.shared.application.event_bus import EventBus
+    from saber_uli.shared.infrastructure.db import create_engine, create_session_factory
+
+    settings = get_settings()
+    engine = create_engine(settings.database_url.get_secret_value())
+    try:
+        session_factory = create_session_factory(engine)
+        await run(
+            uow_factory=lambda: SqlAlchemyContentUnitOfWork(session_factory, EventBus()),
+            source=NullStatisticsSource(),
+            clock=SystemClock(),
+        )
+    finally:
+        await engine.dispose()
+
+
+@celery_app.task(name="saber_uli.content.refresh_item_statistics")
+def content_refresh_item_statistics() -> None:
+    asyncio.run(_refresh_item_statistics())

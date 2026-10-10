@@ -574,6 +574,25 @@
     "version": "versión {{number}}",
     "openVersion": "Versión abierta",
     "publishedVersion": "Versión publicada",
+    "statistics": {
+      "title": "Estadísticas",
+      "none": "Este ítem aún no tiene versiones publicadas.",
+      "version": "Versión {{number}} · {{state}}",
+      "insufficient_one": "Aún no hay datos suficientes: {{shown}} respuesta (se necesitan al menos {{minimum}}).",
+      "insufficient_other": "Aún no hay datos suficientes: {{shown}} respuestas (se necesitan al menos {{minimum}}).",
+      "responses": "Respuestas: {{value}}",
+      "correct": "Acierto: {{value}}",
+      "discrimination": "Discriminación: {{value}}",
+      "notAvailable": "no se puede calcular (todos respondieron igual)",
+      "options": "Elección de cada opción, versión {{number}}",
+      "signalsOf": "Señales de problema de la versión {{number}}",
+      "signals": {
+        "too_easy": "Muy fácil: acierta más del 90 %.",
+        "too_hard": "Muy difícil: acierta menos del 20 %.",
+        "negative_discrimination": "Discriminación negativa: aciertan más quienes tienen peor desempeño en el resto del módulo.",
+        "distractor_beats_key": "Una opción incorrecta se elige más que la correcta."
+      }
+    },
     "coverage": {
       "summary": "Meta del banco: {{target}} ítems. Hay {{published}} publicados y {{inReview}} en revisión.",
       "noWeights": "Este módulo no tiene distribución objetivo por categorías: solo se muestran los totales.",

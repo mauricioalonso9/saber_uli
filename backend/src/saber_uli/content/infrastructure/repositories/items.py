@@ -6,10 +6,26 @@ anterior deja de serlo antes de que la nueva lo sea y los índices únicos parci
 y una abierta por ítem) nunca se violan a mitad de la operación.
 """
 
+from collections.abc import Sequence
+from datetime import datetime
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, Uuid, and_, any_, case, func, insert, literal, or_, select, update
+from sqlalchemy import (
+    Select,
+    Uuid,
+    and_,
+    any_,
+    case,
+    delete,
+    func,
+    insert,
+    literal,
+    or_,
+    select,
+    update,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
@@ -19,6 +35,8 @@ from saber_uli.content.application.ports import (
     ImmutableVersionError,
     ItemFilters,
     ItemSummaryRow,
+    StatisticsTarget,
+    StoredVersionStats,
 )
 from saber_uli.content.domain.context import Origin
 from saber_uli.content.domain.events import HistoryEvent, HistoryEventType
@@ -31,6 +49,7 @@ from saber_uli.content.domain.item_version import (
     Option,
     VersionState,
 )
+from saber_uli.content.domain.statistics import MIN_RESPONSES, ProblemSignal, VersionStats
 from saber_uli.content.domain.taxonomy import TaxonomyTags
 from saber_uli.content.infrastructure.orm import (
     ContextRow,
@@ -198,6 +217,51 @@ class SqlAlchemyItemRepository:
         )
         return [_version(version, context_code) for version, context_code in rows]
 
+    async def statistics_targets(self) -> list[StatisticsTarget]:
+        rows = await self._db.execute(
+            select(ItemVersionRow.id, ItemVersionRow.options)
+            .join(ItemRow, ItemRow.id == ItemVersionRow.item_id)
+            .where(ItemRow.kind == "selection", _was_published())
+            .order_by(ItemRow.code, ItemVersionRow.number)
+        )
+        targets = []
+        for version_id, options in rows:
+            keys = tuple(o["key"] for o in options or [])
+            key = next((o["key"] for o in options or [] if o["correct"]), None)
+            if key is not None:
+                targets.append(StatisticsTarget(version_id, keys, key))
+        return targets
+
+    async def replace_statistics(
+        self, stats: Sequence[tuple[UUID, VersionStats]], computed_at: datetime
+    ) -> None:
+        await self._db.execute(delete(ItemVersionStatsRow))
+        if stats:
+            await self._db.execute(
+                insert(ItemVersionStatsRow),
+                [_stats_values(version_id, value, computed_at) for version_id, value in stats],
+            )
+
+    async def statistics(self, code: str) -> list[StoredVersionStats] | None:
+        item_id = await self._db.scalar(select(ItemRow.id).where(ItemRow.code == code))
+        if item_id is None:
+            return None
+        rows = await self._db.execute(
+            select(ItemVersionRow.number, ItemVersionRow.state, ItemVersionStatsRow)
+            .outerjoin(ItemVersionStatsRow, ItemVersionStatsRow.version_id == ItemVersionRow.id)
+            .where(ItemVersionRow.item_id == item_id, _was_published())
+            .order_by(ItemVersionRow.number.desc())
+        )
+        return [
+            StoredVersionStats(
+                number=number,
+                state=state,
+                stats=_stats(row),
+                computed_at=None if row is None else row.computed_at,
+            )
+            for number, state, row in rows
+        ]
+
     async def coverage_counts(self, module_code: str, tag: str) -> CoverageCounts:
         # Cada ítem tiene a lo sumo una versión publicada y una abierta: contar versiones es
         # contar ítems.
@@ -353,6 +417,45 @@ class SqlAlchemyItemRepository:
                 for event in events
             ],
         )
+
+
+def _was_published() -> Any:
+    """Publicada ahora o antes (una rechazada nunca se publicó)."""
+    return or_(
+        ItemVersionRow.state == "published",
+        and_(ItemVersionRow.state == "retired", ItemVersionRow.published_at.is_not(None)),
+    )
+
+
+def _rate(value: float | None) -> Decimal | None:
+    return None if value is None else Decimal(str(round(value, 4)))
+
+
+def _stats_values(version_id: UUID, value: VersionStats, computed_at: datetime) -> dict[str, Any]:
+    return {
+        "version_id": version_id,
+        "first_responses": value.first_responses,
+        "correct_rate": _rate(value.correct_rate),
+        "option_rates": None
+        if value.option_rates is None
+        else {k: round(v, 4) for k, v in value.option_rates.items()},
+        "discrimination": _rate(value.discrimination),
+        "signals": [signal.value for signal in value.signals],
+        "computed_at": computed_at,
+    }
+
+
+def _stats(row: ItemVersionStatsRow | None) -> VersionStats:
+    if row is None:
+        return VersionStats(first_responses=0, sufficient_data=False)
+    return VersionStats(
+        first_responses=row.first_responses,
+        sufficient_data=row.first_responses >= MIN_RESPONSES,
+        correct_rate=None if row.correct_rate is None else float(row.correct_rate),
+        option_rates=None if row.option_rates is None else dict(row.option_rates),
+        discrimination=None if row.discrimination is None else float(row.discrimination),
+        signals=tuple(ProblemSignal(signal) for signal in row.signals),
+    )
 
 
 def _tag_columns(version: Any) -> tuple[Any, ...]:

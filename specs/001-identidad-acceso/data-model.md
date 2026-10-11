@@ -57,6 +57,10 @@ Restricciones e índices:
 - Índice `(kind, last_login_at) WHERE status = 'active'` para la tarea de conservación.
 - Requiere la extensión `citext`.
 
+**Enmienda del 2026-10-11 (US9, R-41)**: `kind` admite `local`; columna nueva `username`
+(citext, única, solo para `local`; la de la cuenta de administración es `adminsaber`). Una cuenta
+`local` no tiene identidad de Entra ID ni correo.
+
 ### 2.2 `profiles`
 
 | Columna | Tipo | Reglas |
@@ -271,6 +275,19 @@ Columnas: `key` PK, `value` jsonb, `updated_by`, `updated_at`. Cada cambio se au
 
 ---
 
+### 2.16 `local_credentials` (enmienda del 2026-10-11)
+
+| Columna | Tipo | Notas |
+|---------|------|-------|
+| `user_id` | uuid PK FK → `users.id` | solo usuarios `local` |
+| `password_hash` | text | Argon2id en formato PHC; nunca sale de la base |
+| `must_change` | boolean | `true` con la contraseña inicial o tras un restablecimiento |
+| `failed_attempts` | integer ≥ 0 | fallos seguidos; vuelve a 0 al ingresar |
+| `locked_until` | timestamptz NULL | fin del bloqueo de 15 minutos |
+| `changed_at` | timestamptz | último cambio o restablecimiento |
+
+`saber_app`: `SELECT`, `INSERT`, `UPDATE` (sin `DELETE`).
+
 ## 3. Esquema `shared`
 
 ### 3.1 `outbox_events`
@@ -344,7 +361,9 @@ mitad, la reanudación completa los pasos faltantes.
 `program.created`, `program.updated`, `policy.published`, `consent.accepted`,
 `consent.rejected`, `consent.revoked`, `deletion.requested`, `deletion.completed`,
 `retention.notice_sent`, `retention.skipped_last_admin`, `invitation.contact_purged`,
-`setting.changed`, `session.reuse_detected`, `auth.login_rejected`.
+`setting.changed`, `session.reuse_detected`, `auth.login_rejected`,
+`auth.local_login_succeeded`, `auth.local_locked`, `auth.password_changed`,
+`auth.password_reset` (enmienda del 2026-10-11).
 
 ---
 

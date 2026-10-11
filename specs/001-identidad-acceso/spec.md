@@ -46,6 +46,17 @@ bajo qué autorización de tratamiento de datos personales.
   A: Sí, con un correo 30 días antes que explica cómo evitar la supresión (volver a ingresar o
   pedir renovación).
 
+### Session 2026-10-11 (enmienda: cuenta local de administración)
+
+- Q: ¿Debe existir un ingreso de administración con usuario y contraseña, sin depender del
+  inquilino de Entra ID? → A: Sí, también en producción: una cuenta local `adminsaber`, para
+  administrar la plataforma cuando el ingreso institucional no esté configurado o no esté
+  disponible.
+- Q: ¿Con qué contraseña nace y cómo se protege? → A: Nace con la contraseña inicial
+  `adminsaber` en todos los entornos, que DEBE cambiarse en el primer ingreso antes de poder
+  hacer cualquier otra cosa. La nueva contraseña cumple la política de ASVS nivel 2 (12 a 128
+  caracteres, distinta del usuario y de la actual, fuera de una lista de contraseñas comunes).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Ingreso con la cuenta institucional (Priority: P1)
@@ -327,6 +338,43 @@ personales, descarga una copia y corrige un dato editable.
    **Then** se le indica que esos datos provienen del directorio institucional y el canal para
    corregirlos allí.
 
+---
+
+### User Story 9 - Cuenta local de administración (Priority: P2)
+
+Como administrador de la plataforma quiero ingresar con un usuario y una contraseña propios de
+Saber Uli, sin depender del inquilino de Microsoft, para poder administrarla aunque el ingreso
+institucional no esté configurado o falle.
+
+**Why this priority**: permite poner en marcha y operar la plataforma sin las credenciales de
+Entra ID; no bloquea a estudiantes ni invitados.
+
+**Independent Test**: en una instalación nueva, ingresar con `adminsaber` / `adminsaber`, ver
+que solo se permite cambiar la contraseña, cambiarla por una que cumpla la política y entonces
+usar las funciones de administración.
+
+**Acceptance Scenarios**:
+
+1. **Given** una instalación nueva,
+   **When** alguien ingresa con el usuario `adminsaber` y la contraseña `adminsaber`,
+   **Then** entra, pero lo único que puede hacer es cambiar la contraseña; cualquier otra
+   función responde que primero debe cambiarla.
+2. **Given** la sesión de la cuenta local con el cambio pendiente,
+   **When** escribe la contraseña actual y una nueva que cumple la política,
+   **Then** la contraseña se cambia, las demás sesiones de la cuenta se cierran y queda con una
+   sesión de administrador completa.
+3. **Given** una contraseña nueva de menos de 12 caracteres, igual al usuario, igual a la actual
+   o de la lista de contraseñas comunes,
+   **When** intenta guardarla,
+   **Then** se rechaza explicando la regla incumplida.
+4. **Given** un usuario o una contraseña incorrectos,
+   **When** intenta ingresar,
+   **Then** ve el mismo mensaje genérico en ambos casos; tras 10 intentos fallidos seguidos, la
+   cuenta se bloquea 15 minutos.
+5. **Given** que se olvidó la contraseña de la cuenta local,
+   **When** quien opera el servidor ejecuta el comando de restablecimiento,
+   **Then** la cuenta vuelve a la contraseña inicial con el cambio obligatorio.
+
 ### Edge Cases
 
 - Un usuario institucional es retirado del directorio de Unilibre (por ejemplo, egresa o se
@@ -365,6 +413,16 @@ personales, descarga una copia y corrige un dato editable.
   nombre del invitado; la invitación queda solo como registro sin datos personales (FR-034e).
 - Un docente con contenido creado solicita la supresión: el contenido permanece, pero su
   autoría pasa a mostrarse sin datos personales.
+
+- Alguien prueba muchas contraseñas contra `adminsaber`: además del límite por dirección IP,
+  la cuenta se bloquea 15 minutos tras 10 fallos seguidos; el bloqueo y cada fallo quedan en la
+  auditoría, sin la contraseña.
+- La cuenta local con el cambio de contraseña pendiente intenta abrir cualquier función: se le
+  pide primero cambiar la contraseña.
+- Un administrador desactiva la cuenta local: no puede ingresar, como cualquier cuenta
+  desactivada.
+- La cuenta local no pertenece a una persona del directorio institucional: no se suprime por
+  inactividad (FR-034b) y cuenta como administradora para la regla del último administrador.
 
 ## Requirements *(mandatory)*
 
@@ -505,9 +563,31 @@ personales, descarga una copia y corrige un dato editable.
   sincronizar la actividad hecha sin conexión. Si alguna validación falla, la actividad
   pendiente NO DEBE sincronizarse y el usuario DEBE ver la causa.
 
+- **FR-040**: El sistema DEBE tener una cuenta local de administración con el usuario
+  `adminsaber`, que ingresa con usuario y contraseña sin pasar por Entra ID (enmienda del
+  2026-10-11).
+- **FR-041**: La cuenta local DEBE nacer con la contraseña inicial `adminsaber` marcada para
+  cambio obligatorio. Mientras el cambio esté pendiente, la sesión NO DEBE dar acceso a ninguna
+  función salvo cambiar la contraseña y cerrar sesión.
+- **FR-042**: Una contraseña nueva DEBE tener entre 12 y 128 caracteres, NO DEBE ser igual al
+  usuario ni a la contraseña actual y NO DEBE estar en la lista de contraseñas comunes; el
+  rechazo DEBE indicar la regla incumplida (ASVS 4.0.3 V2.1).
+- **FR-043**: El sistema DEBE guardar la contraseña solo como un hash resistente a ataques de
+  fuerza bruta (Argon2id) y NUNCA en registros, auditoría ni respuestas (ASVS V2.4).
+- **FR-044**: Un usuario o una contraseña incorrectos DEBEN responder con el mismo mensaje
+  genérico. Tras 10 intentos fallidos seguidos, la cuenta DEBE bloquearse 15 minutos, además del
+  límite de intentos por dirección IP (ASVS V2.2.1).
+- **FR-045**: Cambiar la contraseña DEBE exigir la contraseña actual y DEBE cerrar todas las
+  demás sesiones de la cuenta (ASVS V2.1.6, V3.3.3).
+- **FR-046**: Quien opera el servidor DEBE poder restablecer la contraseña de la cuenta local a
+  la inicial, con el cambio obligatorio, mediante un comando; el restablecimiento queda en la
+  auditoría.
+- **FR-047**: Los ingresos exitosos y rechazados de la cuenta local, los bloqueos, los cambios y
+  los restablecimientos de contraseña DEBEN quedar en la auditoría.
+
 ### Key Entities *(include if feature involves data)*
 
-- **Usuario**: persona con acceso a Saber Uli. Tipo (institucional o invitado), estado (activo,
+- **Usuario**: persona con acceso a Saber Uli. Tipo (institucional, invitado o local), estado (activo,
   desactivado, vencido, revocado, en supresión), identificador estable externo
   (institucionales), nombre, correo, fecha del último ingreso exitoso (desde la que se cuenta el
   año de conservación de institucionales) y fecha de fin de acceso (invitados, desde la que se
@@ -528,6 +608,10 @@ personales, descarga una copia y corrige un dato editable.
   rechazada, revocada) con fecha y hora.
 - **Solicitud de supresión**: usuario solicitante, fecha, estado y fecha límite.
 - **Registro de auditoría**: actor, acción, objeto afectado, fecha y hora; inmutable.
+
+- **Credencial local**: hash de la contraseña de la cuenta local, si el cambio es obligatorio,
+  fallos seguidos, fin del bloqueo y fecha del último cambio. Pertenece a un Usuario de tipo
+  local.
 
 ## Success Criteria *(mandatory)*
 
@@ -550,6 +634,10 @@ personales, descarga una copia y corrige un dato editable.
   desde que abre el correo.
 - **SC-008**: Al menos el 90 % de los usuarios que ven el mensaje de rechazo de cuenta no
   institucional entiende la causa y la alternativa (validado en pruebas con usuarios).
+
+- **SC-009**: El 0 % de los ingresos con la contraseña inicial de la cuenta local llega a una
+  función distinta de cambiar la contraseña, y el 100 % de las contraseñas guardadas cumple la
+  política de FR-042.
 
 ## Assumptions
 

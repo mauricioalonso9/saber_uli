@@ -174,6 +174,87 @@ paths:
               schema: { $ref: '#/components/schemas/Problem' }
         '422': { $ref: '#/components/responses/ValidationError' }
         '429': { $ref: '#/components/responses/TooManyRequests' }
+  /api/auth/local/sessions:
+    post:
+      tags: [auth]
+      operationId: createLocalSession
+      summary: Ingreso de la cuenta local de administración con usuario y contraseña (FR-040, FR-044)
+      description: |
+        Abre la sesión propia (cookie `su_refresh`). Con el cambio de contraseña pendiente
+        (FR-041), el token sale sin roles: solo sirven `/me`, `changeLocalPassword` y cerrar
+        sesión. 10 por minuto por IP; 10 fallos seguidos bloquean la cuenta 15 minutos.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              additionalProperties: false
+              properties:
+                username: { type: string, minLength: 1, maxLength: 64 }
+                password: { type: string, minLength: 1, maxLength: 128 }
+      responses:
+        '200':
+          description: Sesión abierta; fija la cookie `su_refresh`
+          headers:
+            Set-Cookie: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionTokens' }
+        '401':
+          description: Usuario o contraseña incorrectos, o cuenta desactivada (`invalid-credentials`), siempre con el mismo mensaje
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429':
+          description: Demasiados intentos por IP (`rate-limited`) o cuenta bloqueada 15 minutos (`account-locked`)
+          headers:
+            Retry-After: { schema: { type: integer } }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+  /api/auth/local/password:
+    post:
+      tags: [auth]
+      operationId: changeLocalPassword
+      summary: Cambia la contraseña de la cuenta local (FR-041, FR-042, FR-045)
+      description: |
+        Exige la contraseña actual. Cierra todas las sesiones de la cuenta y devuelve una sesión
+        nueva completa (cookie `su_refresh` y token). Sirve también con el cambio pendiente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              additionalProperties: false
+              properties:
+                current_password: { type: string, minLength: 1, maxLength: 128 }
+                new_password: { type: string, minLength: 1, maxLength: 128 }
+      responses:
+        '200':
+          description: Contraseña cambiada; sesión nueva
+          headers:
+            Set-Cookie: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionTokens' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: La contraseña actual no es correcta (`invalid-credentials`) o la cuenta no es local (`forbidden`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '422':
+          description: La contraseña nueva no cumple la política (`weak-password`, con la regla en `errors`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
   /api/auth/refresh:
     post:
       tags: [auth]
@@ -1385,10 +1466,13 @@ components:
       required: [id, kind, status, display_name, email, roles, permissions, onboarding, access]
       properties:
         id: { type: string, format: uuid }
-        kind: { type: string, enum: [institutional, guest] }
+        kind: { type: string, enum: [institutional, guest, local] }
         status: { $ref: '#/components/schemas/AccountStatus' }
         display_name: { type: string }
-        email: { type: string, format: email }
+        email:
+          type: [string, 'null']
+          format: email
+          description: '`null` en la cuenta local de administración (FR-040)'
         roles:
           type: array
           items: { $ref: '#/components/schemas/Role' }
@@ -1397,11 +1481,14 @@ components:
           items: { $ref: '#/components/schemas/Permission' }
         onboarding:
           type: object
-          required: [consent_required, profile_required]
+          required: [consent_required, profile_required, password_change_required]
           properties:
             consent_required: { type: boolean }
             current_policy_version_id: { type: string, format: uuid }
             profile_required: { type: boolean }
+            password_change_required:
+              type: boolean
+              description: La cuenta local debe cambiar su contraseña antes de cualquier otra cosa (FR-041)
         access:
           type: object
           required: [valid, validated_at, offline_grace_until]
@@ -1695,7 +1782,7 @@ components:
       required: [id, kind, status, roles, created_at]
       properties:
         id: { type: string, format: uuid }
-        kind: { type: string, enum: [institutional, guest] }
+        kind: { type: string, enum: [institutional, guest, local] }
         status: { $ref: '#/components/schemas/AccountStatus' }
         display_name: { type: [string, 'null'] }
         email: { type: [string, 'null'], format: email }

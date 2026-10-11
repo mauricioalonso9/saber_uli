@@ -1756,6 +1756,45 @@ dato editable del perfil.
 
 ---
 
+## Phase 12: Enmienda 2026-10-11 - Cuenta local de administración (US9)
+
+**Goal**: ingresar como administrador con `adminsaber` y contraseña, sin Entra ID, con cambio
+obligatorio de la contraseña inicial (spec US9, FR-040 a FR-047, SC-009; research R-41; ADR 0009).
+Pedida y aprobada por la persona responsable el 2026-10-11. Trabajo de Opus.
+
+**Independent Test**: en una base nueva, ingresar con `adminsaber` / `adminsaber`, ver que solo
+se puede cambiar la contraseña, cambiarla y administrar.
+
+- [ ] T181 [P] [US9] Prueba: `backend/tests/unit/identity/test_local_credentials.py`. Cubre la política de FR-042 (longitud, igual al usuario o a la actual, lista común, sin distinguir mayúsculas), el bloqueo de FR-044 (10 fallos, 15 minutos, reinicio al acertar) y el cambio obligatorio → Opus
+  - Terminado: la prueba falla.
+- [ ] T182 [P] [US9] Prueba: `backend/tests/integration/identity/test_local_admin.py`. Cubre:
+  - la migración crea `adminsaber` con rol Administrador y cambio obligatorio;
+  - `createLocalSession`: con la contraseña inicial abre una sesión sin permisos (solo `/me`, cambiar la contraseña y cerrar sesión); usuario inexistente y contraseña incorrecta dan el mismo 401; 10 fallos bloquean con 429 `account-locked` y `Retry-After`; el límite por IP;
+  - `changeLocalPassword`: rechazos de la política con su regla (422 `weak-password`), contraseña actual incorrecta (403), y el cambio cierra las demás sesiones y devuelve una sesión de administrador completa;
+  - `/me` con `password_change_required` y sin correo; sin autorización ni perfil pendientes;
+  - `saber-uli identity reset-local-password`;
+  - auditoría de FR-047 y logs sin contraseñas;
+  - la cuenta local no se suprime por inactividad y cuenta para la regla del último administrador.
+
+  → Opus
+  - Terminado: la prueba falla.
+- [ ] T183 [P] [US9] Prueba de componentes: `frontend/src/features/auth/LocalLoginForm.test.tsx` y `ChangePasswordPage.test.tsx`, y casos nuevos en `frontend/src/app/guards.test.tsx` (con el cambio pendiente toda ruta lleva a `/cambiar-contrasena`); axe → Opus
+  - Terminado: la prueba falla.
+- [ ] T184 [US9] Implementar el dominio y la infraestructura: `identity/domain/local_credential.py`, el hash Argon2id (`argon2-cffi`), `common_passwords.txt`, el repositorio y la migración `0010` (tipo `local`, `username`, `local_credentials`, permisos de `saber_app` y la cuenta `adminsaber`) para que pase T181 → Opus
+  - Terminado: T181 en verde.
+- [ ] T185 [US9] Implementar `identity/application/local_sign_in.py`, el router `/api/auth/local`, la sesión restringida (token sin roles con `pwd_change`), `/me` y el comando `reset-local-password`, para que pase T182; las dos operaciones entran en la suite de contrato → Opus
+  - Terminado: T182 en verde.
+- [ ] T186 [US9] Implementar en la PWA el formulario de ingreso local en `/ingresar`, la página `/cambiar-contrasena` y la regla de la guarda, para que pase T183 → Opus
+  - Terminado: T183 en verde.
+- [ ] T187 [US9] E2E: `frontend/tests/e2e/us9-local-admin.spec.ts` (ingreso con la contraseña inicial, cambio obligatorio, administración; la prueba restablece la contraseña al terminar) en pixel-7 e iphone-14 → Opus
+  - Terminado: en verde.
+- [ ] T188 [US9] Documentación y seguridad: `README.md`, `specs/001-identidad-acceso/quickstart.md`, `CLAUDE.md` (decisión de acceso) y `docs/security/asvs-001-identidad.md` (V2.1, V2.2, V2.4 y la desviación de V4.3.1) → Opus
+  - Terminado: documentos actualizados.
+- [ ] T189 [US9] Revisión de la enmienda (Opus), anotada aquí → Opus
+  - Terminado: aprobada.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

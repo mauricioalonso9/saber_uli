@@ -553,6 +553,34 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
 
 ---
 
+### R-41. Cuenta local de administración (enmienda del 2026-10-11)
+
+- **Decisión**: ver [ADR 0009](../../docs/adr/0009-cuenta-local-de-administracion.md).
+  - Usuario de tipo `local` con `username = 'adminsaber'`, rol Administrador y credencial en
+    `identity.local_credentials`, creados por la migración 0010 con el hash Argon2id de la
+    contraseña inicial y `must_change = true`.
+  - `POST /api/auth/local/sessions` (usuario y contraseña) abre la sesión propia de R-14 con
+    `auth_method = 'local_password'`. Con el cambio pendiente, el token sale sin roles y con
+    `pwd_change: true`; `AccessGuard` no da permisos y `/me` informa
+    `onboarding.password_change_required`, que la PWA usa para llevar a `/cambiar-contrasena`.
+  - `POST /api/auth/local/password` (contraseña actual y nueva) valida la política, guarda el
+    hash, sube `auth_epoch` y devuelve una sesión nueva (cookie y token).
+  - Límite de 10 por minuto por IP (Redis, R-31) y bloqueo de 15 minutos tras 10 fallos seguidos
+    (`failed_attempts`, `locked_until`). Usuario inexistente y contraseña incorrecta: 401
+    `invalid-credentials`; cuenta bloqueada: 429 `account-locked` con `Retry-After` (el usuario
+    `adminsaber` es conocido, así que no revela nada nuevo).
+  - Lista de contraseñas comunes en `identity/infrastructure/common_passwords.txt`; la
+    comparación ignora mayúsculas.
+  - `saber-uli identity reset-local-password`: contraseña inicial, `must_change`, desbloqueo y
+    `auth_epoch + 1`.
+  - La cuenta no tiene datos personales: no pide autorización ni perfil, no entra en la
+    supresión por inactividad y su exportación de «Mis datos» solo trae roles y auditoría.
+- **Justificación**: reutiliza la sesión propia y las reglas de revocación de 001 sin un sistema
+  de usuarios con contraseña completo (una sola cuenta, sin registro ni recuperación por correo).
+- **Alternativas**: ver ADR 0009.
+
+---
+
 ## I. Decisiones del proyecto para especificaciones futuras
 
 El kit pide decidir aquí la estrategia del motor adaptativo. Se registra como **propuesta** y se

@@ -965,7 +965,7 @@ paths:
     get:
       tags: [transfer]
       operationId: exportItems
-      summary: Exporta el banco o un filtro en el formato de importación (FR-038, SC-010)
+      summary: Exporta el banco o un filtro en el formato de importación (FR-038, SC-010); 30 por hora por persona
       x-requires-privileged-session: true
       x-required-permission: content:author
       parameters:
@@ -999,6 +999,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
 
   # ------------------------------------------------------------- cobertura
   /api/v1/content/coverage/{moduleCode}:

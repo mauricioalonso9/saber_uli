@@ -780,7 +780,7 @@ export const getExportItemsUrl = (params: ExportItemsParams) => {
 };
 
 /**
- * @summary Exporta el banco o un filtro en el formato de importación (FR-038, SC-010)
+ * @summary Exporta el banco o un filtro en el formato de importación (FR-038, SC-010); 30 por hora por persona
  */
 export const exportItems = async (
   params: ExportItemsParams,
@@ -798,7 +798,8 @@ export const getExportItemsQueryKey = (params?: ExportItemsParams) => {
 
 export const getExportItemsQueryOptions = <
   TData = Awaited<ReturnType<typeof exportItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse | TooManyRequestsResponse,
 >(
   params: ExportItemsParams,
   options?: {
@@ -822,11 +823,12 @@ export const getExportItemsQueryOptions = <
 
 export type ExportItemsQueryResult = NonNullable<Awaited<ReturnType<typeof exportItems>>>;
 export type ExportItemsQueryError =
-  UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse;
+  UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse | TooManyRequestsResponse;
 
 export function useExportItems<
   TData = Awaited<ReturnType<typeof exportItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse | TooManyRequestsResponse,
 >(
   params: ExportItemsParams,
   options: {
@@ -845,7 +847,8 @@ export function useExportItems<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useExportItems<
   TData = Awaited<ReturnType<typeof exportItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse | TooManyRequestsResponse,
 >(
   params: ExportItemsParams,
   options?: {
@@ -864,7 +867,8 @@ export function useExportItems<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 export function useExportItems<
   TData = Awaited<ReturnType<typeof exportItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse | TooManyRequestsResponse,
 >(
   params: ExportItemsParams,
   options?: {
@@ -874,12 +878,13 @@ export function useExportItems<
   queryClient?: QueryClient,
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
- * @summary Exporta el banco o un filtro en el formato de importación (FR-038, SC-010)
+ * @summary Exporta el banco o un filtro en el formato de importación (FR-038, SC-010); 30 por hora por persona
  */
 
 export function useExportItems<
   TData = Awaited<ReturnType<typeof exportItems>>,
-  TError = UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse,
+  TError =
+    UnauthorizedResponse | ForbiddenResponse | ValidationErrorResponse | TooManyRequestsResponse,
 >(
   params: ExportItemsParams,
   options?: {

@@ -37,6 +37,8 @@ from saber_uli.shared.api.rate_limit import per_user
 from saber_uli.shared.infrastructure.rate_limit import RateLimitRule
 
 IMPORT_UPLOAD_PER_USER = RateLimitRule("content-import-user", "30/hour")
+# Exportar el banco completo pesa en la base (ASVS O1, T115): el mismo ritmo que importar.
+EXPORT_PER_USER = RateLimitRule("content-export-user", "30/hour")
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 TEMPLATE_NAME = "plantilla-banco-saber-uli.xlsx"
 
@@ -192,7 +194,11 @@ async def confirm_import(
     return await _detail(request, job, PageParams())
 
 
-@router.get("/export", operation_id="exportItems")
+@router.get(
+    "/export",
+    operation_id="exportItems",
+    dependencies=[Depends(per_user(EXPORT_PER_USER, _author))],
+)
 async def export_items(
     request: Request,
     user: Author,

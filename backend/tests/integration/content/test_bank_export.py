@@ -245,3 +245,19 @@ async def test_api_exporta_con_encabezados(
     assert json_file.headers["x-skipped-items"] == "0"
     assert len(json.loads(json_file.content)["items"]) == 19  # el JSON representa todo
     assert student.status_code == 403
+
+
+async def test_limite_de_30_exportaciones_por_hora(
+    api_client: httpx.AsyncClient, staff: StaffFactory
+) -> None:
+    """ASVS O1 (T115): exportar tiene un límite por persona, como importar."""
+    teacher = (await staff(Role.TEACHER)).headers
+    params = {"format": "json", "module": "CE"}
+    statuses = [
+        (await api_client.get("/api/v1/content/export", params=params, headers=teacher)).status_code
+        for _ in range(31)
+    ]
+    blocked = await api_client.get("/api/v1/content/export", params=params, headers=teacher)
+
+    assert statuses == [200] * 30 + [429]
+    assert int(blocked.headers["Retry-After"]) > 0

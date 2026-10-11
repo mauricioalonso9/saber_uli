@@ -916,6 +916,37 @@ punta a punta.
 
 ---
 
+## Phase 13: Lista del banco (agregada el 2026-10-11)
+
+**Purpose**: la lista de `/banco` con búsqueda, filtros y paginación, que ninguna tarea cubría
+(hallazgo E2 de `/speckit.analyze`; decisión pendiente de T095 y T101). La necesitan la parte de
+interfaz de B1, el filtro de señales de problema (FR-043) y los enlaces de la cobertura (FR-039).
+Incluye un defecto encontrado al validar T114: la cola de revisión pedía solo los primeros 50
+ítems, sin paginación ni búsqueda, así que con 51 o más un revisor no llegaba al resto. Agregada
+con la aprobación del usuario.
+
+- [ ] T118 [P] Prueba de componentes: `frontend/src/features/content/BankPage.test.tsx`. Cubre:
+  - la tabla con código (enlace al ítem), módulo, estado (publicada o abierta), origen, dificultad, extracto del enunciado y señales en texto;
+  - la búsqueda (`q`) y los filtros de módulo, estado, origen, dificultad, categoría (con sus descendientes, del módulo elegido) y señal de problema (FR-043);
+  - los filtros salen de la URL y se guardan en ella (`/banco?module=LC&taxonomy_node=…` desde la cobertura, FR-039);
+  - la paginación con el total ("Página 2 de 5") y botones Anterior y Siguiente;
+  - axe sin violaciones.
+
+  → Opus
+  - Requisitos: FR-039, FR-043, SC-009; B1.
+  - Terminado: la prueba falla.
+- [ ] T119 [P] Prueba de componentes: casos nuevos en `frontend/src/features/content/ReviewQueuePage.test.tsx`: la cola pagina (más de 50 ítems llegan a la página 2) y busca por código o texto → Opus
+  - Requisitos: FR-013.
+  - Terminado: la prueba falla.
+- [ ] T120 Implementar `BankPage.tsx`, un paginador compartido y la búsqueda de la ruta `/banco` (`validateSearch`), y usarlos en `ReviewQueuePage.tsx`, para que pasen T118 y T119 → Opus
+  - Terminado: T118 y T119 en verde.
+- [ ] T121 E2E: `frontend/tests/e2e/content-bank.spec.ts` con la parte de interfaz de B1 (los ítems del banco inicial en `/banco`, filtrables), el filtro por señal y el enlace desde la cobertura; `content-review.spec.ts` busca el ítem en la cola en vez de suponer que está en la primera página. En pixel-7 e iphone-14 → Opus
+  - Terminado: en verde en los dos navegadores.
+- [ ] T122 Revisión de la fase 13 (Opus), anotada en `specs/002-banco-items/tasks.md` → Opus
+  - Terminado: aprobada.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

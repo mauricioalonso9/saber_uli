@@ -189,7 +189,8 @@
     "session": {
       "methods": {
         "entra_id": "Ingreso con tu cuenta Unilibre",
-        "guest_link": "Ingreso con enlace de invitado"
+        "guest_link": "Ingreso con enlace de invitado",
+        "local_password": "Ingreso con usuario y contraseña de administración"
       },
       "detail": "{{method}} el {{started}}; última actividad el {{lastSeen}}.",
       "revoked": "Cerrada el {{date}}.",
@@ -258,7 +259,8 @@
       "current": "este dispositivo",
       "method": {
         "entra_id": "Cuenta Unilibre (Microsoft 365)",
-        "guest_link": "Enlace de invitado"
+        "guest_link": "Enlace de invitado",
+        "local_password": "Usuario y contraseña de administración"
       },
       "started": "Inició: {{date}}",
       "lastActivity": "Última actividad: {{date}}",

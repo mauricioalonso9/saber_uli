@@ -6,6 +6,7 @@ from uuid import UUID
 
 from saber_uli.identity.application.unit_of_work import IdentityUnitOfWork
 from saber_uli.identity.domain.consent import consent_is_current
+from saber_uli.identity.domain.user import UserKind
 from saber_uli.shared.domain.clock import Clock
 
 
@@ -26,8 +27,12 @@ class ConsentStatusQuery:
         async with self._uow_factory() as uow:
             current = await uow.consents.current_policy_version_id(now=self._clock.now())
             latest = await uow.consents.latest_for_user(user_id)
+            user = await uow.users.get(user_id)
+        # La cuenta local de administración no tiene datos personales (US9, R-41).
+        local = user is not None and user.kind is UserKind.LOCAL
         return ConsentStatus(
-            consent_required=not consent_is_current(latest, current_policy_version_id=current),
+            consent_required=not local
+            and not consent_is_current(latest, current_policy_version_id=current),
             current_policy_version_id=current,
         )
 

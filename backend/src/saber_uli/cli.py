@@ -252,6 +252,54 @@ def _grant_admin(email: str) -> int:
     return EXIT_OK
 
 
+async def _run_reset_local_password(url: str) -> str:
+    from saber_uli.identity.application.local_sign_in import LocalPasswordReset
+    from saber_uli.identity.infrastructure.passwords import Argon2PasswordHasher
+
+    engine = create_engine(url)
+    redis_url = os.environ.get("REDIS_URL")
+    if redis_url:
+        # Con Redis, la caché de `auth_epoch` se limpia al confirmar: las sesiones se cierran ya.
+        from saber_uli.worker import identity_task_bus
+
+        bus = identity_task_bus(redis_url)
+    else:
+        bus = EventBus()
+    try:
+        session_factory = create_session_factory(engine)
+        service = LocalPasswordReset(
+            uow_factory=lambda: SqlAlchemyIdentityUnitOfWork(session_factory, bus),
+            clock=SystemClock(),
+            hasher=Argon2PasswordHasher(),
+        )
+        return await service.reset()
+    finally:
+        await engine.dispose()
+
+
+def _reset_local_password() -> int:
+    """Vuelve la cuenta local `adminsaber` a la contraseña inicial con el cambio obligatorio,
+    la desbloquea y cierra sus sesiones (FR-046). Usa `DATABASE_URL` (saber_app)."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        print("Error: falta la variable de entorno DATABASE_URL (rol saber_app).", file=sys.stderr)
+        return EXIT_USAGE
+    configure_logging(os.environ.get("LOG_LEVEL", "WARNING"))
+    try:
+        username = asyncio.run(_run_reset_local_password(url))
+    except DomainError as error:
+        print(f"No se restableció la contraseña: {error.message}", file=sys.stderr)
+        return EXIT_FAILURE
+    except Exception as error:
+        detail = _redact(str(error), url).splitlines()[0] if str(error) else ""
+        print(
+            f"Error: el restablecimiento falló ({type(error).__name__}): {detail}", file=sys.stderr
+        )
+        return EXIT_FAILURE
+    print(f"La cuenta {username} volvió a la contraseña inicial; se pedirá cambiarla al ingresar.")
+    return EXIT_OK
+
+
 def default_seed_file() -> Path:
     """`SABER_SEEDS_DIR` (imagen Docker: /app/seeds) o `backend/seeds`, como las migraciones."""
     configured = os.environ.get("SABER_SEEDS_DIR")
@@ -345,6 +393,10 @@ def app(argv: Sequence[str] | None = None) -> None:
         "grant-admin", help="asigna el rol Administrador a una cuenta institucional"
     )
     grant_admin.add_argument("--email", required=True, help="correo institucional de la persona")
+    identity_commands.add_parser(
+        "reset-local-password",
+        help="vuelve la cuenta adminsaber a la contraseña inicial con cambio obligatorio",
+    )
 
     content = commands.add_parser("content", help="banco de ítems")
     content_commands = content.add_subparsers(dest="action", required=True, metavar="acción")
@@ -365,6 +417,8 @@ def app(argv: Sequence[str] | None = None) -> None:
         sys.exit(_invite_guest(args.email, args.days, args.name))
     if args.command == "identity" and args.action == "grant-admin":
         sys.exit(_grant_admin(args.email))
+    if args.command == "identity" and args.action == "reset-local-password":
+        sys.exit(_reset_local_password())
     if args.command == "content" and args.action == "load-seed":
         sys.exit(_load_seed(args.file))
 

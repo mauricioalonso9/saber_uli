@@ -20,13 +20,16 @@ import type {
 
 import type {
   Accepted,
+  ChangeLocalPasswordBody,
   CompleteMicrosoftLoginParams,
   CreateGuestSessionBody,
+  CreateLocalSessionBody,
   Problem,
   RequestGuestSignInLinkBody,
   SessionTokens,
   StartMicrosoftLoginParams,
   TooManyRequestsResponse,
+  UnauthorizedResponse,
   ValidationErrorResponse,
 } from "./model";
 
@@ -561,6 +564,228 @@ export const useCreateGuestSession = <
   TContext
 > => {
   return useMutation(getCreateGuestSessionMutationOptions(options), queryClient);
+};
+export const getCreateLocalSessionUrl = () => {
+  return `/api/auth/local/sessions`;
+};
+
+/**
+ * Abre la sesión propia (cookie `su_refresh`). Con el cambio de contraseña pendiente
+ * (FR-041), el token sale sin roles: solo sirven `/me`, `changeLocalPassword` y cerrar
+ * sesión. 30 por minuto por IP; 10 fallos seguidos bloquean la cuenta 15 minutos.
+ * @summary Ingreso de la cuenta local de administración con usuario y contraseña (FR-040, FR-044)
+ */
+export const createLocalSession = async (
+  createLocalSessionBody: CreateLocalSessionBody,
+  options?: Parameters<typeof customInstance>[1],
+): Promise<SessionTokens> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customInstance<SessionTokens>(getCreateLocalSessionUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(createLocalSessionBody),
+  });
+};
+
+export const getCreateLocalSessionMutationKey = () => ["createLocalSession"] as const;
+
+export const getCreateLocalSessionMutationOptions = <
+  TError = Problem | ValidationErrorResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createLocalSession>>,
+    TError,
+    CreateLocalSessionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createLocalSession>>,
+  TError,
+  CreateLocalSessionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateLocalSessionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createLocalSession>>,
+    CreateLocalSessionMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createLocalSession(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateLocalSessionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createLocalSession>>
+>;
+export type CreateLocalSessionMutationBody = CreateLocalSessionBody;
+export type CreateLocalSessionMutationError = Problem | ValidationErrorResponse;
+export type CreateLocalSessionMutationVariables = { data: CreateLocalSessionBody };
+
+/**
+ * @summary Ingreso de la cuenta local de administración con usuario y contraseña (FR-040, FR-044)
+ */
+export const useCreateLocalSession = <
+  TError = Problem | ValidationErrorResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createLocalSession>>,
+      TError,
+      CreateLocalSessionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createLocalSession>>,
+  TError,
+  CreateLocalSessionMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateLocalSessionMutationOptions(options), queryClient);
+};
+export const getChangeLocalPasswordUrl = () => {
+  return `/api/auth/local/password`;
+};
+
+/**
+ * Exige la contraseña actual. Cierra todas las sesiones de la cuenta y devuelve una sesión
+ * nueva completa (cookie `su_refresh` y token). Sirve también con el cambio pendiente.
+ * @summary Cambia la contraseña de la cuenta local (FR-041, FR-042, FR-045)
+ */
+export const changeLocalPassword = async (
+  changeLocalPasswordBody: ChangeLocalPasswordBody,
+  options?: Parameters<typeof customInstance>[1],
+): Promise<SessionTokens> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customInstance<SessionTokens>(getChangeLocalPasswordUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(changeLocalPasswordBody),
+  });
+};
+
+export const getChangeLocalPasswordMutationKey = () => ["changeLocalPassword"] as const;
+
+export const getChangeLocalPasswordMutationOptions = <
+  TError = UnauthorizedResponse | Problem | TooManyRequestsResponse,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeLocalPassword>>,
+    TError,
+    ChangeLocalPasswordMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changeLocalPassword>>,
+  TError,
+  ChangeLocalPasswordMutationVariables,
+  TContext
+> => {
+  const mutationKey = getChangeLocalPasswordMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && "mutationKey" in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeLocalPassword>>,
+    ChangeLocalPasswordMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return changeLocalPassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ChangeLocalPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof changeLocalPassword>>
+>;
+export type ChangeLocalPasswordMutationBody = ChangeLocalPasswordBody;
+export type ChangeLocalPasswordMutationError =
+  UnauthorizedResponse | Problem | TooManyRequestsResponse;
+export type ChangeLocalPasswordMutationVariables = { data: ChangeLocalPasswordBody };
+
+/**
+ * @summary Cambia la contraseña de la cuenta local (FR-041, FR-042, FR-045)
+ */
+export const useChangeLocalPassword = <
+  TError = UnauthorizedResponse | Problem | TooManyRequestsResponse,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changeLocalPassword>>,
+      TError,
+      ChangeLocalPasswordMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof changeLocalPassword>>,
+  TError,
+  ChangeLocalPasswordMutationVariables,
+  TContext
+> => {
+  return useMutation(getChangeLocalPasswordMutationOptions(options), queryClient);
 };
 export const getRefreshSessionUrl = () => {
   return `/api/auth/refresh`;

@@ -8,4 +8,5 @@ export type AdminUserKind = (typeof AdminUserKind)[keyof typeof AdminUserKind];
 export const AdminUserKind = {
   institutional: "institutional",
   guest: "guest",
+  local: "local",
 } as const;

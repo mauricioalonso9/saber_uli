@@ -134,6 +134,28 @@ def redis_url(redis_container: RedisContainer) -> str:
     return f"redis://{host}:{port}/0"
 
 
+@pytest.fixture
+async def local_admin_disabled(migrated_database: dict[str, str]) -> AsyncIterator[None]:
+    """Desactiva `adminsaber` (US9) en las pruebas que necesitan un único administrador activo.
+
+    La cuenta local cuenta como administradora para la regla del último administrador (FR-025),
+    así que esas pruebas la apartan y la vuelven a activar al terminar.
+    """
+
+    async def set_status(status: str) -> None:
+        engine = create_async_engine(migrated_database["migrator"], poolclass=NullPool)
+        async with engine.begin() as conn:
+            await conn.execute(
+                text("UPDATE identity.users SET status = :s WHERE username = 'adminsaber'"),
+                {"s": status},
+            )
+        await engine.dispose()
+
+    await set_status("disabled")
+    yield
+    await set_status("active")
+
+
 @pytest.fixture(scope="session")
 def migrated_database(database_urls: dict[str, str]) -> dict[str, str]:
     """Aplica `alembic upgrade head` con saber_migrator (T026). Úsese desde T025 en adelante."""

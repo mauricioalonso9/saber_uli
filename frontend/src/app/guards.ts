@@ -19,6 +19,7 @@ export const ACCOUNT_DATA_PATH = "/mi-cuenta/datos";
 export const PROFILE_PATH = "/bienvenida/perfil";
 export const OFFLINE_PATH = "/sin-conexion";
 export const HOME_PATH = "/inicio";
+export const PASSWORD_CHANGE_PATH = "/cambiar-contrasena";
 export const LOGIN_PATH = "/ingresar";
 
 /** Prefijo de ruta → permisos que la habilitan (basta uno). */
@@ -61,6 +62,13 @@ export function decideNavigation(session: SessionState, path: string): string | 
   }
 
   const { onboarding, permissions } = session.me;
+  // Cuenta local con la contraseña inicial: nada más hasta cambiarla (FR-041).
+  if (onboarding.password_change_required) {
+    return path === PASSWORD_CHANGE_PATH ? null : PASSWORD_CHANGE_PATH;
+  }
+  if (path === PASSWORD_CHANGE_PATH) {
+    return HOME_PATH;
+  }
   if (onboarding.consent_required) {
     return path === CONSENT_PATH || path === ACCOUNT_DATA_PATH ? null : CONSENT_PATH;
   }

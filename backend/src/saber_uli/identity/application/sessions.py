@@ -78,7 +78,8 @@ class SessionService:
             token = await uow.sessions.add_refresh_token(
                 RefreshToken.issue(session, token_hash=token_hash, now=now)
             )
-            issued = self._issue(user, session, token, plaintext, now)
+            pending = await _password_change_pending(uow, user)
+            issued = self._issue(user, session, token, plaintext, now, pending)
             await uow.commit()
         return issued
 
@@ -121,7 +122,8 @@ class SessionService:
             await uow.sessions.save(session)
             user.record_login(now)
             await uow.users.save(user)
-            issued = self._issue(user, session, new_token, new_plaintext, now)
+            pending = await _password_change_pending(uow, user)
+            issued = self._issue(user, session, new_token, new_plaintext, now, pending)
             await uow.commit()
         return issued
 
@@ -162,16 +164,21 @@ class SessionService:
         token: RefreshToken,
         plaintext: str,
         now: datetime,
+        password_change_pending: bool = False,
     ) -> IssuedSession:
         if user.id is None or session.id is None:
             raise ValueError("el usuario y la sesión deben estar guardados")
+        # Con el cambio de contraseña pendiente, la sesión no lleva roles (FR-041).
         claims = AccessTokenClaims(
             sub=user.id,
             sid=session.id,
-            roles=tuple(sorted(role.value for role in user.roles)),
+            roles=()
+            if password_change_pending
+            else tuple(sorted(role.value for role in user.roles)),
             epoch=user.auth_epoch,
-            priv=session.is_privileged(now, roles=user.roles),
+            priv=not password_change_pending and session.is_privileged(now, roles=user.roles),
             iat=now,
+            pwd_change=password_change_pending,
         )
         return IssuedSession(
             access_token=self._access_tokens.encode(claims),
@@ -179,3 +186,11 @@ class SessionService:
             refresh_token=plaintext,
             refresh_expires_at=token.idle_expires_at,
         )
+
+
+async def _password_change_pending(uow: IdentityUnitOfWork, user: User) -> bool:
+    """La cuenta local todavía tiene la contraseña inicial o restablecida (FR-041)."""
+    if user.kind is not UserKind.LOCAL or user.id is None:
+        return False
+    credential = await uow.local_credentials.get(user.id)
+    return credential is None or credential.must_change

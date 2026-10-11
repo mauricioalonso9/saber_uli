@@ -565,7 +565,7 @@ Formato de cada entrada: **Decisión**, **Justificación**, **Alternativas consi
     `onboarding.password_change_required`, que la PWA usa para llevar a `/cambiar-contrasena`.
   - `POST /api/auth/local/password` (contraseña actual y nueva) valida la política, guarda el
     hash, sube `auth_epoch` y devuelve una sesión nueva (cookie y token).
-  - Límite de 10 por minuto por IP (Redis, R-31) y bloqueo de 15 minutos tras 10 fallos seguidos
+  - Límite de 30 por minuto por IP (Redis, R-31) y bloqueo de 15 minutos tras 10 fallos seguidos
     (`failed_attempts`, `locked_until`). Usuario inexistente y contraseña incorrecta: 401
     `invalid-credentials`; cuenta bloqueada: 429 `account-locked` con `Retry-After` (el usuario
     `adminsaber` es conocido, así que no revela nada nuevo).

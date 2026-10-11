@@ -1003,5 +1003,26 @@
   "search": {
     "label": "Buscar",
     "submit": "Buscar"
+  },
+  "localLogin": {
+    "toggle": "Ingreso de administración",
+    "intro": "Solo para la cuenta de administración de Saber Uli (adminsaber). La comunidad Unilibre ingresa con su cuenta de Microsoft.",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "submit": "Ingresar con usuario y contraseña",
+    "failed": "No pudimos completar el ingreso. Vuelve a intentarlo."
+  },
+  "changePassword": {
+    "title": "Cambia la contraseña",
+    "intro_one": "Antes de seguir, elige una contraseña nueva de al menos {{count}} carácter, distinta del usuario y de la actual. Una frase larga es más fácil de recordar.",
+    "intro_other": "Antes de seguir, elige una contraseña nueva de al menos {{count}} caracteres, distinta del usuario y de la actual. Una frase larga es más fácil de recordar.",
+    "current": "Contraseña actual",
+    "next": "Contraseña nueva",
+    "repeat": "Repite la contraseña nueva",
+    "submit": "Cambiar la contraseña",
+    "mismatch": "Las contraseñas nuevas no coinciden.",
+    "tooShort_one": "La contraseña debe tener al menos {{count}} carácter.",
+    "tooShort_other": "La contraseña debe tener al menos {{count}} caracteres.",
+    "failed": "No pudimos cambiar la contraseña. Vuelve a intentarlo."
   }
 }

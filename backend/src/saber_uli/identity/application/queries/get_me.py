@@ -29,12 +29,13 @@ class MeView:
     kind: str
     status: str
     display_name: str
-    email: str
+    email: str | None
     roles: list[str]
     permissions: list[str]
     consent_required: bool
     current_policy_version_id: UUID | None
     profile_required: bool
+    password_change_required: bool
     validated_at: datetime
     offline_grace_until: datetime
     guest_access_expires_at: datetime | None
@@ -59,6 +60,10 @@ class GetMe:
             if user.kind is UserKind.GUEST:
                 guest_status = await uow.guest_access.status_for(user.id, now=now)
                 guest_expires = await uow.guest_access.expires_at_for(user.id)
+            credential = (
+                await uow.local_credentials.get(user.id) if user.kind is UserKind.LOCAL else None
+            )
+        local = user.kind is UserKind.LOCAL
 
         status = user.status.value
         if guest_status is GuestAccessStatus.EXPIRED:
@@ -71,12 +76,18 @@ class GetMe:
             kind=user.kind.value,
             status=status,
             display_name=user.display_name or "",
-            email=user.email or "",
+            email=None if local else (user.email or ""),
             roles=roles,
-            permissions=sorted(p.value for p in permissions_for(user.roles)),
-            consent_required=not consent_is_current(latest, current_policy_version_id=policy),
+            # Con el cambio de contraseña pendiente, ninguna función (FR-041).
+            permissions=[]
+            if credential is not None and credential.must_change
+            else sorted(p.value for p in permissions_for(user.roles)),
+            # La cuenta local no tiene datos personales: no pide autorización ni perfil (R-41).
+            consent_required=not local
+            and not consent_is_current(latest, current_policy_version_id=policy),
             current_policy_version_id=policy,
-            profile_required=user.onboarding_completed_at is None,
+            profile_required=not local and user.onboarding_completed_at is None,
+            password_change_required=credential is not None and credential.must_change,
             validated_at=now,
             offline_grace_until=now + OFFLINE_GRACE,
             guest_access_expires_at=guest_expires,

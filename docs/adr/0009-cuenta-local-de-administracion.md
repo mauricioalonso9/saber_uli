@@ -31,7 +31,7 @@ La constitución exige OWASP ASVS nivel 2.
 4. **Política** (ASVS V2.1): de 12 a 128 caracteres, sin recortar ni componer reglas de
    mayúsculas o símbolos, distinta del usuario y de la actual, y fuera de una lista de
    contraseñas comunes incluida en el código.
-5. **Fuerza bruta** (ASVS V2.2.1): 10 intentos por minuto por IP en Redis y bloqueo de la cuenta
+5. **Fuerza bruta** (ASVS V2.2.1): 30 intentos por minuto por IP en Redis y bloqueo de la cuenta
    15 minutos tras 10 fallos seguidos (contador en la base). Usuario inexistente y contraseña
    incorrecta dan el mismo 401 genérico, y se verifica contra un hash ficticio para igualar
    el tiempo.

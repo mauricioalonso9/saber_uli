@@ -152,6 +152,15 @@ const guestAccessRoute = createRoute({
   component: lazyRouteComponent(() => import("@/features/auth/GuestAccessPage"), "GuestAccessPage"),
 });
 
+const changePasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/cambiar-contrasena",
+  component: lazyRouteComponent(
+    () => import("@/features/auth/ChangePasswordPage"),
+    "ChangePasswordPage",
+  ),
+});
+
 const guestLinkRequestRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/ingresar/invitado",
@@ -342,6 +351,7 @@ const offlineRoute = createRoute({
 });
 
 export const routeTree = rootRoute.addChildren([
+  changePasswordRoute,
   indexRoute,
   page("/inicio", "home.title", "home.placeholder"),
   loginRoute,

@@ -99,3 +99,9 @@ class RateLimiter:
             return RateLimitDecision(allowed=True)
         wait = math.ceil(stats.reset_time - time.time())
         return RateLimitDecision(allowed=False, retry_after=min(max(wait, 1), rule.window_seconds))
+
+
+# Cuenta local de administración (US9, ADR 0009): el bloqueo de 15 minutos tras 10 fallos es el
+# freno principal; 30/min por IP deja ver ese bloqueo y frena el barrido de usuarios.
+LOCAL_SESSION_PER_IP = RateLimitRule("local-session-ip", "30/minute")
+LOCAL_PASSWORD_PER_IP = RateLimitRule("local-password-ip", "30/minute")

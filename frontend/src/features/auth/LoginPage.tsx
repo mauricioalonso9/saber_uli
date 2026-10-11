@@ -2,6 +2,7 @@ import { Link, getRouteApi } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
 import { startMicrosoftLogin } from "@/features/auth/bootstrap";
+import { LocalLoginForm } from "@/features/auth/LocalLoginForm";
 import { Button } from "@/shared/ui/button";
 
 const route = getRouteApi("/ingresar");
@@ -42,6 +43,7 @@ export function LoginPage() {
           {t("login.guestLink")}
         </Link>
       </p>
+      <LocalLoginForm />
     </section>
   );
 }

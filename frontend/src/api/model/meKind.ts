@@ -8,4 +8,5 @@ export type MeKind = (typeof MeKind)[keyof typeof MeKind];
 export const MeKind = {
   institutional: "institutional",
   guest: "guest",
+  local: "local",
 } as const;

@@ -16,6 +16,7 @@ from saber_uli.identity.domain.access_link import AccessLink, LinkPurpose
 from saber_uli.identity.domain.consent import ConsentRecord
 from saber_uli.identity.domain.invitation import Invitation, InvitationStatus
 from saber_uli.identity.domain.invitation_batch import InvitationBatch
+from saber_uli.identity.domain.local_credential import LocalCredential
 from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.profile import Profile
 from saber_uli.identity.domain.program import Program
@@ -335,6 +336,19 @@ class FakeErasure:
     """Borrado de datos personales: sus pruebas son de integración (T155)."""
 
 
+class FakeLocalCredentials:
+    """Credenciales de cuentas locales en memoria (US9)."""
+
+    def __init__(self) -> None:
+        self.rows: dict[UUID, LocalCredential] = {}
+
+    async def get(self, user_id: UUID, *, for_update: bool = False) -> LocalCredential | None:
+        return self.rows.get(user_id)
+
+    async def save(self, credential: LocalCredential) -> None:
+        self.rows[credential.user_id] = credential
+
+
 class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     """Comparte los repositorios entre aperturas (como una base de datos) y cuenta los commits."""
 
@@ -355,6 +369,7 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
         self._settings = FakeSettings()
         self._deletion_requests = FakeDeletionRequests()
         self._erasure = FakeErasure()
+        self._local_credentials = FakeLocalCredentials()
         self.commits = 0
 
     def __call__(self) -> "FakeIdentityUnitOfWork":
@@ -367,6 +382,10 @@ class FakeIdentityUnitOfWork(IdentityUnitOfWork):
     @property
     def sessions(self) -> FakeSessions:
         return self._sessions
+
+    @property
+    def local_credentials(self) -> FakeLocalCredentials:
+        return self._local_credentials
 
     @property
     def guest_access(self) -> FakeGuestAccess:

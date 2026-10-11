@@ -14,7 +14,11 @@ export interface Me {
   kind: MeKind;
   status: AccountStatus;
   display_name: string;
-  email: string;
+  /**
+   * `null` en la cuenta local de administración (FR-040)
+   * @nullable
+   */
+  email: string | null;
   roles: Role[];
   permissions: Permission[];
   onboarding: MeOnboarding;

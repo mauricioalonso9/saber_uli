@@ -6,12 +6,14 @@ import { expect, test } from "@playwright/test";
 
 import { newMockUser } from "./fixtures/auth";
 import { onboardedUser } from "./fixtures/consent";
-import { grantRole, keepOnlyAdmin } from "./fixtures/db";
+import { grantRole, keepOnlyAdmin, restoreLocalAdmin } from "./fixtures/db";
 
 test.skip(
   ({ browserName }) => browserName === "webkit" && !process.env.E2E_OIDC_RESOLVES,
   "WebKit necesita `127.0.0.1 oidc` en el archivo hosts",
 );
+
+test.afterAll(restoreLocalAdmin);
 
 test("V13: no se puede quitar el rol al único administrador activo", async ({ page }) => {
   const admin = await onboardedUser(page, { ...newMockUser(), name: "Única Administración" });

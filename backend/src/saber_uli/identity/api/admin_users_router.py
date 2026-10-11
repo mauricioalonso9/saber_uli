@@ -30,7 +30,7 @@ VisibleStatus = Literal[
 
 class AdminUserOut(BaseModel):
     id: UUID
-    kind: Literal["institutional", "guest"]
+    kind: Literal["institutional", "guest", "local"]
     status: VisibleStatus
     display_name: str | None
     email: str | None

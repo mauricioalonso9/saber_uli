@@ -182,7 +182,7 @@ paths:
       description: |
         Abre la sesión propia (cookie `su_refresh`). Con el cambio de contraseña pendiente
         (FR-041), el token sale sin roles: solo sirven `/me`, `changeLocalPassword` y cerrar
-        sesión. 10 por minuto por IP; 10 fallos seguidos bloquean la cuenta 15 minutos.
+        sesión. 30 por minuto por IP; 10 fallos seguidos bloquean la cuenta 15 minutos.
       security: []
       requestBody:
         required: true
@@ -1549,7 +1549,7 @@ components:
       required: [id, auth_method, started_at, last_activity_at, current]
       properties:
         id: { type: string, format: uuid }
-        auth_method: { type: string, enum: [entra_id, guest_link] }
+        auth_method: { type: string, enum: [entra_id, guest_link, local_password] }
         started_at: { type: string, format: date-time }
         last_activity_at: { type: string, format: date-time }
         current: { type: boolean, description: Es la sesión de esta petición }
@@ -1637,7 +1637,7 @@ components:
       type: object
       required: [auth_method, started_at, last_seen_at, expires_at]
       properties:
-        auth_method: { type: string, enum: [entra_id, guest_link] }
+        auth_method: { type: string, enum: [entra_id, guest_link, local_password] }
         started_at: { type: string, format: date-time }
         last_seen_at: { type: string, format: date-time }
         expires_at: { type: string, format: date-time }

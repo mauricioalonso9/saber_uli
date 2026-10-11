@@ -18,7 +18,11 @@ function me(overrides: Partial<Me> = {}, permissions: Permission[] = []): Me {
     email: "ana@unilibre.edu.co",
     roles: ["student"],
     permissions,
-    onboarding: { consent_required: false, profile_required: false },
+    onboarding: {
+      consent_required: false,
+      profile_required: false,
+      password_change_required: false,
+    },
     access: {
       valid: true,
       validated_at: "2026-10-06T12:00:00Z",
@@ -40,12 +44,40 @@ describe("decideNavigation", () => {
     expect(decideNavigation(anonymous, path)).toBeNull();
   });
 
+  it("con el cambio de contraseña pendiente, todo lleva a /cambiar-contrasena (T183, FR-041)", () => {
+    const pending = me(
+      {
+        kind: "local",
+        onboarding: {
+          consent_required: false,
+          profile_required: false,
+          password_change_required: true,
+        },
+      },
+      ["users:manage"],
+    );
+
+    expect(decideNavigation(signedIn(pending), "/admin/usuarios")).toBe("/cambiar-contrasena");
+    expect(decideNavigation(signedIn(pending), "/inicio")).toBe("/cambiar-contrasena");
+    expect(decideNavigation(signedIn(pending), "/cambiar-contrasena")).toBeNull();
+  });
+
+  it("sin cambio pendiente, /cambiar-contrasena lleva a /inicio (T183)", () => {
+    expect(decideNavigation(signedIn(me()), "/cambiar-contrasena")).toBe("/inicio");
+  });
+
   it("con sesión, /ingresar lleva a /inicio", () => {
     expect(decideNavigation(signedIn(me()), "/ingresar")).toBe("/inicio");
   });
 
   it("sin autorización de datos lleva a /bienvenida/datos (FR-014)", () => {
-    const pending = me({ onboarding: { consent_required: true, profile_required: true } });
+    const pending = me({
+      onboarding: {
+        consent_required: true,
+        profile_required: true,
+        password_change_required: false,
+      },
+    });
 
     expect(decideNavigation(signedIn(pending), "/inicio")).toBe("/bienvenida/datos");
     expect(decideNavigation(signedIn(pending), "/bienvenida/perfil")).toBe("/bienvenida/datos");
@@ -53,7 +85,13 @@ describe("decideNavigation", () => {
   });
 
   it("sin autorización de datos deja solicitar la supresión (FR-014, escenario 2.3)", () => {
-    const pending = me({ onboarding: { consent_required: true, profile_required: true } });
+    const pending = me({
+      onboarding: {
+        consent_required: true,
+        profile_required: true,
+        password_change_required: false,
+      },
+    });
 
     expect(decideNavigation(signedIn(pending), "/mi-cuenta/datos")).toBeNull();
     expect(decideNavigation(signedIn(pending), "/mi-cuenta/autorizacion")).toBe(
@@ -62,7 +100,13 @@ describe("decideNavigation", () => {
   });
 
   it("con autorización pero sin perfil lleva a /bienvenida/perfil (FR-019, FR-020)", () => {
-    const pending = me({ onboarding: { consent_required: false, profile_required: true } });
+    const pending = me({
+      onboarding: {
+        consent_required: false,
+        profile_required: true,
+        password_change_required: false,
+      },
+    });
 
     expect(decideNavigation(signedIn(pending), "/inicio")).toBe("/bienvenida/perfil");
     expect(decideNavigation(signedIn(pending), "/bienvenida/perfil")).toBeNull();
@@ -122,7 +166,13 @@ describe("guardias en el router", () => {
   });
 
   it("con la autorización pendiente termina en /bienvenida/datos", async () => {
-    const pending = me({ onboarding: { consent_required: true, profile_required: false } });
+    const pending = me({
+      onboarding: {
+        consent_required: true,
+        profile_required: false,
+        password_change_required: false,
+      },
+    });
     const router = await landOn("/inicio", signedIn(pending));
 
     expect(

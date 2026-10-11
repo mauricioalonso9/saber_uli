@@ -11,6 +11,7 @@ from saber_uli.identity.application.ports import (
     GuestAccessReader,
     InvitationBatchRepository,
     InvitationRepository,
+    LocalCredentialRepository,
     PersonalDataEraser,
     PolicyRepository,
     ProfileRepository,
@@ -30,6 +31,10 @@ class IdentityUnitOfWork(UnitOfWork):
     @property
     @abstractmethod
     def sessions(self) -> SessionRepository: ...
+
+    @property
+    @abstractmethod
+    def local_credentials(self) -> LocalCredentialRepository: ...
 
     @property
     @abstractmethod

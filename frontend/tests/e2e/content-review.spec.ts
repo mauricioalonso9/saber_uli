@@ -48,9 +48,16 @@ test("B5–B8: aprobar, autoaprobación, docente que comenta, devolver y rechaza
 
   // B5: la cola muestra el ítem; el administrador lo aprueba con las dos confirmaciones.
   await first.page.goto("/banco/revision");
+  // La cola pagina: se busca cada código (la base e2e acumula ítems de otras corridas).
+  const searchQueue = async (code: string) => {
+    await first.page.getByRole("searchbox", { name: "Buscar" }).fill(code);
+    await first.page.getByRole("button", { name: "Buscar" }).click();
+  };
   const queue = first.page.getByRole("table", { name: "Ítems por revisar" });
+  await searchQueue(own);
+  await expect(first.page.getByText("No hay ítems por revisar.")).toBeVisible();
+  await searchQueue(approve);
   await expect(queue.getByRole("link", { name: approve })).toBeVisible();
-  await expect(queue.getByRole("link", { name: own })).toHaveCount(0);
   await expectNoA11yViolations(first.page);
   await queue.getByRole("link", { name: approve }).click();
   await first.page.getByRole("button", { name: "Aprobar" }).click();

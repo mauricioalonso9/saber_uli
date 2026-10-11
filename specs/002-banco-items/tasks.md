@@ -879,9 +879,9 @@ punta a punta.
 - [x] T113 [P] Prueba de logs sin datos personales: `backend/tests/integration/content/test_content_logs.py` captura los logs de la carga, la importación (incluido el nombre del archivo), la revisión y la exportación, y comprueba que no hay textos de ítems, nombres, correos ni nombres de archivo (principio V) → Opus
   - Terminado: prueba en verde.
   - Estado (Opus, 2026-10-10): cerrada. En verde sin cambios en el código: con logs a nivel DEBUG, la carga del banco con errores (por la CLI), la importación con un nombre de archivo único, el reporte, la confirmación, la devolución con comentario, el comentario del docente, el rechazo con motivo, un 422 con el enunciado en el cuerpo y la exportación no dejan ningún nombre, correo, enunciado, texto de contexto, comentario, motivo ni nombre de archivo.
-- [ ] T114 [P] Agregar `/banco`, `/banco/items/nuevo` (con la vista previa abierta), `/banco/importaciones/$id` y `/banco/cobertura` al recorrido de accesibilidad de `frontend/tests/e2e/a11y.spec.ts`, y comprobar en el viewport móvil que no hay desplazamiento horizontal → Qwen
+- [x] T114 [P] Agregar `/banco`, `/banco/items/nuevo` (con la vista previa abierta), `/banco/importaciones/$id` y `/banco/cobertura` al recorrido de accesibilidad de `frontend/tests/e2e/a11y.spec.ts`, y comprobar en el viewport móvil que no hay desplazamiento horizontal → Qwen
   - Terminado: axe sin violaciones en Chromium y WebKit.
-  - Estado (Opus, 2026-10-10): abierta, falta WebKit. Caso "rutas del banco de ítems" en `a11y.spec.ts`: /banco, /banco/revision, /banco/importar, /banco/importaciones/$id, /banco/exportar, /banco/cobertura, /admin/taxonomia y /banco/items/nuevo (también con la vista previa abierta), con axe, foco por teclado y sin desplazamiento horizontal. En verde en pixel-7 (Chromium). En iphone-14 (WebKit) no puede ingresar: el archivo hosts del equipo no tiene `127.0.0.1 oidc` (agregarlo es una decisión de quien administra el equipo); con esa línea, correr `E2E_OIDC_RESOLVES=1 npx playwright test a11y --project=iphone-14`.
+  - Estado (Opus, 2026-10-11): cerrada. WebKit en verde tras agregar `127.0.0.1 oidc` al archivo hosts: `a11y.spec.ts` 4 de 4 en iphone-14, y la suite e2e completa en pixel-7, iphone-14 y estado-global. Antes (2026-10-10): abierta, falta WebKit. Caso "rutas del banco de ítems" en `a11y.spec.ts`: /banco, /banco/revision, /banco/importar, /banco/importaciones/$id, /banco/exportar, /banco/cobertura, /admin/taxonomia y /banco/items/nuevo (también con la vista previa abierta), con axe, foco por teclado y sin desplazamiento horizontal. En verde en pixel-7 (Chromium). En iphone-14 (WebKit) no puede ingresar: el archivo hosts del equipo no tiene `127.0.0.1 oidc` (agregarlo es una decisión de quien administra el equipo); con esa línea, correr `E2E_OIDC_RESOLVES=1 npx playwright test a11y --project=iphone-14`.
 - [x] T115 Revisión ASVS 4.0.3 nivel 2 de la funcionalidad en `docs/security/asvs-002-banco-items.md`: V5 (Markdown, salida), V12 (archivos: XLSX, JSON e imágenes), V4 (permisos y autoaprobación), V7 (logs) y V13 (API) → Opus
   - Terminado: documento sin hallazgos abiertos o con su plan.
   - Estado (Opus, 2026-10-10): cerrada. `docs/security/asvs-002-banco-items.md` con V4, V5, V7, V12 y V13. Tres hallazgos corregidos en esta tarea: H1, los códigos de un archivo importado no seguían el formato de la API (ahora el patrón está en los modelos del formato; JSON Schema regenerado); H2, el reporte de errores XLSX escribía como fórmula un texto que empezaba por "="; H3, Nginx cortaba en 2 MB las importaciones de hasta 10 MB (ubicación anidada con 11 MB solo para `POST /api/v1/content/imports`). La prueba de infraestructura `tests/infra/test_containers.py::test_el_proxy_admite_importaciones_de_hasta_10_mb` se agregó después (hallazgo D1 de /speckit.analyze, principio IV): falla con la configuración anterior (413) y pasa con la nueva. O1 resuelto el 2026-10-11: `exportItems` con 30 por hora por persona y 429 en el contrato (`test_limite_de_30_exportaciones_por_hora`). Backend content y unitarias: 737 en verde.
@@ -912,7 +912,8 @@ punta a punta.
       - B5 a B20: suite e2e completa contra ese stack en pixel-7 y estado-global: 56 en verde, 0 fallos; 39 omitidas (WebKit, por el archivo hosts).
       - B21: con `saber_app`, `UPDATE content.item_events` y `DELETE content.item_versions` responden `permission denied`.
       - B22: T110. B23: 1 789 líneas de log de api, worker y beat tras la suite, sin nombres, correos, enunciados, comentarios ni nombres de archivo.
-    - Falta: CI en verde en el PR (requiere push y PR); SC-007 con un docente real; WebKit de T114; la parte de interfaz de B1 (lista del banco).
+    - 2026-10-11: la parte de interfaz de B1 quedó cubierta por la fase 13 (T121) y WebKit por T114.
+    - Falta: CI en verde en el PR; SC-007 con un docente real (lo coordina el usuario).
 
 ---
 
@@ -925,7 +926,7 @@ Incluye un defecto encontrado al validar T114: la cola de revisión pedía solo 
 ítems, sin paginación ni búsqueda, así que con 51 o más un revisor no llegaba al resto. Agregada
 con la aprobación del usuario.
 
-- [ ] T118 [P] Prueba de componentes: `frontend/src/features/content/BankPage.test.tsx`. Cubre:
+- [x] T118 [P] Prueba de componentes: `frontend/src/features/content/BankPage.test.tsx`. Cubre:
   - la tabla con código (enlace al ítem), módulo, estado (publicada o abierta), origen, dificultad, extracto del enunciado y señales en texto;
   - la búsqueda (`q`) y los filtros de módulo, estado, origen, dificultad, categoría (con sus descendientes, del módulo elegido) y señal de problema (FR-043);
   - los filtros salen de la URL y se guardan en ella (`/banco?module=LC&taxonomy_node=…` desde la cobertura, FR-039);
@@ -935,15 +936,20 @@ con la aprobación del usuario.
   → Opus
   - Requisitos: FR-039, FR-043, SC-009; B1.
   - Terminado: la prueba falla.
-- [ ] T119 [P] Prueba de componentes: casos nuevos en `frontend/src/features/content/ReviewQueuePage.test.tsx`: la cola pagina (más de 50 ítems llegan a la página 2) y busca por código o texto → Opus
+  - Estado (Opus, 2026-10-11): cerrada. 6 casos con axe; fallaron antes de T120.
+- [x] T119 [P] Prueba de componentes: casos nuevos en `frontend/src/features/content/ReviewQueuePage.test.tsx`: la cola pagina (más de 50 ítems llegan a la página 2) y busca por código o texto → Opus
   - Requisitos: FR-013.
   - Terminado: la prueba falla.
-- [ ] T120 Implementar `BankPage.tsx`, un paginador compartido y la búsqueda de la ruta `/banco` (`validateSearch`), y usarlos en `ReviewQueuePage.tsx`, para que pasen T118 y T119 → Opus
+  - Estado (Opus, 2026-10-11): cerrada. 2 casos nuevos; fallaron antes de T120.
+- [x] T120 Implementar `BankPage.tsx`, un paginador compartido y la búsqueda de la ruta `/banco` (`validateSearch`), y usarlos en `ReviewQueuePage.tsx`, para que pasen T118 y T119 → Opus
   - Terminado: T118 y T119 en verde.
-- [ ] T121 E2E: `frontend/tests/e2e/content-bank.spec.ts` con la parte de interfaz de B1 (los ítems del banco inicial en `/banco`, filtrables), el filtro por señal y el enlace desde la cobertura; `content-review.spec.ts` busca el ítem en la cola en vez de suponer que está en la primera página. En pixel-7 e iphone-14 → Opus
+  - Estado (Opus, 2026-10-11): cerrada. `BankPage.tsx` con búsqueda, seis filtros (la categoría aparece al elegir el módulo) y paginación de 25; `Pager` y `SearchBox` compartidos en `shared/ui`; la ruta `/banco` valida su búsqueda (`bankSearch`) y cambiar un filtro vuelve a la página 1. La cola de revisión pagina de a 50 y busca. Vitest completo 306 (las dos pruebas de PolicyPage de 001 a veces pasan de 5 s con la suite entera; solas tardan 0,3 s).
+- [x] T121 E2E: `frontend/tests/e2e/content-bank.spec.ts` con la parte de interfaz de B1 (los ítems del banco inicial en `/banco`, filtrables), el filtro por señal y el enlace desde la cobertura; `content-review.spec.ts` busca el ítem en la cola en vez de suponer que está en la primera página. En pixel-7 e iphone-14 → Opus
   - Terminado: en verde en los dos navegadores.
-- [ ] T122 Revisión de la fase 13 (Opus), anotada en `specs/002-banco-items/tasks.md` → Opus
+  - Estado (Opus, 2026-10-11): cerrada. `content-bank.spec.ts` (B1 en la interfaz, señal de problema con estadísticas preparadas por SQL, enlace desde la cobertura) y `content-review.spec.ts` buscando cada código en la cola: 8 de 8 en pixel-7 e iphone-14.
+- [x] T122 Revisión de la fase 13 (Opus), anotada en `specs/002-banco-items/tasks.md` → Opus
   - Terminado: aprobada.
+  - Estado (Opus, 2026-10-11): cerrada. Fase 13 aprobada: B1 completo, FR-043 en la interfaz, enlaces de la cobertura y la cola de revisión sin el tope de 50.
 
 ---
 

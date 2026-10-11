@@ -225,19 +225,44 @@ const teacherGroupsRoute = createRoute({
 });
 
 // Banco de ítems (002): todas las páginas se cargan bajo demanda (001/T174).
-/** Filtros del banco que otras páginas enlazan (la cobertura, por categoría). */
+/** Búsqueda, filtros y página de la lista del banco: viven en la URL (la cobertura enlaza a una
+ * categoría y el botón Atrás conserva lo elegido). */
 export interface BankSearch {
+  q?: string;
   module?: string;
+  state?: string;
+  origin?: string;
+  difficulty?: string;
   taxonomy_node?: string;
+  signal?: string;
+  page?: number;
+}
+
+const BANK_TEXT_FILTERS = [
+  "q",
+  "module",
+  "state",
+  "origin",
+  "difficulty",
+  "taxonomy_node",
+  "signal",
+] as const;
+
+function bankSearch(search: Record<string, unknown>): BankSearch {
+  const result: BankSearch = {};
+  for (const name of BANK_TEXT_FILTERS) {
+    const value = search[name];
+    if (typeof value === "string" && value) result[name] = value;
+  }
+  const page = Number(search.page);
+  if (Number.isInteger(page) && page > 1) result.page = page;
+  return result;
 }
 
 const bankRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/banco",
-  validateSearch: (search: Record<string, unknown>): BankSearch => ({
-    ...(typeof search.module === "string" ? { module: search.module } : {}),
-    ...(typeof search.taxonomy_node === "string" ? { taxonomy_node: search.taxonomy_node } : {}),
-  }),
+  validateSearch: bankSearch,
   component: lazyRouteComponent(() => import("@/features/content/BankPage"), "BankPage"),
 });
 

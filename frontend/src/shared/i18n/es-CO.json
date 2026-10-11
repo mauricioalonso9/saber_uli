@@ -966,6 +966,42 @@
       "expires": "La vista previa vence el {{date}}.",
       "open": "Ver",
       "nothingValid": "No hay ítems válidos para importar. Corrige el archivo y vuelve a subirlo."
+    },
+    "bank": {
+      "newItem": "Nuevo ítem",
+      "searchHint": "Código, enunciado, explicación o título del contexto.",
+      "category": "Categoría",
+      "state": "Estado",
+      "origin": "Origen",
+      "signal": "Señal de problema",
+      "table": "Ítems del banco",
+      "empty": "No hay ítems con esos filtros.",
+      "columns": {
+        "code": "Código",
+        "module": "Módulo",
+        "state": "Estado",
+        "origin": "Origen",
+        "difficulty": "Dificultad",
+        "stem": "Enunciado",
+        "signals": "Señales de problema"
+      },
+      "signals": {
+        "too_easy": "Muy fácil",
+        "too_hard": "Muy difícil",
+        "negative_discrimination": "Discriminación negativa",
+        "distractor_beats_key": "Una opción incorrecta supera a la correcta"
+      }
     }
+  },
+  "pager": {
+    "label": "Paginación",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "status_one": "Página {{page}} de {{pages}} · {{count}} ítem",
+    "status_other": "Página {{page}} de {{pages}} · {{count}} ítems"
+  },
+  "search": {
+    "label": "Buscar",
+    "submit": "Buscar"
   }
 }

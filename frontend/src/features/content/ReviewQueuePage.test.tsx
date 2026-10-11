@@ -24,7 +24,7 @@ afterAll(() => server.close());
 
 let queries: URLSearchParams[];
 
-function serve(items: ItemSummary[]) {
+function serve(items: ItemSummary[], total = items.length) {
   queries = [];
   server.use(
     http.get("/api/v1/content/items", ({ request }) => {
@@ -32,7 +32,7 @@ function serve(items: ItemSummary[]) {
       queries.push(params);
       return HttpResponse.json({
         items,
-        meta: { page: 1, page_size: 50, total: items.length },
+        meta: { page: Number(params.get("page") ?? 1), page_size: 50, total },
       });
     }),
   );
@@ -96,5 +96,30 @@ describe("cola de revisión", () => {
     renderQueue();
 
     expect(await screen.findByText("No hay ítems por revisar.")).toBeInTheDocument();
+  });
+
+  it("pagina cuando hay más de 50 por revisar (T119)", async () => {
+    serve([summary()], 120);
+    renderQueue();
+    const user = userEvent.setup();
+
+    expect(await screen.findByText("Página 1 de 3 · 120 ítems")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Siguiente" }));
+
+    await expect.poll(() => queries.at(-1)?.get("page")).toBe("2");
+    expect(queries.at(-1)?.get("awaiting_my_review")).toBe("true");
+  });
+
+  it("busca por código o texto (T119)", async () => {
+    serve([summary()]);
+    renderQueue();
+    const user = userEvent.setup();
+    await screen.findByRole("table", { name: "Ítems por revisar" });
+
+    await user.type(screen.getByRole("searchbox", { name: "Buscar" }), "LC-0001");
+    await user.click(screen.getByRole("button", { name: "Buscar" }));
+
+    await expect.poll(() => queries.at(-1)?.get("q")).toBe("LC-0001");
+    expect(queries.at(-1)?.get("page")).toBe("1");
   });
 });

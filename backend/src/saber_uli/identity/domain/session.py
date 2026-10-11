@@ -36,6 +36,7 @@ RevocationReason = Literal[
 class AuthMethod(StrEnum):
     ENTRA_ID = "entra_id"
     GUEST_LINK = "guest_link"
+    LOCAL_PASSWORD = "local_password"  # noqa: S105 - método de la cuenta local (US9)
 
 
 class SessionExpiredError(UnauthenticatedError):

@@ -60,7 +60,16 @@ Resultado esperado:
 - `http://localhost/api/health` → `{"status":"ok"}`; `http://localhost/api/ready` → `{"status":"ok"}`.
 - `http://localhost:8025` abre Mailpit (correos de invitación en desarrollo).
 
-Primer administrador (después de haber ingresado una vez con la cuenta institucional):
+Cuenta local de administración (enmienda del 2026-10-11, US9): sin depender de Entra ID, en
+`/ingresar` → "Ingreso de administración" con `adminsaber` / `adminsaber`. El primer ingreso
+obliga a cambiar la contraseña. Para volver a la inicial (por ejemplo, si se olvida):
+
+```powershell
+docker compose run --rm api saber-uli identity reset-local-password
+```
+
+Primer administrador institucional (después de haber ingresado una vez con la cuenta
+institucional):
 
 ```powershell
 docker compose run --rm api saber-uli identity grant-admin --email <correo-institucional>

@@ -11,6 +11,7 @@ from saber_uli.identity.application.ports import (
     GuestAccessReader,
     InvitationBatchRepository,
     InvitationRepository,
+    LocalCredentialRepository,
     PersonalDataEraser,
     PolicyRepository,
     ProfileRepository,
@@ -39,6 +40,9 @@ from saber_uli.identity.infrastructure.repositories.invitation_batches import (
 from saber_uli.identity.infrastructure.repositories.invitations import (
     SqlAlchemyInvitationRepository,
 )
+from saber_uli.identity.infrastructure.repositories.local_credentials import (
+    SqlAlchemyLocalCredentialRepository,
+)
 from saber_uli.identity.infrastructure.repositories.policies import SqlAlchemyPolicyRepository
 from saber_uli.identity.infrastructure.repositories.profiles import SqlAlchemyProfileRepository
 from saber_uli.identity.infrastructure.repositories.programs import SqlAlchemyProgramRepository
@@ -56,6 +60,10 @@ class SqlAlchemyIdentityUnitOfWork(SqlAlchemyUnitOfWork, IdentityUnitOfWork):
     @property
     def users(self) -> UserRepository:
         return SqlAlchemyUserRepository(self.session)
+
+    @property
+    def local_credentials(self) -> LocalCredentialRepository:
+        return SqlAlchemyLocalCredentialRepository(self.session)
 
     @property
     def sessions(self) -> SessionRepository:

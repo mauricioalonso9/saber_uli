@@ -26,6 +26,8 @@ from saber_uli.shared.domain.errors import ConflictError
 class UserKind(StrEnum):
     INSTITUTIONAL = "institutional"
     GUEST = "guest"
+    # Cuenta de administración con usuario y contraseña, sin Entra ID (US9, ADR 0009).
+    LOCAL = "local"
 
 
 class UserStatus(StrEnum):
@@ -67,6 +69,8 @@ class User:
     roles: set[Role] = field(default_factory=set)
     entra_identity: InstitutionalIdentity | None = None
     id: UUID | None = None
+    # Solo las cuentas locales (`adminsaber`); no es un dato personal.
+    username: str | None = None
     auth_epoch: int = 0
     last_login_at: datetime | None = None
     retention_notice_sent_at: datetime | None = None

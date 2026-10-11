@@ -50,6 +50,8 @@ async def schedule_for(
     cuenta que ya está en supresión)."""
     if user.id is None or user.status not in _RETAINED:
         return None
+    if user.kind is UserKind.LOCAL:
+        return None  # cuenta de administración sin persona del directorio (US9, R-41)
     if user.kind is UserKind.INSTITUTIONAL:
         return institutional_schedule(user.last_login_at or user.created_at)
     invitation = await uow.invitations.latest_for_guest(user.id)

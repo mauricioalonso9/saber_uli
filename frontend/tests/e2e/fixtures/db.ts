@@ -143,11 +143,26 @@ export function idlePrivilegedSession(email: string): void {
 
 /** Deja como único administrador activo a `email` (para probar la regla del último). */
 export function keepOnlyAdmin(email: string): void {
+  // La cuenta local `adminsaber` (US9) no pierde su rol: se desactiva mientras dura la prueba y
+  // `restoreLocalAdmin()` la reactiva al terminar.
   psql(
     `DELETE FROM identity.role_assignments
       WHERE role = 'admin'
-        AND user_id NOT IN (SELECT id FROM identity.users WHERE lower(email) = lower(:'email'));`,
+        AND user_id NOT IN (SELECT id FROM identity.users
+                            WHERE lower(email) = lower(:'email') OR kind = 'local');
+     UPDATE identity.users SET status = 'disabled' WHERE kind = 'local';`,
     { email },
+  );
+}
+
+/** Vuelve a activar la cuenta local de administración que apartó `keepOnlyAdmin`. */
+export function restoreLocalAdmin(): void {
+  psql(
+    `UPDATE identity.users SET status = 'active' WHERE kind = 'local';
+     INSERT INTO identity.role_assignments (user_id, role)
+     SELECT id, 'admin' FROM identity.users WHERE kind = 'local'
+     ON CONFLICT DO NOTHING;`,
+    {},
   );
 }
 

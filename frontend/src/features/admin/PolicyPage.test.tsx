@@ -30,7 +30,7 @@ const ADMIN: Me = {
   email: "admin@unilibre.edu.co",
   roles: ["admin", "student"],
   permissions: ["policy:publish"],
-  onboarding: { consent_required: false, profile_required: false },
+  onboarding: { consent_required: false, profile_required: false, password_change_required: false },
   access: {
     valid: true,
     validated_at: "2026-10-07T12:00:00Z",

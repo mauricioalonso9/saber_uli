@@ -1756,6 +1756,54 @@ dato editable del perfil.
 
 ---
 
+## Phase 12: Enmienda 2026-10-11 - Cuenta local de administración (US9)
+
+**Goal**: ingresar como administrador con `adminsaber` y contraseña, sin Entra ID, con cambio
+obligatorio de la contraseña inicial (spec US9, FR-040 a FR-047, SC-009; research R-41; ADR 0009).
+Pedida y aprobada por la persona responsable el 2026-10-11. Trabajo de Opus.
+
+**Independent Test**: en una base nueva, ingresar con `adminsaber` / `adminsaber`, ver que solo
+se puede cambiar la contraseña, cambiarla y administrar.
+
+- [x] T181 [P] [US9] Prueba: `backend/tests/unit/identity/test_local_credentials.py`. Cubre la política de FR-042 (longitud, igual al usuario o a la actual, lista común, sin distinguir mayúsculas), el bloqueo de FR-044 (10 fallos, 15 minutos, reinicio al acertar) y el cambio obligatorio → Opus
+  - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-11): cerrada. 17 casos; fallaron antes de T184.
+- [x] T182 [P] [US9] Prueba: `backend/tests/integration/identity/test_local_admin.py`. Cubre:
+  - la migración crea `adminsaber` con rol Administrador y cambio obligatorio;
+  - `createLocalSession`: con la contraseña inicial abre una sesión sin permisos (solo `/me`, cambiar la contraseña y cerrar sesión); usuario inexistente y contraseña incorrecta dan el mismo 401; 10 fallos bloquean con 429 `account-locked` y `Retry-After`; el límite por IP;
+  - `changeLocalPassword`: rechazos de la política con su regla (422 `weak-password`), contraseña actual incorrecta (403), y el cambio cierra las demás sesiones y devuelve una sesión de administrador completa;
+  - `/me` con `password_change_required` y sin correo; sin autorización ni perfil pendientes;
+  - `saber-uli identity reset-local-password`;
+  - auditoría de FR-047 y logs sin contraseñas;
+  - la cuenta local no se suprime por inactividad y cuenta para la regla del último administrador.
+
+  → Opus
+  - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-11): cerrada. 7 casos; fallaron antes de T185. El fixture deja la cuenta con la contraseña inicial antes y después de cada prueba.
+- [x] T183 [P] [US9] Prueba de componentes: `frontend/src/features/auth/LocalLoginForm.test.tsx` y `ChangePasswordPage.test.tsx`, y casos nuevos en `frontend/src/app/guards.test.tsx` (con el cambio pendiente toda ruta lleva a `/cambiar-contrasena`); axe → Opus
+  - Terminado: la prueba falla.
+  - Estado (Opus, 2026-10-11): cerrada. 4 + 4 casos (con axe) y 2 de la guarda; fallaron antes de T186.
+- [x] T184 [US9] Implementar el dominio y la infraestructura: `identity/domain/local_credential.py`, el hash Argon2id (`argon2-cffi`), `common_passwords.txt`, el repositorio y la migración `0010` (tipo `local`, `username`, `local_credentials`, permisos de `saber_app` y la cuenta `adminsaber`) para que pase T181 → Opus
+  - Terminado: T181 en verde.
+  - Estado (Opus, 2026-10-11): cerrada. 17 en verde. Migración 0010: `kind` admite `local`, columna `username` única, `local_credentials` (sin `DELETE` para `saber_app`), `auth_method` `local_password` y la cuenta `adminsaber` con el hash Argon2id de la contraseña inicial. Lista de 100 contraseñas comunes de 12 o más caracteres (`common_passwords.txt`, viaja en la imagen).
+- [x] T185 [US9] Implementar `identity/application/local_sign_in.py`, el router `/api/auth/local`, la sesión restringida (token sin roles con `pwd_change`), `/me` y el comando `reset-local-password`, para que pase T182; las dos operaciones entran en la suite de contrato → Opus
+  - Terminado: T182 en verde.
+  - Estado (Opus, 2026-10-11): cerrada. 7 en verde; las dos operaciones en la suite de contrato. La sesión con el cambio pendiente sale sin roles y con `pwd` en el token; la guarda de `/api/v1` responde 403 `password-change-required` salvo `/me`; `/me` informa `password_change_required`, sin permisos ni correo. La cuenta local no pide autorización ni perfil y no entra en la retención. `reset-local-password` usa el bus del worker si hay `REDIS_URL`, para que las sesiones se cierren de inmediato. Desvío: 30 intentos por minuto por IP (no 10), para que el bloqueo de la cuenta tras 10 fallos sea visible; contrato, research y ADR actualizados. Regresiones resueltas: las pruebas del último administrador apartan la cuenta local con `local_admin_disabled` (cuenta como administradora, FR-025).
+- [x] T186 [US9] Implementar en la PWA el formulario de ingreso local en `/ingresar`, la página `/cambiar-contrasena` y la regla de la guarda, para que pase T183 → Opus
+  - Terminado: T183 en verde.
+  - Estado (Opus, 2026-10-11): cerrada. Vitest 319. "Ingreso de administración" plegado en `/ingresar`; `/cambiar-contrasena` con la política adelantada en el navegador y el `detail` del servidor para la regla incumplida; la guarda lleva ahí toda ruta mientras el cambio esté pendiente.
+- [x] T187 [US9] E2E: `frontend/tests/e2e/us9-local-admin.spec.ts` (ingreso con la contraseña inicial, cambio obligatorio, administración; la prueba restablece la contraseña al terminar) en pixel-7 e iphone-14 → Opus
+  - Terminado: en verde.
+  - Estado (Opus, 2026-10-11): cerrada. `us9-local-admin.global.spec.ts` en el proyecto serial `estado-global` (una sola cuenta), restableciendo la contraseña antes y después. `keepOnlyAdmin` (de T150) ya no quita el rol a la cuenta local: la desactiva y `restoreLocalAdmin()` la reactiva. Suite e2e completa en pixel-7, iphone-14 y estado-global en verde (dos intermitencias de WebKit en 001 que pasan al repetirlas).
+- [x] T188 [US9] Documentación y seguridad: `README.md`, `specs/001-identidad-acceso/quickstart.md`, `CLAUDE.md` (decisión de acceso) y `docs/security/asvs-001-identidad.md` (V2.1, V2.2, V2.4 y la desviación de V4.3.1) → Opus
+  - Terminado: documentos actualizados.
+  - Estado (Opus, 2026-10-11): cerrada. README (sección de la cuenta local), quickstart de 001, CLAUDE.md y la revisión ASVS de 001 (V2.1, V2.2, V2.4 y la desviación de V4.3.1).
+- [x] T189 [US9] Revisión de la enmienda (Opus), anotada aquí → Opus
+  - Terminado: aprobada.
+  - Estado (Opus, 2026-10-11): cerrada. Enmienda aprobada: la contraseña inicial solo permite cambiarla (SC-009), hash Argon2id, mismo error para usuario y contraseña incorrectos, bloqueo y límite por IP, cierre de sesiones al cambiarla, auditoría sin la contraseña y restablecimiento solo desde el servidor. Backend: identidad y contrato de 001, 619 en verde.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

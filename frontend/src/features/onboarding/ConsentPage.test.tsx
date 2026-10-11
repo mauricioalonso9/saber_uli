@@ -86,7 +86,7 @@ let decisions: unknown[];
 function renderConsent() {
   session = {
     kind: "authenticated",
-    me: me({ consent_required: true, profile_required: true }),
+    me: me({ consent_required: true, profile_required: true, password_change_required: false }),
   };
   decisions = [];
   server.use(
@@ -97,7 +97,11 @@ function renderConsent() {
       if (body.decision === "accepted") {
         session = {
           kind: "authenticated",
-          me: me({ consent_required: false, profile_required: true }),
+          me: me({
+            consent_required: false,
+            profile_required: true,
+            password_change_required: false,
+          }),
         };
       }
       return HttpResponse.json(consent(body.decision), { status: 201 });

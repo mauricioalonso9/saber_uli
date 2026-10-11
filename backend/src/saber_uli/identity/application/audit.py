@@ -54,6 +54,11 @@ class AuditAction(StrEnum):
     SETTING_CHANGED = "setting.changed"
     SESSION_REUSE_DETECTED = "session.reuse_detected"
     AUTH_LOGIN_REJECTED = "auth.login_rejected"
+    # Cuenta local de administración (US9, FR-047).
+    AUTH_LOCAL_LOGIN_SUCCEEDED = "auth.local_login_succeeded"
+    AUTH_LOCAL_LOCKED = "auth.local_locked"
+    AUTH_PASSWORD_CHANGED = "auth.password_changed"  # noqa: S105 - nombre de acción
+    AUTH_PASSWORD_RESET = "auth.password_reset"  # noqa: S105 - nombre de acción
 
 
 class AuditTarget(StrEnum):

@@ -40,7 +40,11 @@ function me(kind: Me["kind"]): Me {
     email: kind === "guest" ? "laura@correo.co" : "ana.perez@unilibre.edu.co",
     roles: [kind === "guest" ? "guest" : "student"],
     permissions: [],
-    onboarding: { consent_required: false, profile_required: true },
+    onboarding: {
+      consent_required: false,
+      profile_required: true,
+      password_change_required: false,
+    },
     access: {
       valid: true,
       validated_at: "2026-10-07T12:00:00Z",
@@ -73,7 +77,14 @@ function renderProfile(kind: Me["kind"]) {
       saved.push(body);
       session = {
         kind: "authenticated",
-        me: { ...me(kind), onboarding: { consent_required: false, profile_required: false } },
+        me: {
+          ...me(kind),
+          onboarding: {
+            consent_required: false,
+            profile_required: false,
+            password_change_required: false,
+          },
+        },
       };
       return HttpResponse.json({ ...body, complete: true });
     }),

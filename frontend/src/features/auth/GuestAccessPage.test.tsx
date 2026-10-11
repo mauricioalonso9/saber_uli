@@ -27,7 +27,7 @@ const GUEST: Me = {
   email: "laura@correo.co",
   roles: ["guest"],
   permissions: [],
-  onboarding: { consent_required: true, profile_required: true },
+  onboarding: { consent_required: true, profile_required: true, password_change_required: false },
   access: {
     valid: true,
     validated_at: "2026-10-07T12:00:00Z",

@@ -54,6 +54,7 @@ from saber_uli.identity.api.deletion_router import router as deletion_router
 from saber_uli.identity.api.groups_router import router as groups_router
 from saber_uli.identity.api.guest_router import router as guest_router
 from saber_uli.identity.api.invitations_router import router as invitations_router
+from saber_uli.identity.api.local_router import router as local_router
 from saber_uli.identity.api.me_router import router as me_router
 from saber_uli.identity.api.microsoft_router import router as microsoft_router
 from saber_uli.identity.api.policy_router import router as policy_router
@@ -74,6 +75,7 @@ from saber_uli.identity.application.groups import GroupService, TeacherGroups
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
 from saber_uli.identity.application.invitation_batches import InvitationBatchService
 from saber_uli.identity.application.invitations import InvitationService
+from saber_uli.identity.application.local_sign_in import LocalSignIn
 from saber_uli.identity.application.my_sessions import MySessions
 from saber_uli.identity.application.profile import ProfileService, ProgramCatalog
 from saber_uli.identity.application.queries.consent_status import ConsentStatusQuery
@@ -84,6 +86,7 @@ from saber_uli.identity.infrastructure.entra_id import EntraIdClient
 from saber_uli.identity.infrastructure.epoch_cache import RedisEpochStore
 from saber_uli.identity.infrastructure.link_tokens import LinkTokenFactory
 from saber_uli.identity.infrastructure.outbox_events import register_identity_outbox
+from saber_uli.identity.infrastructure.passwords import Argon2PasswordHasher, common_passwords
 from saber_uli.identity.infrastructure.session_revocations import RedisSessionRevocations
 from saber_uli.identity.infrastructure.tokens import AccessTokenCodec, RefreshTokenFactory
 from saber_uli.identity.infrastructure.unit_of_work import SqlAlchemyIdentityUnitOfWork
@@ -196,6 +199,13 @@ def create_app(
         sessions=app.state.session_service,
     )
     app.state.request_sign_in_link = RequestSignInLink(uow_factory=identity_uow, clock=clock)
+    app.state.local_sign_in = LocalSignIn(
+        uow_factory=identity_uow,
+        clock=clock,
+        hasher=Argon2PasswordHasher(),
+        sessions=app.state.session_service,
+        common_passwords=common_passwords(),
+    )
     app.state.invitation_service = InvitationService(
         uow_factory=identity_uow,
         clock=clock,
@@ -271,6 +281,7 @@ def create_app(
     app.include_router(auth_router)
     app.include_router(microsoft_router)
     app.include_router(guest_router)
+    app.include_router(local_router)
     # Toda ruta de /api/v1 pasa por la guardia de autorización de datos (FR-014).
     v1 = [Depends(require_consent)]
     app.include_router(me_router, dependencies=v1)

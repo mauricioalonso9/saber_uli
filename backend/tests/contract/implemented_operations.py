@@ -32,6 +32,9 @@ IMPLEMENTED_OPERATIONS: frozenset[str] = frozenset(
         # US4 (T115)
         "createGuestSession",
         "requestGuestSignInLink",
+        # Enmienda 2026-10-11, US9 (T185)
+        "createLocalSession",
+        "changeLocalPassword",
         # US5 (T130)
         "listInvitations",
         "createInvitation",

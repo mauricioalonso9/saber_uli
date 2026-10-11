@@ -8,4 +8,5 @@ export type MySessionAuthMethod = (typeof MySessionAuthMethod)[keyof typeof MySe
 export const MySessionAuthMethod = {
   entra_id: "entra_id",
   guest_link: "guest_link",
+  local_password: "local_password",
 } as const;

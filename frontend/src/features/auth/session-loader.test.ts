@@ -11,7 +11,10 @@ import { createSessionLoader, loadSession } from "@/features/auth/session-loader
 import { useSessionStore } from "@/features/auth/session-store";
 import { db } from "@/shared/db/dexie";
 
-const ME = { id: "u1", onboarding: { consent_required: false, profile_required: false } } as Me;
+const ME = {
+  id: "u1",
+  onboarding: { consent_required: false, profile_required: false, password_change_required: false },
+} as Me;
 const DAY = 24 * 60 * 60 * 1000;
 
 const server = setupServer();

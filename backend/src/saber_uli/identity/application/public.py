@@ -28,6 +28,8 @@ class AuthenticatedUser:
     roles: frozenset[str]
     privileged: bool
     permissions: frozenset[str] = frozenset()
+    # Cuenta local con el cambio de contraseña pendiente: solo `/me` y cambiarla (FR-041).
+    password_change_required: bool = False
 
 
 class Authenticator(Protocol):

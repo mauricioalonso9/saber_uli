@@ -153,6 +153,7 @@ async def test_una_segunda_solicitud_en_curso_responde_409(
     assert first.status.value == "received"
 
 
+@pytest.mark.usefixtures("local_admin_disabled")
 async def test_el_ultimo_administrador_activo_no_puede_solicitarla(
     api_client: httpx.AsyncClient, staff: StaffFactory, app_engine: AsyncEngine
 ) -> None:

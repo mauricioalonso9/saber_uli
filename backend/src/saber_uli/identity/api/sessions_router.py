@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/v1", tags=["me"])
 
 class MySessionOut(BaseModel):
     id: UUID
-    auth_method: Literal["entra_id", "guest_link"]
+    auth_method: Literal["entra_id", "guest_link", "local_password"]
     started_at: datetime
     last_activity_at: datetime
     current: bool

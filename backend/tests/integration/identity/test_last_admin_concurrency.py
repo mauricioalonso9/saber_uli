@@ -22,6 +22,8 @@ from saber_uli.shared.domain.clock import SystemClock
 from saber_uli.shared.infrastructure.db import create_session_factory
 from tests.integration.conftest import CommittedLogin
 
+pytestmark = pytest.mark.usefixtures("local_admin_disabled")
+
 
 @pytest.fixture
 def service(app_engine: AsyncEngine) -> AdminUsersService:

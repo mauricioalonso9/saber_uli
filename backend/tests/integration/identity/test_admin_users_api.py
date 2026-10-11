@@ -4,6 +4,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import httpx
+import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -150,6 +151,7 @@ async def test_retirar_un_rol_cierra_las_sesiones(
     assert after.status_code == 401
 
 
+@pytest.mark.usefixtures("local_admin_disabled")
 async def test_reglas_de_roles_responden_409(
     api_client: httpx.AsyncClient, staff: StaffFactory, committed_login: CommittedLogin
 ) -> None:

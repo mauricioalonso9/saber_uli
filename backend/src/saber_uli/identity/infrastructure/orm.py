@@ -89,6 +89,7 @@ class UserRow(Base):
     entra_tenant_id: Mapped[UUID | None] = mapped_column(Uuid)
     entra_object_id: Mapped[UUID | None] = mapped_column(Uuid)
     email: Mapped[str | None] = mapped_column(CITEXT)
+    username: Mapped[str | None] = mapped_column(CITEXT, unique=True)
     display_name: Mapped[str | None] = mapped_column(Text)
     auth_epoch: Mapped[int] = mapped_column(Integer, server_default=text("0"))
     last_login_at: Mapped[datetime | None] = _ts(nullable=True)
@@ -384,3 +385,19 @@ class SettingRow(Base):
     value: Mapped[Any] = mapped_column(JSONB)
     updated_by: Mapped[UUID | None] = mapped_column(Uuid, _fk("users.id"))
     updated_at: Mapped[datetime] = _ts(default_now=True)
+
+
+class LocalCredentialRow(Base):
+    """Credencial de la cuenta local de administración (data-model §2.16; ADR 0009)."""
+
+    __tablename__ = "local_credentials"
+    __table_args__ = ({"schema": SCHEMA},)
+
+    user_id: Mapped[UUID] = mapped_column(
+        Uuid, ForeignKey(f"{SCHEMA}.users.id", ondelete="CASCADE"), primary_key=True
+    )
+    password_hash: Mapped[str] = mapped_column(Text)
+    must_change: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
+    failed_attempts: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    locked_until: Mapped[datetime | None] = _ts(nullable=True)
+    changed_at: Mapped[datetime] = _ts(default_now=True)

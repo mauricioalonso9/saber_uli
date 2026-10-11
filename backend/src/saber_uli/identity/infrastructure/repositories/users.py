@@ -32,6 +32,7 @@ def _to_domain(row: UserRow) -> User:
         status=UserStatus(row.status),
         entra_identity=identity,
         email=row.email,
+        username=row.username,
         display_name=row.display_name,
         roles={Role(assignment.role) for assignment in row.role_assignments},
         auth_epoch=row.auth_epoch,
@@ -53,6 +54,7 @@ def _copy_fields(user: User, row: UserRow) -> None:
     else:
         row.entra_object_id = None
     row.email = user.email
+    row.username = user.username
     row.display_name = user.display_name
     row.auth_epoch = user.auth_epoch
     row.last_login_at = user.last_login_at
@@ -116,6 +118,10 @@ class SqlAlchemyUserRepository:
             )
         )
         return _to_domain(row) if row else None
+
+    async def get_by_username(self, username: str) -> User | None:
+        row = await self._session.scalar(select(UserRow).where(UserRow.username == username))
+        return None if row is None else _to_domain(row)
 
     async def find_by_email(self, email: str) -> User | None:
         row = await self._session.scalar(

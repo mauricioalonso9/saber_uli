@@ -34,7 +34,7 @@ const ME: Me = {
   email: "ana@unilibre.edu.co",
   roles: ["student"],
   permissions: [],
-  onboarding: { consent_required: false, profile_required: false },
+  onboarding: { consent_required: false, profile_required: false, password_change_required: false },
   access: {
     valid: true,
     validated_at: "2026-10-07T12:00:00Z",

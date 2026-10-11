@@ -13,6 +13,7 @@ from saber_uli.identity.domain.deletion_request import DeletionRequest, Deletion
 from saber_uli.identity.domain.group import Group
 from saber_uli.identity.domain.invitation import Invitation, InvitationStatus
 from saber_uli.identity.domain.invitation_batch import InvitationBatch
+from saber_uli.identity.domain.local_credential import LocalCredential
 from saber_uli.identity.domain.policy import PolicyVersion
 from saber_uli.identity.domain.profile import Profile
 from saber_uli.identity.domain.program import Program
@@ -37,6 +38,8 @@ class AccessTokenClaims:
     epoch: int
     priv: bool
     iat: datetime
+    # Sesión de la cuenta local con el cambio de contraseña pendiente: sin roles (FR-041).
+    pwd_change: bool = False
 
     @property
     def expires_at(self) -> datetime:
@@ -349,6 +352,28 @@ class UserAlreadyExistsError(Exception):
     """Otra transacción ya creó la cuenta con la misma identidad institucional."""
 
 
+class LocalCredentialRepository(Protocol):
+    """Credencial de la cuenta local de administración (data-model §2.16)."""
+
+    async def get(self, user_id: UUID, *, for_update: bool = False) -> LocalCredential | None: ...
+
+    async def save(self, credential: LocalCredential) -> None: ...
+
+
+class PasswordHasher(Protocol):
+    """Argon2id (ADR 0009). La contraseña solo entra aquí: nunca se registra."""
+
+    def hash(self, password: str) -> str: ...
+
+    def verify(self, password_hash: str, password: str) -> bool: ...
+
+    def needs_rehash(self, password_hash: str) -> bool: ...
+
+    def waste_time(self, password: str) -> None:
+        """Verifica contra un hash ficticio para que un usuario inexistente tarde lo mismo."""
+        ...
+
+
 class UserRepository(Protocol):
     async def add(self, user: User) -> User:
         """Guarda un usuario nuevo y le asigna el `id` generado por la base de datos.
@@ -367,6 +392,10 @@ class UserRepository(Protocol):
 
     async def find_by_email(self, email: str) -> User | None:
         """Cuenta no suprimida con ese correo, sin distinguir mayúsculas."""
+        ...
+
+    async def get_by_username(self, username: str) -> User | None:
+        """Cuenta local por su usuario, sin distinguir mayúsculas (US9)."""
         ...
 
     async def find_active_guest_by_email(self, email: str) -> User | None:

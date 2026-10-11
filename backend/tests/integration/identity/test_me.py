@@ -154,6 +154,7 @@ async def test_con_autorizacion_vigente_y_perfil_completo(
         "consent_required": False,
         "current_policy_version_id": str(version),
         "profile_required": False,
+        "password_change_required": False,
     }
 
 

@@ -13,7 +13,7 @@ Decisiones confirmadas:
 | Tema | Decisión |
 |------|----------|
 | Alcance | Solo los 5 módulos genéricos de Saber Pro |
-| Acceso | Comunidad Unilibre con SSO de Microsoft 365 (Entra ID/OIDC) + invitados por invitación |
+| Acceso | Comunidad Unilibre con SSO de Microsoft 365 (Entra ID/OIDC) + invitados por invitación + cuenta local `adminsaber` con contraseña y cambio obligatorio (ADR 0009) |
 | Banco de preguntas | Banco inicial incluido; la app permite cargar ítems nuevos y actualizar existentes |
 | Stack | Sin PHP. Backend Python (FastAPI); frontend React + TypeScript como PWA |
 | Arquitectura | Monolito modular con contextos delimitados (DDD) y capas hexagonales |

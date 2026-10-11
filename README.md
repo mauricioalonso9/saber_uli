@@ -6,7 +6,8 @@ Razonamiento cuantitativo, Competencias ciudadanas, Comunicación escrita e Ingl
 el celular como aplicación web progresiva (PWA) y funciona sin conexión hasta 7 días.
 
 La comunidad Unilibre ingresa con su cuenta de Microsoft 365 (Entra ID); las personas externas,
-con una invitación por correo.
+con una invitación por correo. Para administrar sin Entra ID existe la cuenta local `adminsaber`
+(ver "Cuenta local de administración").
 
 ## Estado
 
@@ -15,6 +16,20 @@ con una invitación por correo.
 | [001 Identidad, acceso institucional e invitados](specs/001-identidad-acceso/spec.md) | En cierre (fase 11) |
 | [002 Banco de ítems](specs/002-banco-items/spec.md) | En cierre (fase 12) |
 | Práctica, juego y simulacros | Por especificar |
+
+## Cuenta local de administración
+
+La instalación crea la cuenta `adminsaber` con la contraseña inicial `adminsaber`. En
+`/ingresar`, "Ingreso de administración" pide usuario y contraseña; con la contraseña inicial lo
+único que se puede hacer es cambiarla (12 a 128 caracteres, distinta del usuario y de la actual,
+y no de las más comunes). Diez intentos fallidos seguidos la bloquean 15 minutos. Si se pierde la
+contraseña, quien opera el servidor la vuelve a la inicial:
+
+```bash
+docker compose run --rm api saber-uli identity reset-local-password
+```
+
+Decisión y riesgos en [ADR 0009](docs/adr/0009-cuenta-local-de-administracion.md).
 
 ## Banco de ítems
 

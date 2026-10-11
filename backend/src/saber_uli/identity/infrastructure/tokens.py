@@ -54,6 +54,7 @@ class AccessTokenCodec:
             "roles": list(claims.roles),
             "epoch": claims.epoch,
             "priv": claims.priv,
+            **({"pwd": True} if claims.pwd_change else {}),
             "iat": iat,
             "exp": iat + ACCESS_TOKEN_TTL_SECONDS,
         }
@@ -83,6 +84,7 @@ class AccessTokenCodec:
                 epoch=int(payload["epoch"]),
                 priv=payload["priv"] is True,
                 iat=datetime.fromtimestamp(int(payload["iat"]), UTC),
+                pwd_change=payload.get("pwd") is True,
             )
             expires_at = datetime.fromtimestamp(int(payload["exp"]), UTC)
         except InvalidAccessTokenError:

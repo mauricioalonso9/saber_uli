@@ -60,6 +60,16 @@ privilegiadas; WCAG 2.2 AA; HTTPS obligatorio fuera de `localhost`; imágenes si
 invitados activos; 8 historias de usuario, 55 operaciones de API en 44 rutas (contrato al
 2026-10-08), ~16 pantallas
 
+## Enmienda del 2026-10-11: cuenta local de administración
+
+US9 (FR-040 a FR-047) agrega una cuenta `adminsaber` con contraseña, también en producción, con la
+contraseña inicial `adminsaber` y cambio obligatorio (decisión de la persona responsable). Diseño
+en research R-41 y [ADR 0009](../../docs/adr/0009-cuenta-local-de-administracion.md); tablas en
+data-model §2.1 y §2.16; operaciones `createLocalSession` y `changeLocalPassword` en el contrato;
+tareas T181 a T189. Constitución: II y III se cumplen (contexto `identity`, contrato primero);
+IX con ASVS V2.1, V2.2 y V2.4, y una desviación aceptada de V4.3.1 (sin segundo factor para esta
+cuenta), registrada en el ADR.
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*

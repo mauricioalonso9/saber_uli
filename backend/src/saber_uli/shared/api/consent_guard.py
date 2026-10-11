@@ -49,6 +49,13 @@ async def require_consent(
         return
     authenticator: Authenticator = request.app.state.authenticator
     user = await current_user(authenticator, authorization)
+    if user.password_change_required and operation_id != "getMe":
+        # Cuenta local con la contraseña inicial: nada más hasta cambiarla (FR-041).
+        raise ProblemException(
+            403,
+            "password-change-required",
+            detail="Primero cambia la contraseña de la cuenta.",
+        )
     if operation_id in CONSENT_EXEMPT_OPERATIONS:
         return
     checker: ConsentChecker = request.app.state.consent_checker

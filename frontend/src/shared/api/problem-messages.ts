@@ -88,6 +88,10 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "taxonomy-node-in-use":
     "La categoría está en uso (por ítems, contextos o categorías hijas): desactívala en lugar de borrarla.",
   "rubric-code-taken": "Ya existe una rúbrica con ese código.",
+  "invalid-credentials": "El usuario o la contraseña no son correctos.",
+  "account-locked": "Demasiados intentos fallidos. Intenta de nuevo en 15 minutos.",
+  "weak-password": "La contraseña nueva no cumple la política.",
+  "password-change-required": "Primero cambia la contraseña de la cuenta.",
   // Producidos por el cliente o por el estado HTTP
   "service-unavailable": "El servicio no está disponible en este momento. Intenta más tarde.",
   "network-error": "No hay conexión con el servidor. Revisa tu conexión a internet.",

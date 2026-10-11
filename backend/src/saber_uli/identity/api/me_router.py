@@ -6,6 +6,7 @@ from typing import Annotated, Any, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, Response
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from saber_uli.identity.api.consent_router import Consent
@@ -27,6 +28,7 @@ class Onboarding(BaseModel):
     consent_required: bool
     current_policy_version_id: UUID | None = None
     profile_required: bool
+    password_change_required: bool = False
 
 
 class Access(BaseModel):
@@ -39,10 +41,10 @@ class Access(BaseModel):
 
 class Me(BaseModel):
     id: UUID
-    kind: Literal["institutional", "guest"]
+    kind: Literal["institutional", "guest", "local"]
     status: AccountStatus
     display_name: str
-    email: str
+    email: str | None
     roles: list[str]
     permissions: list[str]
     onboarding: Onboarding
@@ -54,13 +56,13 @@ def _get_me(request: Request) -> GetMe:
     return query
 
 
-@router.get("/me", operation_id="getMe", response_model_exclude_none=True)
+@router.get("/me", operation_id="getMe", response_model=Me)
 async def get_me(
     user: Annotated[AuthenticatedUser, Depends(current_user)],
     query: Annotated[GetMe, Depends(_get_me)],
-) -> Me:
+) -> JSONResponse:
     view = await query.execute(user)
-    return Me(
+    me = Me(
         id=view.id,
         kind=view.kind,  # type: ignore[arg-type]
         status=view.status,  # type: ignore[arg-type]
@@ -72,6 +74,7 @@ async def get_me(
             consent_required=view.consent_required,
             current_policy_version_id=view.current_policy_version_id,
             profile_required=view.profile_required,
+            password_change_required=view.password_change_required,
         ),
         access=Access(
             valid=True,
@@ -81,6 +84,10 @@ async def get_me(
             privileged_session=view.privileged_session,
         ),
     )
+    # Sin los opcionales vacíos, pero `email` siempre presente: `null` en la cuenta local.
+    body = me.model_dump(mode="json", exclude_none=True)
+    body["email"] = me.email
+    return JSONResponse(body)
 
 
 # --- Mis datos (FR-031) -------------------------------------------------------------------------
@@ -88,7 +95,7 @@ async def get_me(
 
 class ExportIdentity(BaseModel):
     id: UUID
-    kind: Literal["institutional", "guest"]
+    kind: Literal["institutional", "guest", "local"]
     display_name: str | None = None
     email: str | None = None
     created_at: datetime
@@ -102,7 +109,7 @@ class ExportInvitation(BaseModel):
 
 
 class ExportSession(BaseModel):
-    auth_method: Literal["entra_id", "guest_link"]
+    auth_method: Literal["entra_id", "guest_link", "local_password"]
     started_at: datetime
     last_seen_at: datetime
     expires_at: datetime

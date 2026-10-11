@@ -79,6 +79,7 @@ class AccessGuard:
             roles=frozenset(claims.roles),
             privileged=claims.priv,
             permissions=frozenset(p.value for p in permissions_for(claims.roles)),
+            password_change_required=claims.pwd_change,
         )
 
     async def record_privileged_activity(self, user: AuthenticatedUser) -> None:

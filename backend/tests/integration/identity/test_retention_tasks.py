@@ -328,6 +328,7 @@ async def test_ingresar_antes_de_la_fecha_cancela_el_proceso(
     assert len(await notices(app_engine, user.id)) == 1
 
 
+@pytest.mark.usefixtures("local_admin_disabled")
 async def test_el_ultimo_administrador_activo_no_se_suprime(
     committed_login: CommittedLogin, uow_factory: Any, clock: FixedClock, app_engine: AsyncEngine
 ) -> None:

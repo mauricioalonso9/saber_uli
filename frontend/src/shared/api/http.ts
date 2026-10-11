@@ -27,6 +27,8 @@ const AUTH_PREFIX = "/api/auth/";
 export interface FieldError {
   field: string;
   message: string;
+  /** Regla incumplida (banco de ítems, 002): `option_feedback_required`, … */
+  rule?: string;
 }
 
 /** Error de la API con forma RFC 9457; `message` es el texto en español para mostrar. */
@@ -38,6 +40,8 @@ export class ApiProblem extends Error {
   readonly title: string;
   readonly detail?: string;
   readonly errors?: FieldError[];
+  /** Miembros de extensión (RFC 9457 §3.2), como `current` y `etag` de `edit-conflict`. */
+  readonly extensions: Record<string, unknown>;
 
   constructor(init: {
     status: number;
@@ -45,6 +49,7 @@ export class ApiProblem extends Error {
     title?: string;
     detail?: string;
     errors?: FieldError[];
+    extensions?: Record<string, unknown>;
   }) {
     super(problemMessage(init.type, init.status));
     this.name = "ApiProblem";
@@ -54,6 +59,7 @@ export class ApiProblem extends Error {
     this.title = init.title ?? this.message;
     this.detail = init.detail;
     this.errors = init.errors;
+    this.extensions = init.extensions ?? {};
   }
 }
 
@@ -65,8 +71,16 @@ function clientProblem(status: number): ApiProblem {
 async function toProblem(response: Response): Promise<ApiProblem> {
   const body: unknown = await response.json().catch(() => null);
   if (body && typeof body === "object" && typeof (body as { type?: unknown }).type === "string") {
-    const p = body as { type: string; title?: string; detail?: string; errors?: FieldError[] };
-    return new ApiProblem({ ...p, status: response.status });
+    const { type, title, detail, errors, ...extensions } = body as {
+      type: string;
+      title?: string;
+      detail?: string;
+      errors?: FieldError[];
+      [member: string]: unknown;
+    };
+    delete extensions.status;
+    delete extensions.instance;
+    return new ApiProblem({ type, title, detail, errors, extensions, status: response.status });
   }
   return clientProblem(response.status);
 }
@@ -130,11 +144,15 @@ export function refreshAccessToken(): Promise<string> {
 
 async function parse<T>(response: Response): Promise<T> {
   if (response.status === 204) return undefined as T;
+  // Lo que no es JSON es un archivo: imágenes del banco, plantillas y reportes XLSX.
+  const type = response.headers.get("Content-Type") ?? "";
+  if (type && !type.includes("json")) return (await response.blob()) as T;
   const text = await response.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
-export async function customInstance<T>(url: string, options: RequestInit = {}): Promise<T> {
+/** La petición con el token; si vence, lo renueva una vez y repite. Lanza el `ApiProblem`. */
+async function request(url: string, options: RequestInit): Promise<Response> {
   let response = await send(url, options, useSessionStore.getState().accessToken);
 
   if (response.status === 401 && !url.startsWith(AUTH_PREFIX)) {
@@ -145,5 +163,24 @@ export async function customInstance<T>(url: string, options: RequestInit = {}):
   }
 
   if (!response.ok) throw await toProblem(response);
-  return parse<T>(response);
+  return response;
+}
+
+export async function customInstance<T>(url: string, options: RequestInit = {}): Promise<T> {
+  return parse<T>(await request(url, options));
+}
+
+export interface DownloadedFile {
+  blob: Blob;
+  /** Nombre que sugiere el servidor en `Content-Disposition`, si lo hay. */
+  filename: string | null;
+  headers: Headers;
+}
+
+/** Descarga un archivo de la API con sus encabezados, aunque su tipo sea JSON (exportaciones). */
+export async function downloadFile(url: string): Promise<DownloadedFile> {
+  const response = await request(url, { method: "GET" });
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const filename = /filename="([^"]+)"/.exec(disposition)?.[1] ?? null;
+  return { blob: await response.blob(), filename, headers: response.headers };
 }

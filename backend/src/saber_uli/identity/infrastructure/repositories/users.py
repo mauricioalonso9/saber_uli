@@ -137,6 +137,29 @@ class SqlAlchemyUserRepository:
         )
         return _to_domain(row) if row else None
 
+    async def active_admin_ids(self) -> set[UUID]:
+        rows = await self._session.scalars(
+            select(UserRow.id)
+            .join(RoleAssignmentRow, RoleAssignmentRow.user_id == UserRow.id)
+            .where(
+                RoleAssignmentRow.role == Role.ADMIN.value,
+                UserRow.status == UserStatus.ACTIVE.value,
+            )
+        )
+        return set(rows)
+
+    async def names(self, user_ids: Collection[UUID]) -> dict[UUID, tuple[str | None, bool]]:
+        if not user_ids:
+            return {}
+        rows = await self._session.execute(
+            select(UserRow.id, UserRow.display_name, UserRow.status).where(
+                UserRow.id.in_(list(user_ids))
+            )
+        )
+        return {
+            user_id: (name, status == UserStatus.DELETED.value) for user_id, name, status in rows
+        }
+
     async def lock_active_admins(self) -> list[UUID]:
         admins = (
             select(UserRow.id)

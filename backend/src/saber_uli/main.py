@@ -21,6 +21,30 @@ from sqlalchemy import text
 from starlette.middleware.sessions import SessionMiddleware
 
 from saber_uli.config import Settings, get_settings
+from saber_uli.content.api.contexts_router import router as content_contexts_router
+from saber_uli.content.api.insights_router import router as content_insights_router
+from saber_uli.content.api.items_router import router as content_items_router
+from saber_uli.content.api.media_router import router as content_media_router
+from saber_uli.content.api.review_router import router as content_review_router
+from saber_uli.content.api.taxonomy_router import router as content_taxonomy_router
+from saber_uli.content.api.transfer_router import router as content_transfer_router
+from saber_uli.content.application.authoring import Authoring
+from saber_uli.content.application.bank_export import BankExport
+from saber_uli.content.application.bank_import import BankImport
+from saber_uli.content.application.contexts import Contexts
+from saber_uli.content.application.coverage import Coverage
+from saber_uli.content.application.data_export import ContentDataExport
+from saber_uli.content.application.media import MediaLibrary
+from saber_uli.content.application.queries.items import GetItem, ItemHistoryQuery, ListItems
+from saber_uli.content.application.queries.modules import ListContentModules, ListRubrics
+from saber_uli.content.application.queries.statistics import ItemStatisticsQuery
+from saber_uli.content.application.review import Review
+from saber_uli.content.application.rubrics import RubricAdmin
+from saber_uli.content.application.taxonomy_admin import TaxonomyAdmin
+from saber_uli.content.infrastructure.images import PillowImageProcessor
+from saber_uli.content.infrastructure.interchange.codec import READERS, JsonBundleCodec
+from saber_uli.content.infrastructure.interchange.export_format import EXPORT_WRITERS
+from saber_uli.content.infrastructure.unit_of_work import SqlAlchemyContentUnitOfWork
 from saber_uli.identity.api.admin_catalogs_router import router as admin_catalogs_router
 from saber_uli.identity.api.admin_users_router import router as admin_users_router
 from saber_uli.identity.api.auth_router import router as auth_router
@@ -45,6 +69,7 @@ from saber_uli.identity.application.catalogs import AuditQuery, ProgramAdmin, Se
 from saber_uli.identity.application.consent import ConsentService, PrivacyPolicyService
 from saber_uli.identity.application.data_export import DataExport
 from saber_uli.identity.application.deletion import DeletionService
+from saber_uli.identity.application.directory import IdentityDirectory
 from saber_uli.identity.application.groups import GroupService, TeacherGroups
 from saber_uli.identity.application.guest_sessions import GuestSignIn, RequestSignInLink
 from saber_uli.identity.application.invitation_batches import InvitationBatchService
@@ -210,6 +235,37 @@ def create_app(
     app.state.privacy_policy_service = PrivacyPolicyService(uow_factory=identity_uow, clock=clock)
     app.state.readiness_checks = {"database": database_ready, "redis": redis_ready}
 
+    # Banco de ítems (spec 002).
+    def content_uow() -> SqlAlchemyContentUnitOfWork:
+        return SqlAlchemyContentUnitOfWork(session_factory, bus)
+
+    app.state.content_uow = content_uow
+    app.state.content_list_modules = ListContentModules(uow_factory=content_uow)
+    app.state.content_list_rubrics = ListRubrics(uow_factory=content_uow)
+    # Nombres y administradores activos desde la fachada de identity (research R-14).
+    names = IdentityDirectory(uow_factory=identity_uow)
+    app.state.content_user_names = names
+    app.state.content_review = Review(uow_factory=content_uow, clock=clock)
+    app.state.content_get_item = GetItem(uow_factory=content_uow, names=names)
+    app.state.content_list_items = ListItems(uow_factory=content_uow, names=names)
+    app.state.content_item_history = ItemHistoryQuery(uow_factory=content_uow, names=names)
+    app.state.content_authoring = Authoring(uow_factory=content_uow, clock=clock)
+    app.state.content_contexts = Contexts(uow_factory=content_uow, clock=clock)
+    app.state.content_bank_import = BankImport(
+        uow_factory=content_uow, clock=clock, readers=READERS, codec=JsonBundleCodec()
+    )
+    app.state.content_bank_export = BankExport(
+        uow_factory=content_uow, clock=clock, writers=EXPORT_WRITERS
+    )
+    app.state.content_coverage = Coverage(uow_factory=content_uow)
+    app.state.data_export_registry.register(ContentDataExport(uow_factory=content_uow))
+    app.state.content_taxonomy_admin = TaxonomyAdmin(uow_factory=content_uow, clock=clock)
+    app.state.content_rubric_admin = RubricAdmin(uow_factory=content_uow, clock=clock)
+    app.state.content_item_statistics = ItemStatisticsQuery(uow_factory=content_uow)
+    app.state.content_media = MediaLibrary(
+        uow_factory=content_uow, processor=PillowImageProcessor(), clock=clock
+    )
+
     install_problem_handlers(app)
     app.include_router(health_router)
     app.include_router(auth_router)
@@ -229,6 +285,13 @@ def create_app(
     app.include_router(admin_catalogs_router, dependencies=v1)
     app.include_router(deletion_router, dependencies=v1)
     app.include_router(deletion_admin_router, dependencies=v1)
+    app.include_router(content_taxonomy_router, dependencies=v1)
+    app.include_router(content_items_router, dependencies=v1)
+    app.include_router(content_review_router, dependencies=v1)
+    app.include_router(content_media_router, dependencies=v1)
+    app.include_router(content_contexts_router, dependencies=v1)
+    app.include_router(content_transfer_router, dependencies=v1)
+    app.include_router(content_insights_router, dependencies=v1)
 
     # Sesión firmada (state, nonce, PKCE) solo para el flujo OIDC (R-13), 10 minutos.
     app.add_middleware(

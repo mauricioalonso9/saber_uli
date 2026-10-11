@@ -19,7 +19,10 @@ const STAFF_LINKS: ReadonlyArray<{
     | "/admin/parametros"
     | "/admin/auditoria"
     | "/admin/supresiones"
-    | "/admin/politica";
+    | "/admin/politica"
+    | "/banco"
+    | "/banco/revision"
+    | "/admin/taxonomia";
   label: string;
   permissions: Permission[];
 }> = [
@@ -36,6 +39,10 @@ const STAFF_LINKS: ReadonlyArray<{
   { to: "/admin/auditoria", label: "nav.audit", permissions: ["audit:read"] },
   { to: "/admin/supresiones", label: "nav.deletions", permissions: ["deletions:read"] },
   { to: "/admin/politica", label: "nav.policy", permissions: ["policy:publish"] },
+  // Banco de ítems (002; research R-08).
+  { to: "/banco", label: "nav.bank", permissions: ["content:author"] },
+  { to: "/banco/revision", label: "nav.review", permissions: ["content:review"] },
+  { to: "/admin/taxonomia", label: "nav.taxonomy", permissions: ["content:taxonomy_manage"] },
 ];
 
 /**

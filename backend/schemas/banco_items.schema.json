@@ -1,0 +1,1122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Afirmacion": {
+      "additionalProperties": false,
+      "properties": {
+        "codigo": {
+          "minLength": 1,
+          "title": "Codigo",
+          "type": "string"
+        },
+        "descripcion": {
+          "minLength": 1,
+          "title": "Descripcion",
+          "type": "string"
+        },
+        "peso_aprox": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peso Aprox"
+        },
+        "evidencias": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Evidencia"
+          },
+          "title": "Evidencias",
+          "type": "array"
+        }
+      },
+      "required": [
+        "codigo",
+        "descripcion"
+      ],
+      "title": "Afirmacion",
+      "type": "object"
+    },
+    "CategoriaNombrada": {
+      "additionalProperties": false,
+      "properties": {
+        "codigo": {
+          "minLength": 1,
+          "title": "Codigo",
+          "type": "string"
+        },
+        "nombre": {
+          "minLength": 1,
+          "title": "Nombre",
+          "type": "string"
+        }
+      },
+      "required": [
+        "codigo",
+        "nombre"
+      ],
+      "title": "CategoriaNombrada",
+      "type": "object"
+    },
+    "Competencia": {
+      "additionalProperties": false,
+      "properties": {
+        "codigo": {
+          "minLength": 1,
+          "title": "Codigo",
+          "type": "string"
+        },
+        "nombre": {
+          "minLength": 1,
+          "title": "Nombre",
+          "type": "string"
+        },
+        "peso_aprox": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peso Aprox"
+        },
+        "afirmaciones": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Afirmacion"
+          },
+          "title": "Afirmaciones",
+          "type": "array"
+        }
+      },
+      "required": [
+        "codigo",
+        "nombre"
+      ],
+      "title": "Competencia",
+      "type": "object"
+    },
+    "CondicionPrevia": {
+      "additionalProperties": false,
+      "properties": {
+        "nombre": {
+          "title": "Nombre",
+          "type": "string"
+        },
+        "descripcion": {
+          "title": "Descripcion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "nombre",
+        "descripcion"
+      ],
+      "title": "CondicionPrevia",
+      "type": "object"
+    },
+    "Consigna": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[A-Z]{2,3}(-[A-Z0-9]+){1,3}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "modulo": {
+          "const": "CE",
+          "title": "Modulo",
+          "type": "string"
+        },
+        "dificultad": {
+          "enum": [
+            "baja",
+            "media",
+            "alta"
+          ],
+          "title": "Dificultad",
+          "type": "string"
+        },
+        "contexto": {
+          "title": "Contexto",
+          "type": "string"
+        },
+        "pregunta": {
+          "title": "Pregunta",
+          "type": "string"
+        },
+        "rubrica_id": {
+          "title": "Rubrica Id",
+          "type": "string"
+        },
+        "explicacion": {
+          "default": "",
+          "title": "Explicacion",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "origen": {
+          "default": "docente",
+          "enum": [
+            "ia",
+            "docente",
+            "banco_inicial"
+          ],
+          "title": "Origen",
+          "type": "string"
+        },
+        "estado": {
+          "anyOf": [
+            {
+              "enum": [
+                "borrador",
+                "en_revision",
+                "publicado",
+                "retirado"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estado"
+        }
+      },
+      "required": [
+        "id",
+        "modulo",
+        "dificultad",
+        "contexto",
+        "pregunta",
+        "rubrica_id"
+      ],
+      "title": "Consigna",
+      "type": "object"
+    },
+    "Contexto": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[A-Z]{2,3}(-[A-Z0-9]+){1,3}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "modulo": {
+          "enum": [
+            "LC",
+            "RC",
+            "CC",
+            "ING",
+            "CE"
+          ],
+          "title": "Modulo",
+          "type": "string"
+        },
+        "titulo": {
+          "title": "Titulo",
+          "type": "string"
+        },
+        "tipo": {
+          "anyOf": [
+            {
+              "enum": [
+                "texto",
+                "tabla",
+                "imagen",
+                "opciones_compartidas"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tipo"
+        },
+        "contenido_md": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contenido Md"
+        },
+        "tipo_texto": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tipo Texto"
+        },
+        "subtipo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subtipo"
+        },
+        "parte": {
+          "anyOf": [
+            {
+              "maximum": 7,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parte"
+        },
+        "opciones_compartidas": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/OpcionCompartida"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opciones Compartidas"
+        },
+        "imagen": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Imagen"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "palabras": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Palabras"
+        },
+        "origen": {
+          "default": "docente",
+          "enum": [
+            "ia",
+            "docente",
+            "banco_inicial"
+          ],
+          "title": "Origen",
+          "type": "string"
+        },
+        "estado": {
+          "anyOf": [
+            {
+              "enum": [
+                "borrador",
+                "en_revision",
+                "publicado",
+                "retirado"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estado"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "id",
+        "modulo",
+        "titulo"
+      ],
+      "title": "Contexto",
+      "type": "object"
+    },
+    "Dimension": {
+      "additionalProperties": false,
+      "properties": {
+        "codigo": {
+          "title": "Codigo",
+          "type": "string"
+        },
+        "nombre": {
+          "title": "Nombre",
+          "type": "string"
+        },
+        "niveles": {
+          "items": {
+            "$ref": "#/$defs/Nivel"
+          },
+          "minItems": 2,
+          "title": "Niveles",
+          "type": "array"
+        }
+      },
+      "required": [
+        "codigo",
+        "nombre",
+        "niveles"
+      ],
+      "title": "Dimension",
+      "type": "object"
+    },
+    "Evidencia": {
+      "additionalProperties": false,
+      "properties": {
+        "codigo": {
+          "minLength": 1,
+          "title": "Codigo",
+          "type": "string"
+        },
+        "descripcion": {
+          "minLength": 1,
+          "title": "Descripcion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "codigo",
+        "descripcion"
+      ],
+      "title": "Evidencia",
+      "type": "object"
+    },
+    "Imagen": {
+      "additionalProperties": false,
+      "properties": {
+        "media_id": {
+          "format": "uuid",
+          "title": "Media Id",
+          "type": "string"
+        },
+        "texto_alternativo": {
+          "title": "Texto Alternativo",
+          "type": "string"
+        }
+      },
+      "required": [
+        "media_id",
+        "texto_alternativo"
+      ],
+      "title": "Imagen",
+      "type": "object"
+    },
+    "Item": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 32,
+          "minLength": 1,
+          "pattern": "^[A-Z]{2,3}(-[A-Z0-9]+){1,3}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "modulo": {
+          "enum": [
+            "LC",
+            "RC",
+            "CC",
+            "ING"
+          ],
+          "title": "Modulo",
+          "type": "string"
+        },
+        "dificultad": {
+          "enum": [
+            "baja",
+            "media",
+            "alta"
+          ],
+          "title": "Dificultad",
+          "type": "string"
+        },
+        "enunciado": {
+          "title": "Enunciado",
+          "type": "string"
+        },
+        "explicacion": {
+          "default": "",
+          "title": "Explicacion",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "contexto_id": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "pattern": "^[A-Z]{2,3}(-[A-Z0-9]+){1,3}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contexto Id"
+        },
+        "competencia": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Competencia"
+        },
+        "afirmacion": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Afirmacion"
+        },
+        "evidencia": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidencia"
+        },
+        "componente": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Componente"
+        },
+        "situacion": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Situacion"
+        },
+        "parte": {
+          "anyOf": [
+            {
+              "maximum": 7,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parte"
+        },
+        "opciones": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Opcion"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opciones"
+        },
+        "usa_opciones_del_contexto": {
+          "default": false,
+          "title": "Usa Opciones Del Contexto",
+          "type": "boolean"
+        },
+        "clave_correcta": {
+          "anyOf": [
+            {
+              "pattern": "^[A-H]$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Clave Correcta"
+        },
+        "origen": {
+          "default": "docente",
+          "enum": [
+            "ia",
+            "docente",
+            "banco_inicial"
+          ],
+          "title": "Origen",
+          "type": "string"
+        },
+        "estado": {
+          "anyOf": [
+            {
+              "enum": [
+                "borrador",
+                "en_revision",
+                "publicado",
+                "retirado"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estado"
+        }
+      },
+      "required": [
+        "id",
+        "modulo",
+        "dificultad",
+        "enunciado"
+      ],
+      "title": "Item",
+      "type": "object"
+    },
+    "Modulo": {
+      "additionalProperties": false,
+      "properties": {
+        "codigo": {
+          "enum": [
+            "LC",
+            "RC",
+            "CC",
+            "ING",
+            "CE"
+          ],
+          "title": "Codigo",
+          "type": "string"
+        },
+        "nombre": {
+          "minLength": 1,
+          "title": "Nombre",
+          "type": "string"
+        },
+        "tipo_pregunta": {
+          "enum": [
+            "seleccion_multiple_unica_respuesta",
+            "abierta_texto_argumentativo"
+          ],
+          "title": "Tipo Pregunta",
+          "type": "string"
+        },
+        "opciones_por_item": {
+          "anyOf": [
+            {
+              "maximum": 8,
+              "minimum": 2,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opciones Por Item"
+        },
+        "restricciones": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Restricciones"
+        },
+        "preguntas_examen": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Preguntas Examen"
+        },
+        "meta_banco": {
+          "anyOf": [
+            {
+              "maximum": 10000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Meta Banco"
+        },
+        "competencias": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Competencia"
+          },
+          "title": "Competencias",
+          "type": "array"
+        },
+        "componentes": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/CategoriaNombrada"
+              }
+            ]
+          },
+          "title": "Componentes",
+          "type": "array"
+        },
+        "situaciones": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/CategoriaNombrada"
+              }
+            ]
+          },
+          "title": "Situaciones",
+          "type": "array"
+        },
+        "tipos_texto": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "default": {},
+          "title": "Tipos Texto",
+          "type": "object"
+        },
+        "partes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Parte"
+          },
+          "title": "Partes",
+          "type": "array"
+        },
+        "aspectos_evaluados": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Aspectos Evaluados",
+          "type": "array"
+        }
+      },
+      "required": [
+        "codigo",
+        "nombre",
+        "tipo_pregunta"
+      ],
+      "title": "Modulo",
+      "type": "object"
+    },
+    "Nivel": {
+      "additionalProperties": false,
+      "properties": {
+        "nivel": {
+          "minimum": 1,
+          "title": "Nivel",
+          "type": "integer"
+        },
+        "descripcion": {
+          "title": "Descripcion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "nivel",
+        "descripcion"
+      ],
+      "title": "Nivel",
+      "type": "object"
+    },
+    "Opcion": {
+      "additionalProperties": false,
+      "properties": {
+        "clave": {
+          "pattern": "^[A-D]$",
+          "title": "Clave",
+          "type": "string"
+        },
+        "texto": {
+          "title": "Texto",
+          "type": "string"
+        },
+        "correcta": {
+          "title": "Correcta",
+          "type": "boolean"
+        },
+        "retroalimentacion": {
+          "default": "",
+          "title": "Retroalimentacion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "clave",
+        "texto",
+        "correcta"
+      ],
+      "title": "Opcion",
+      "type": "object"
+    },
+    "OpcionCompartida": {
+      "additionalProperties": false,
+      "properties": {
+        "clave": {
+          "pattern": "^[A-H]$",
+          "title": "Clave",
+          "type": "string"
+        },
+        "texto": {
+          "title": "Texto",
+          "type": "string"
+        },
+        "retroalimentacion": {
+          "title": "Retroalimentacion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "clave",
+        "texto",
+        "retroalimentacion"
+      ],
+      "title": "OpcionCompartida",
+      "type": "object"
+    },
+    "Parte": {
+      "additionalProperties": false,
+      "properties": {
+        "parte": {
+          "maximum": 7,
+          "minimum": 1,
+          "title": "Parte",
+          "type": "integer"
+        },
+        "opciones": {
+          "maximum": 8,
+          "minimum": 2,
+          "title": "Opciones",
+          "type": "integer"
+        },
+        "tarea": {
+          "minLength": 1,
+          "title": "Tarea",
+          "type": "string"
+        },
+        "peso_aprox": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peso Aprox"
+        },
+        "formato": {
+          "anyOf": [
+            {
+              "enum": [
+                "emparejamiento",
+                "seleccion"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Formato"
+        }
+      },
+      "required": [
+        "parte",
+        "opciones",
+        "tarea"
+      ],
+      "title": "Parte",
+      "type": "object"
+    },
+    "Rubrica": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "nombre": {
+          "title": "Nombre",
+          "type": "string"
+        },
+        "nota": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nota"
+        },
+        "condicion_previa": {
+          "$ref": "#/$defs/CondicionPrevia"
+        },
+        "dimensiones": {
+          "items": {
+            "$ref": "#/$defs/Dimension"
+          },
+          "minItems": 1,
+          "title": "Dimensiones",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "nombre",
+        "condicion_previa",
+        "dimensiones"
+      ],
+      "title": "Rubrica",
+      "type": "object"
+    }
+  },
+  "$id": "https://saber-uli.unilibre.edu.co/schemas/banco_items.schema.json",
+  "additionalProperties": false,
+  "description": "Archivo completo. El lector valida cada entrada por separado (errores por ítem).",
+  "properties": {
+    "esquema_version": {
+      "const": "1.0",
+      "title": "Esquema Version",
+      "type": "string"
+    },
+    "nombre": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Nombre"
+    },
+    "descripcion": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Descripcion"
+    },
+    "fuente_taxonomia": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fuente Taxonomia"
+    },
+    "estructura_examen": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Estructura Examen"
+    },
+    "modulos": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Modulo"
+      },
+      "title": "Modulos",
+      "type": "array"
+    },
+    "contextos": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Contexto"
+      },
+      "title": "Contextos",
+      "type": "array"
+    },
+    "items": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Item"
+      },
+      "title": "Items",
+      "type": "array"
+    },
+    "consignas_escritura": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Consigna"
+      },
+      "title": "Consignas Escritura",
+      "type": "array"
+    },
+    "rubricas": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Rubrica"
+      },
+      "title": "Rubricas",
+      "type": "array"
+    }
+  },
+  "required": [
+    "esquema_version"
+  ],
+  "title": "Banco de ítems Saber Uli (formato de intercambio v1)",
+  "type": "object"
+}

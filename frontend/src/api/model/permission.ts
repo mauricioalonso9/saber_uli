@@ -17,4 +17,7 @@ export const Permission = {
   "audit:read": "audit:read",
   "policy:publish": "policy:publish",
   "deletions:read": "deletions:read",
+  "content:author": "content:author",
+  "content:review": "content:review",
+  "content:taxonomy_manage": "content:taxonomy_manage",
 } as const;

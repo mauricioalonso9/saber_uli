@@ -23,6 +23,10 @@ export const LOGIN_PATH = "/ingresar";
 
 /** Prefijo de ruta → permisos que la habilitan (basta uno). */
 const ROUTE_PERMISSIONS: ReadonlyArray<readonly [string, readonly Permission[]]> = [
+  // Banco de ítems (002): la revisión antes que el prefijo general /banco.
+  ["/banco/revision", ["content:review"]],
+  ["/banco", ["content:author"]],
+  ["/admin/taxonomia", ["content:taxonomy_manage"]],
   ["/invitaciones", ["invitations:manage_own", "invitations:manage_all"]],
   ["/grupos", ["groups:read_own_students"]],
   ["/admin/usuarios", ["users:manage"]],

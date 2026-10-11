@@ -26,7 +26,10 @@ case "$service" in
       --scheduler saber_uli.worker:HeartbeatScheduler --schedule /tmp/celerybeat-schedule "$@"
     ;;
   migrate)
-    exec saber-uli migrate "$@"
+    # Migraciones y luego la carga idempotente del banco inicial (spec 002, R-07). Si cualquiera
+    # falla, `set -e` detiene el servicio y el despliegue no arranca con un banco a medias.
+    saber-uli migrate "$@"
+    exec saber-uli content load-seed
     ;;
   *)
     # Cualquier otro comando (por ejemplo `saber-uli grant-admin ...`) se ejecuta tal cual.

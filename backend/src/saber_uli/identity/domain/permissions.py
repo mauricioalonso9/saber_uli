@@ -1,5 +1,7 @@
 """Permisos por rol (FR-023, FR-026, FR-030; research R-22; contrato: esquema `Permission`).
 
+Los tres `content:*` son del banco de ítems (spec 002, research 002/R-08).
+
 Los permisos dicen qué funciones puede usar un rol. El alcance (invitaciones propias, grupos
 propios, programas asignados) lo verifica la capa de aplicación: fuera de alcance responde 404 y
 una función no permitida, 403.
@@ -23,13 +25,21 @@ class Permission(StrEnum):
     AUDIT_READ = "audit:read"
     POLICY_PUBLISH = "policy:publish"
     DELETIONS_READ = "deletions:read"
+    CONTENT_AUTHOR = "content:author"
+    CONTENT_REVIEW = "content:review"
+    CONTENT_TAXONOMY_MANAGE = "content:taxonomy_manage"
 
 
 ROLE_PERMISSIONS: Mapping[Role, frozenset[Permission]] = {
     Role.STUDENT: frozenset(),
     Role.GUEST: frozenset(),
     Role.TEACHER: frozenset(
-        {Permission.INVITATIONS_MANAGE_OWN, Permission.GROUPS_READ_OWN_STUDENTS}
+        {
+            Permission.INVITATIONS_MANAGE_OWN,
+            Permission.GROUPS_READ_OWN_STUDENTS,
+            # 002: crea, edita, importa y exporta ítems; revisar es del administrador (FR-013).
+            Permission.CONTENT_AUTHOR,
+        }
     ),
     # FR-026: solo datos agregados o seudonimizados de sus programas.
     Role.PROGRAM_DIRECTOR: frozenset({Permission.PROGRAMS_READ_AGGREGATED}),

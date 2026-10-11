@@ -1373,6 +1373,9 @@ components:
         - audit:read
         - policy:publish
         - deletions:read
+        - content:author
+        - content:review
+        - content:taxonomy_manage
     AccountStatus:
       type: string
       description: Estado visible, combinación del estado de la cuenta y del acceso de invitado.

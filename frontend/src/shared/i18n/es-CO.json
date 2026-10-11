@@ -22,7 +22,10 @@
     "audit": "Auditoría",
     "policy": "Política de datos",
     "administration": "Administración",
-    "deletions": "Supresiones"
+    "deletions": "Supresiones",
+    "bank": "Banco de ítems",
+    "review": "Revisión de ítems",
+    "taxonomy": "Taxonomía"
   },
   "home": {
     "title": "Inicio",
@@ -549,5 +552,456 @@
     "groupButton_one": "{{name}} ({{count}} estudiante)",
     "groupButton_other": "{{name}} ({{count}} estudiantes)",
     "studentsOf": "Estudiantes de {{name}}"
+  },
+  "content": {
+    "view": {
+      "options": "Opciones",
+      "correctAnswer": "Respuesta correcta",
+      "explanation": "Explicación"
+    },
+    "placeholder": "Esta sección está en construcción.",
+    "pages": {
+      "bank": "Banco de ítems",
+      "review": "Revisión de ítems",
+      "item": "Ítem",
+      "context": "Contexto",
+      "import": "Importar ítems",
+      "importPreview": "Vista previa de la importación",
+      "export": "Exportar el banco",
+      "coverage": "Cobertura del banco",
+      "taxonomy": "Taxonomía"
+    },
+    "version": "versión {{number}}",
+    "openVersion": "Versión abierta",
+    "publishedVersion": "Versión publicada",
+    "taxonomy": {
+      "tree": "Categorías de {{module}}",
+      "kinds": {
+        "competence": "Competencia",
+        "assertion": "Afirmación",
+        "evidence": "Evidencia",
+        "component": "Componente",
+        "situation": "Tipo de situación",
+        "text_type": "Tipo de texto",
+        "part": "Parte"
+      },
+      "inactive": "Inactiva",
+      "inUse": "En uso",
+      "weightOf": "Peso de {{code}}",
+      "weight": "Peso objetivo (de 0 a 1, opcional)",
+      "invalidWeight": "El peso debe ser un número entre 0 y 1, por ejemplo 0,25.",
+      "save": "Guardar {{code}}",
+      "saved": "Se guardó {{code}}.",
+      "deactivate": "Desactivar {{code}}",
+      "deactivated": "Se desactivó {{code}}: deja de ofrecerse para lo nuevo.",
+      "reactivate": "Reactivar {{code}}",
+      "reactivated": "Se reactivó {{code}}.",
+      "delete": "Borrar {{code}}",
+      "deleted": "Se borró {{code}}.",
+      "target": "Meta de ítems del módulo",
+      "saveTarget": "Guardar la meta",
+      "targetSaved": "Se guardó la meta del módulo.",
+      "newNode": "Agregar una categoría",
+      "kind": "Tipo de categoría",
+      "parent": "Categoría padre",
+      "nodeCode": "Código de la categoría",
+      "nodeName": "Nombre de la categoría",
+      "add": "Agregar la categoría",
+      "created": "Se agregó {{code}}.",
+      "rubrics": "Rúbricas de Comunicación escrita",
+      "rubric": "Rúbrica",
+      "newRubric": "Nueva rúbrica",
+      "editRubric": "Editar {{code}}",
+      "rubricCode": "Código",
+      "rubricName": "Nombre",
+      "condition": "Condición de pertinencia",
+      "conditionText": "Qué exige la condición",
+      "note": "Nota (opcional)",
+      "rubricActive": "Activa",
+      "dimension": "Dimensión {{number}}",
+      "dimensionCode": "Código de la dimensión {{number}}",
+      "dimensionName": "Nombre de la dimensión {{number}}",
+      "levels": "Niveles de la dimensión {{number}} (uno por línea)",
+      "addDimension": "Agregar una dimensión",
+      "removeDimension": "Quitar la dimensión {{number}}",
+      "saveRubric": "Guardar la rúbrica",
+      "rubricSaved": "Se guardó la rúbrica {{code}}."
+    },
+    "statistics": {
+      "title": "Estadísticas",
+      "none": "Este ítem aún no tiene versiones publicadas.",
+      "version": "Versión {{number}} · {{state}}",
+      "insufficient_one": "Aún no hay datos suficientes: {{shown}} respuesta (se necesitan al menos {{minimum}}).",
+      "insufficient_other": "Aún no hay datos suficientes: {{shown}} respuestas (se necesitan al menos {{minimum}}).",
+      "responses": "Respuestas: {{value}}",
+      "correct": "Acierto: {{value}}",
+      "discrimination": "Discriminación: {{value}}",
+      "notAvailable": "no se puede calcular (todos respondieron igual)",
+      "options": "Elección de cada opción, versión {{number}}",
+      "signalsOf": "Señales de problema de la versión {{number}}",
+      "signals": {
+        "too_easy": "Muy fácil: acierta más del 90 %.",
+        "too_hard": "Muy difícil: acierta menos del 20 %.",
+        "negative_discrimination": "Discriminación negativa: aciertan más quienes tienen peor desempeño en el resto del módulo.",
+        "distractor_beats_key": "Una opción incorrecta se elige más que la correcta."
+      }
+    },
+    "coverage": {
+      "summary": "Meta del banco: {{target}} ítems. Hay {{published}} publicados y {{inReview}} en revisión.",
+      "noWeights": "Este módulo no tiene distribución objetivo por categorías: solo se muestran los totales.",
+      "table": "Cobertura de {{module}}",
+      "columns": {
+        "category": "Categoría",
+        "published": "Publicados",
+        "inReview": "En revisión",
+        "share": "Porcentaje real",
+        "target": "Porcentaje objetivo",
+        "status": "Estado"
+      },
+      "missing_one": "Falta {{count}}",
+      "missing_other": "Faltan {{count}}",
+      "met": "Cumple el objetivo"
+    },
+    "export": {
+      "intro": "Descarga el banco, o una parte, en el mismo formato con que se importa. Puedes editar el archivo y volver a importarlo: solo cambia lo que modifiques.",
+      "format": "Formato",
+      "formats": {
+        "json": "JSON (formato del banco)",
+        "xlsx": "Hoja de cálculo (plantilla .xlsx)"
+      },
+      "version": "Versión de cada ítem",
+      "versions": {
+        "published": "La versión publicada",
+        "latest": "La última versión de cada ítem"
+      },
+      "category": "Categoría",
+      "state": "Estado",
+      "origin": "Origen",
+      "submit": "Exportar",
+      "exporting": "Exportando…",
+      "done": "Se descargó {{filename}}.",
+      "skipped_one": "{{count}} ítem no cabe en la plantilla (consignas, emparejamiento de Inglés parte 1 y contextos con imagen o tabla). Para incluirlo, exporta en JSON.",
+      "skipped_other": "{{count}} ítems no caben en la plantilla (consignas, emparejamiento de Inglés parte 1 y contextos con imagen o tabla). Para incluirlos, exporta en JSON."
+    },
+    "history": {
+      "title": "Historia",
+      "versions": "Versiones",
+      "events": "Eventos",
+      "version": "Versión {{number}} · {{state}}",
+      "author": "Autor: {{name}}",
+      "reviewer": "Revisó: {{name}}",
+      "created": "Creada: {{date}}",
+      "published": "Publicada: {{date}}",
+      "retired": "Retirada: {{date}}",
+      "changed": "Campos cambiados: {{fields}}",
+      "firstVersion": "Primera versión",
+      "noChanges": "Sin cambios de contenido frente a la anterior",
+      "eventVersion": "versión {{number}}",
+      "system": "Sistema",
+      "types": {
+        "created": "Creado",
+        "edited": "Editado",
+        "submitted": "Enviado a revisión",
+        "approved": "Aprobado y publicado",
+        "returned": "Devuelto con comentarios",
+        "rejected": "Rechazado",
+        "retired": "Retirado",
+        "superseded": "Reemplazado por una versión nueva",
+        "commented": "Comentado",
+        "imported": "Importado",
+        "seed_loaded": "Cargado del banco inicial",
+        "seed_versioned": "Actualizado desde el banco inicial",
+        "context_changed": "Cambió su contexto",
+        "rebased_on_context": "Actualizado a la versión nueva del contexto"
+      }
+    },
+    "modules": {
+      "LC": "Lectura crítica",
+      "RC": "Razonamiento cuantitativo",
+      "CC": "Competencias ciudadanas",
+      "ING": "Inglés",
+      "CE": "Comunicación escrita"
+    },
+    "origins": {
+      "ai": "IA",
+      "teacher": "Docente",
+      "seed": "Banco inicial"
+    },
+    "states": {
+      "draft": "Borrador",
+      "in_review": "En revisión",
+      "published": "Publicado",
+      "retired": "Retirado"
+    },
+    "fields": {
+      "module": "Módulo",
+      "context": "Contexto"
+    },
+    "filters": {
+      "all": "Todos"
+    },
+    "columns": {
+      "code": "Código",
+      "module": "Módulo",
+      "stem": "Enunciado",
+      "origin": "Origen",
+      "note": "Nota"
+    },
+    "review": {
+      "actions": "Acciones de revisión",
+      "table": "Ítems por revisar",
+      "empty": "No hay ítems por revisar.",
+      "needsAnother": "Necesita otro administrador: todos los disponibles lo modificaron.",
+      "selfApproval": "Modificaste esta versión: la debe aprobar otro administrador.",
+      "aiOrigin": "Este ítem fue generado con IA: verifícalo con cuidado antes de aprobarlo.",
+      "lastComment": "Comentario de la revisión",
+      "confirmations": "Antes de publicar, confirma:",
+      "confirmsAlignment": "Verifiqué que está alineado con la guía del ICFES (competencia, afirmación y evidencia).",
+      "confirmsOriginality": "Verifiqué que es original y no reproduce preguntas del ICFES.",
+      "cancel": "Cancelar",
+      "open": {
+        "approve": "Aprobar",
+        "return": "Devolver",
+        "reject": "Rechazar",
+        "retire": "Retirar",
+        "comment": "Comentar"
+      },
+      "submit": {
+        "approve": "Publicar",
+        "return": "Devolver al autor",
+        "reject": "Rechazar el ítem",
+        "retire": "Retirar el ítem",
+        "comment": "Publicar comentario"
+      },
+      "textLabel": {
+        "return": "Comentario para el autor",
+        "reject": "Motivo",
+        "retire": "Motivo",
+        "comment": "Comentario"
+      },
+      "done": {
+        "approve": "El ítem quedó publicado.",
+        "return": "El ítem volvió a Borrador.",
+        "reject": "El ítem quedó rechazado.",
+        "retire": "El ítem quedó retirado.",
+        "comment": "Comentario publicado."
+      }
+    },
+    "preview": {
+      "tabs": "Vista previa del ítem",
+      "student": "Vista previa",
+      "feedback": "Retroalimentación",
+      "frame": "Vista en un celular de 360 × 800"
+    },
+    "conflict": {
+      "title": "Otra persona cambió este ítem",
+      "intro": "Mientras editabas, otra persona guardó cambios. Compara y decide qué conservar.",
+      "mine": "Tus cambios",
+      "current": "Versión actual",
+      "keep": "Conservar mis cambios",
+      "discard": "Descartar mis cambios"
+    },
+    "editor": {
+      "newTitle": "Nuevo ítem",
+      "code": "Código",
+      "module": "Módulo",
+      "choose": "Elige…",
+      "difficulty": "Dificultad",
+      "difficulties": {
+        "low": "Baja",
+        "medium": "Media",
+        "high": "Alta"
+      },
+      "contextCode": "Código del contexto",
+      "tags": {
+        "competence": "Competencia",
+        "assertion": "Afirmación",
+        "evidence": "Evidencia",
+        "component": "Componente",
+        "situation": "Tipo de situación",
+        "part": "Parte"
+      },
+      "stem": "Enunciado",
+      "options": "Opciones",
+      "optionText": "Texto de la opción {{key}}",
+      "optionCorrect": "La opción {{key}} es la correcta",
+      "optionFeedback": "Retroalimentación de la opción {{key}}",
+      "answerKey": "Clave correcta (entre las opciones del contexto)",
+      "promptContext": "Contexto de la consigna",
+      "rubric": "Rúbrica",
+      "explanation": "Explicación general",
+      "keepInReview": "Mantener en revisión (cambio menor)",
+      "keepInReviewHelp": "Sin marcar, la versión vuelve a Borrador y hay que enviarla de nuevo.",
+      "publishedNotice": "Este ítem está publicado: al guardar se creará la versión {{number}} como borrador; lo publicado no cambia hasta que se apruebe.",
+      "save": "Guardar borrador",
+      "submit": "Enviar a revisión",
+      "saved": "Cambios guardados.",
+      "created": "Ítem creado.",
+      "submitted": "El ítem quedó en revisión.",
+      "fixFields_one": "Revisa el campo marcado.",
+      "fixFields_other": "Revisa los {{count}} campos marcados."
+    },
+    "contextEditor": {
+      "newTitle": "Nuevo contexto",
+      "kind": "Tipo de contexto",
+      "kinds": {
+        "text": "Texto",
+        "table": "Tabla",
+        "image": "Imagen",
+        "shared_options": "Opciones compartidas"
+      },
+      "title": "Título",
+      "body": "Texto",
+      "table": "Tabla (Markdown)",
+      "words": "{{count}}/{{max}} palabras",
+      "wordsNoMax": "{{count}} palabras",
+      "altText": "Texto alternativo",
+      "altTextHelp": "Describe lo que muestra la imagen para quienes usan lector de pantalla.",
+      "textType": "Tipo de texto",
+      "part": "Parte",
+      "sharedOptions": "Opciones compartidas",
+      "confirmTitle": "¿Guardar el cambio del contexto?",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "create": "Crear contexto",
+      "save": "Guardar cambios",
+      "created": "Contexto creado.",
+      "saved": "Contexto guardado (versión {{version}}).",
+      "movedToReview": "Pasaron a revisión: {{codes}}.",
+      "conflict": "Otra persona cambió este contexto mientras lo editabas. Se cargó la versión actual; revisa y vuelve a aplicar tus cambios.",
+      "usageItems_one": "Este contexto lo usa 1 ítem;",
+      "usageItems_other": "Este contexto lo usan {{count}} ítems;",
+      "usagePublished_one": "1 está publicado y recibirá una versión nueva En revisión.",
+      "usagePublished_other": "{{count}} están publicados y recibirán una versión nueva En revisión.",
+      "usageNonePublished": "ninguno está publicado.",
+      "usageNone": "Ningún ítem usa este contexto todavía."
+    },
+    "media": {
+      "label": "Imagen (PNG, JPEG o WebP, hasta 1 MB)",
+      "uploading": "Subiendo la imagen…",
+      "uploaded": "Imagen cargada: {{width}} × {{height}} px.",
+      "preview": "Vista de la imagen cargada"
+    },
+    "rules": {
+      "required": "Falta un dato obligatorio",
+      "invalid_value": "Valor no válido",
+      "single_correct_option": "Debe haber exactamente una opción correcta",
+      "option_count": "Número de opciones incorrecto",
+      "option_feedback_required": "Falta la retroalimentación de una opción",
+      "explanation_required": "Falta la explicación general",
+      "taxonomy_unknown": "Categoría inexistente",
+      "taxonomy_inactive": "Categoría desactivada",
+      "taxonomy_mismatch": "Categoría que no corresponde",
+      "context_unknown": "Contexto inexistente",
+      "context_word_limit": "Texto de más de 500 palabras",
+      "alt_text_required": "Falta el texto alternativo de la imagen",
+      "matching_key_unknown": "Clave que no está en el contexto",
+      "duplicate_item": "Duplicado de un ítem del banco",
+      "duplicate_in_file": "Duplicado de otro ítem del archivo",
+      "unsupported_in_template": "No se admite en la plantilla",
+      "context_text_mismatch": "Texto distinto para el mismo contexto",
+      "rubric_unknown": "Rúbrica inexistente",
+      "changed_since_preview": "Cambió después de la vista previa"
+    },
+    "import": {
+      "intro": "Sube el .json con el formato del banco o la plantilla .xlsx. Primero se valida todo y ves el resultado; nada se guarda hasta que confirmes.",
+      "file": "Archivo (.json del banco o .xlsx de la plantilla, hasta 10 MB)",
+      "validate": "Validar el archivo",
+      "validating": "Validando…",
+      "template": "Descargar la plantilla",
+      "recent": "Importaciones recientes",
+      "noRecent": "Todavía no hay importaciones.",
+      "columns": {
+        "file": "Archivo",
+        "status": "Estado",
+        "date": "Fecha",
+        "author": "Quién",
+        "code": "Código",
+        "action": "Resultado",
+        "field": "Campo",
+        "rule": "Regla",
+        "message": "Mensaje",
+        "before": "Antes",
+        "after": "Después"
+      },
+      "showChanges": "Ver los cambios de {{code}} ({{count}})",
+      "changesOf": "Cambios de {{code}}",
+      "unchangedGroup": "Sin cambios ({{count}}): {{codes}}",
+      "empty": "(vacío)",
+      "yes": "Sí",
+      "no": "No",
+      "statuses": {
+        "pending": "Pendiente",
+        "confirmed": "Confirmada",
+        "expired": "Vencida"
+      },
+      "summary": "Resultado de la validación",
+      "counts": {
+        "create": "Nuevos: {{count}}",
+        "update": "Actualizaciones: {{count}}",
+        "unchanged": "Sin cambios: {{count}}",
+        "error": "Con errores: {{count}}"
+      },
+      "actions": {
+        "create": "Nuevo",
+        "update": "Actualización",
+        "unchanged": "Sin cambios",
+        "error": "Con error"
+      },
+      "show": "Mostrar",
+      "all": "Todas",
+      "rows": "Filas del archivo",
+      "report": "Descargar el reporte de errores",
+      "aiNotice": "Hay ítems generados con IA: entrarán En revisión aunque elijas Borrador.",
+      "targetState": "Estado de los ítems nuevos y de las versiones nuevas",
+      "states": {
+        "draft": "Borrador",
+        "in_review": "En revisión"
+      },
+      "originality": "Declaro que los ítems son originales y no reproducen preguntas del ICFES.",
+      "confirm": "Confirmar importación",
+      "confirmed": "Importación confirmada: {{created}} creados, {{versioned}} con versión nueva y {{skipped}} omitidos.",
+      "skipped": "Omitidos porque cambiaron después de la vista previa: {{codes}}.",
+      "expired": "Esta importación venció (las vistas previas duran 24 horas). Vuelve a subir el archivo.",
+      "expires": "La vista previa vence el {{date}}.",
+      "open": "Ver",
+      "nothingValid": "No hay ítems válidos para importar. Corrige el archivo y vuelve a subirlo."
+    },
+    "bank": {
+      "newItem": "Nuevo ítem",
+      "searchHint": "Código, enunciado, explicación o título del contexto.",
+      "category": "Categoría",
+      "state": "Estado",
+      "origin": "Origen",
+      "signal": "Señal de problema",
+      "table": "Ítems del banco",
+      "empty": "No hay ítems con esos filtros.",
+      "columns": {
+        "code": "Código",
+        "module": "Módulo",
+        "state": "Estado",
+        "origin": "Origen",
+        "difficulty": "Dificultad",
+        "stem": "Enunciado",
+        "signals": "Señales de problema"
+      },
+      "signals": {
+        "too_easy": "Muy fácil",
+        "too_hard": "Muy difícil",
+        "negative_discrimination": "Discriminación negativa",
+        "distractor_beats_key": "Una opción incorrecta supera a la correcta"
+      }
+    }
+  },
+  "pager": {
+    "label": "Paginación",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "status_one": "Página {{page}} de {{pages}} · {{count}} ítem",
+    "status_other": "Página {{page}} de {{pages}} · {{count}} ítems"
+  },
+  "search": {
+    "label": "Buscar",
+    "submit": "Buscar"
   }
 }

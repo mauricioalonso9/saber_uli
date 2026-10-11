@@ -68,6 +68,26 @@ const MESSAGES: Readonly<Record<string, string>> = {
   "program-code-exists": "Ya existe un programa con ese código.",
   "not-institutional-account": "Solo una cuenta institucional puede tener ese rol.",
   "deletion-already-requested": "Ya hay una solicitud de supresión de tu cuenta en curso.",
+  // Banco de ítems (002)
+  "self-approval-forbidden":
+    "No puedes aprobar lo que creaste o modificaste. Lo debe aprobar otro administrador.",
+  "edit-conflict": "Otra persona cambió este contenido mientras lo editabas.",
+  "precondition-required": "Recarga la página e intenta de nuevo.",
+  "invalid-transition": "Esa acción no aplica al estado actual del ítem.",
+  "code-taken": "Ya existe un elemento con ese código.",
+  "duplicate-item": "Ya existe un ítem con el mismo contenido.",
+  "file-too-large": "La imagen pesa más de 1 MB. Redúcela e intenta de nuevo.",
+  "unsupported-media-type":
+    "La imagen debe ser PNG, JPEG o WebP y medir como máximo 4 000 px por lado.",
+  "unsupported-file-format":
+    "El archivo debe ser el .json del banco o la plantilla .xlsx (sin macros).",
+  "unreadable-file": "No se pudo leer el archivo. Revisa que tenga el formato del banco.",
+  "import-not-pending": "Esta importación ya se confirmó o venció. Vuelve a subir el archivo.",
+  "nothing-to-import": "La importación no tiene ítems válidos para aplicar.",
+  "taxonomy-code-taken": "Ya existe una categoría con ese código.",
+  "taxonomy-node-in-use":
+    "La categoría está en uso (por ítems, contextos o categorías hijas): desactívala en lugar de borrarla.",
+  "rubric-code-taken": "Ya existe una rúbrica con ese código.",
   // Producidos por el cliente o por el estado HTTP
   "service-unavailable": "El servicio no está disponible en este momento. Intenta más tarde.",
   "network-error": "No hay conexión con el servidor. Revisa tu conexión a internet.",

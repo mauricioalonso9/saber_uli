@@ -56,6 +56,20 @@ class FakeUsers:
             None,
         )
 
+    async def active_admin_ids(self) -> set[UUID]:
+        return {
+            user_id
+            for user_id, user in self.rows.items()
+            if Role.ADMIN in user.roles and user.status is UserStatus.ACTIVE
+        }
+
+    async def names(self, user_ids: Collection[UUID]) -> dict[UUID, tuple[str | None, bool]]:
+        return {
+            user_id: (user.display_name, user.status is UserStatus.DELETED)
+            for user_id, user in self.rows.items()
+            if user_id in user_ids
+        }
+
     async def lock_active_admins(self) -> list[UUID]:
         return sorted(
             user_id

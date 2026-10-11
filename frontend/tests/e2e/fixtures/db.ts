@@ -10,9 +10,8 @@
  */
 import { execFileSync } from "node:child_process";
 
-function dbContainer(): string {
-  const configured = process.env.E2E_DB_CONTAINER;
-  if (configured) return configured;
+/** Contenedor de un servicio del proyecto Compose `saber-uli` (por sus etiquetas). */
+export function composeContainer(service: string): string {
   const ids = execFileSync(
     "docker",
     [
@@ -21,18 +20,20 @@ function dbContainer(): string {
       "--filter",
       "label=com.docker.compose.project=saber-uli",
       "--filter",
-      "label=com.docker.compose.service=db",
+      `label=com.docker.compose.service=${service}`,
     ],
     { encoding: "utf8" },
   )
     .split(/\s+/)
     .filter(Boolean);
   if (ids.length !== 1) {
-    throw new Error(
-      `se esperaba un contenedor db del stack e2e y hay ${ids.length}; defina E2E_DB_CONTAINER`,
-    );
+    throw new Error(`se esperaba un contenedor ${service} del stack e2e y hay ${ids.length}`);
   }
   return ids[0] as string;
+}
+
+function dbContainer(): string {
+  return process.env.E2E_DB_CONTAINER ?? composeContainer("db");
 }
 
 function psqlArgs(variables: Record<string, string>): string[] {
@@ -43,6 +44,11 @@ function psqlArgs(variables: Record<string, string>): string[] {
   // La base es la de POSTGRES_DB del contenedor (saber_uli por defecto).
   args.push("-d", process.env.E2E_POSTGRES_DB ?? "saber_uli", "-q");
   return args;
+}
+
+/** Ejecuta una sentencia con variables de psql (para otras fixtures, como `content.ts`). */
+export function psqlExec(statement: string, variables: Record<string, string>): void {
+  psql(statement, variables);
 }
 
 function psql(statement: string, variables: Record<string, string>): void {

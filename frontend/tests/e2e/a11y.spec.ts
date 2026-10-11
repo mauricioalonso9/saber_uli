@@ -111,3 +111,56 @@ test("rutas de la persona, del docente y del administrador", async ({
     await test.step(path, () => check(page, path, heading));
   }
 });
+
+/** En el viewport móvil la página no se desplaza en horizontal (WCAG 1.4.10). */
+async function expectNoHorizontalScroll(page: Page): Promise<void> {
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow, "desplazamiento horizontal en px").toBeLessThanOrEqual(0);
+}
+
+test("rutas del banco de ítems", async ({ page, browserName }) => {
+  test.skip(needsOidc(browserName), OIDC_HINT);
+  const user = await onboardedUser(page, { ...newMockUser(), name: "Banco A11y" });
+  grantRole(user.email, "admin");
+  grantRole(user.email, "teacher");
+  await page.goto("/inicio");
+  const api = await apiAs(await accessTokenFrom(page));
+  const created = await api.post("/api/v1/content/imports", {
+    multipart: {
+      file: {
+        name: "a11y.json",
+        mimeType: "application/json",
+        buffer: Buffer.from(JSON.stringify({ esquema_version: "1.0", items: [{ id: "LC-A11Y" }] })),
+      },
+    },
+  });
+  expect(created.status()).toBe(201);
+  const importId = ((await created.json()) as { id: string }).id;
+  await api.dispose();
+
+  const routes: [string, string | RegExp][] = [
+    ["/banco", "Banco de ítems"],
+    ["/banco/revision", "Revisión de ítems"],
+    ["/banco/importar", "Importar ítems"],
+    [`/banco/importaciones/${importId}`, "Vista previa de la importación"],
+    ["/banco/exportar", "Exportar el banco"],
+    ["/banco/cobertura", "Cobertura del banco"],
+    ["/admin/taxonomia", "Taxonomía"],
+    ["/banco/items/nuevo", "Nuevo ítem"],
+  ];
+  for (const [path, heading] of routes) {
+    await test.step(path, async () => {
+      await check(page, path, heading);
+      await expectNoHorizontalScroll(page);
+    });
+  }
+
+  await test.step("/banco/items/nuevo con la vista previa", async () => {
+    await page.getByLabel("Módulo").first().selectOption("LC");
+    await page.waitForLoadState("networkidle");
+    await expectNoA11yViolations(page);
+    await expectNoHorizontalScroll(page);
+  });
+});

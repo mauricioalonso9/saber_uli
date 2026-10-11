@@ -13,11 +13,40 @@ con una invitación por correo.
 | Funcionalidad | Estado |
 |---------------|--------|
 | [001 Identidad, acceso institucional e invitados](specs/001-identidad-acceso/spec.md) | En cierre (fase 11) |
-| Banco de preguntas, módulos y juego | Por especificar |
+| [002 Banco de ítems](specs/002-banco-items/spec.md) | En cierre (fase 12) |
+| Práctica, juego y simulacros | Por especificar |
 
-El banco inicial de preguntas está en
+## Banco de ítems
+
+El banco inicial está en
 [`backend/seeds/banco_inicial_saber_uli.json`](backend/seeds/banco_inicial_saber_uli.json): 43
-ítems y 3 consignas generados con IA, en estado `en_revision` hasta que un docente los apruebe.
+ítems y 3 consignas generados con IA, En revisión hasta que un administrador distinto de quien los
+creó los apruebe.
+
+- **Carga automática**: en cada `docker compose up`, el servicio `migrate` aplica las migraciones
+  y ejecuta `saber-uli content load-seed`. La carga es idempotente: agrega lo nuevo, versiona lo
+  que cambió en el archivo y nunca pisa el trabajo de los docentes. El resumen queda en el log
+  `content_seed_loaded`:
+
+  ```bash
+  docker compose logs migrate | grep content_seed_loaded
+  ```
+
+- **Carga manual** (por ejemplo, para probar un archivo actualizado):
+
+  ```bash
+  docker compose run --rm migrate saber-uli content load-seed --file /app/seeds/banco_inicial_saber_uli.json
+  ```
+
+  En Git Bash de Windows, anteponer `MSYS_NO_PATHCONV=1` para que no reescriba la ruta `/app/...`.
+
+- **En la aplicación** (`/banco`): docentes y administradores crean y editan ítems y contextos,
+  importan lotes en JSON o con la plantilla XLSX (con vista previa y declaración de
+  originalidad), exportan, y ven la cobertura frente al examen y las estadísticas de cada ítem.
+  La administración revisa en `/banco/revision` y mantiene la taxonomía en `/admin/taxonomia`.
+- **Formato**: el de `banco_inicial_saber_uli.json`, descrito por
+  [`backend/schemas/banco_items.schema.json`](backend/schemas/banco_items.schema.json) (se genera
+  de los modelos y una prueba falla si se desincroniza).
 
 ## Tecnología
 

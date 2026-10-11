@@ -85,6 +85,7 @@ def test_roles_combinados_con_la_union_de_permisos() -> None:
         "invitations:manage_own",
         "groups:read_own_students",
         "programs:read_aggregated",
+        "content:author",  # 002/T006
     }
 
 

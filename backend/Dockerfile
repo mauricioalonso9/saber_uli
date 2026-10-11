@@ -44,7 +44,8 @@ RUN python -m pip uninstall --yes --root-user-action=ignore pip \
 ENV PATH=/app/.venv/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    SABER_MIGRATIONS_DIR=/app/migrations
+    SABER_MIGRATIONS_DIR=/app/migrations \
+    SABER_SEEDS_DIR=/app/seeds
 
 WORKDIR /app
 # Archivos de solo lectura para el usuario de ejecución (propiedad de root).

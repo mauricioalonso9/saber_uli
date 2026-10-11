@@ -10,8 +10,10 @@ Es lo único que otros contextos y el kernel compartido pueden importar de `iden
 - `UserDirectory` (`is_institutional`, `is_guest`): las ligas y la analítica de programa excluyen
   a los invitados (FR-012). Lo implementa `identity.application.directory.IdentityDirectory`.
   `director_program_ids` da los programas de un director, para la analítica agregada (FR-026).
+  `display_names` da los nombres de autores y revisores del banco de ítems (002/R-14).
 """
 
+from collections.abc import Collection
 from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
@@ -55,4 +57,17 @@ class UserDirectory(Protocol):
 
     async def director_program_ids(self, user_id: UUID) -> set[UUID]:
         """Programas que dirige (vacío si no es Director de programa)."""
+        ...
+
+    async def display_names(self, user_ids: Collection[UUID]) -> dict[UUID, str]:
+        """Nombre para mostrar de cada cuenta existente, en una sola consulta (002/R-14).
+
+        Una cuenta suprimida aparece como "Cuenta eliminada"; los identificadores desconocidos
+        se omiten. `content` guarda solo identificadores y pide los nombres aquí.
+        """
+        ...
+
+    async def active_admin_ids(self) -> set[UUID]:
+        """Administradores activos: la cola de revisión del banco marca los ítems que ninguno
+        puede aprobar porque todos los modificaron (002 FR-012)."""
         ...

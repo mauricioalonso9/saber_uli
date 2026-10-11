@@ -224,6 +224,117 @@ const teacherGroupsRoute = createRoute({
   ),
 });
 
+// Banco de ítems (002): todas las páginas se cargan bajo demanda (001/T174).
+/** Búsqueda, filtros y página de la lista del banco: viven en la URL (la cobertura enlaza a una
+ * categoría y el botón Atrás conserva lo elegido). */
+export interface BankSearch {
+  q?: string;
+  module?: string;
+  state?: string;
+  origin?: string;
+  difficulty?: string;
+  taxonomy_node?: string;
+  signal?: string;
+  page?: number;
+}
+
+const BANK_TEXT_FILTERS = [
+  "q",
+  "module",
+  "state",
+  "origin",
+  "difficulty",
+  "taxonomy_node",
+  "signal",
+] as const;
+
+function bankSearch(search: Record<string, unknown>): BankSearch {
+  const result: BankSearch = {};
+  for (const name of BANK_TEXT_FILTERS) {
+    const value = search[name];
+    if (typeof value === "string" && value) result[name] = value;
+  }
+  const page = Number(search.page);
+  if (Number.isInteger(page) && page > 1) result.page = page;
+  return result;
+}
+
+const bankRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco",
+  validateSearch: bankSearch,
+  component: lazyRouteComponent(() => import("@/features/content/BankPage"), "BankPage"),
+});
+
+const reviewQueueRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/revision",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ReviewQueuePage"),
+    "ReviewQueuePage",
+  ),
+});
+
+const newItemRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/items/nuevo",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ItemEditorPage"),
+    "ItemEditorPage",
+  ),
+});
+
+const itemRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/items/$code",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ItemEditorPage"),
+    "ItemEditorPage",
+  ),
+});
+
+const contextRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/contextos/$code",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ContextEditorPage"),
+    "ContextEditorPage",
+  ),
+});
+
+const importRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/importar",
+  component: lazyRouteComponent(() => import("@/features/content/ImportPage"), "ImportPage"),
+});
+
+const importPreviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/importaciones/$importId",
+  component: lazyRouteComponent(
+    () => import("@/features/content/ImportPreviewPage"),
+    "ImportPreviewPage",
+  ),
+});
+
+const exportRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/exportar",
+  component: lazyRouteComponent(() => import("@/features/content/ExportPage"), "ExportPage"),
+});
+
+const coverageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/banco/cobertura",
+  component: lazyRouteComponent(() => import("@/features/content/CoveragePage"), "CoveragePage"),
+});
+
+const taxonomyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin/taxonomia",
+  component: lazyRouteComponent(() => import("@/features/content/TaxonomyPage"), "TaxonomyPage"),
+});
+
 const offlineRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sin-conexion",
@@ -252,6 +363,16 @@ export const routeTree = rootRoute.addChildren([
   profileRoute,
   accountRoute,
   offlineRoute,
+  bankRoute,
+  reviewQueueRoute,
+  newItemRoute,
+  itemRoute,
+  contextRoute,
+  importRoute,
+  importPreviewRoute,
+  exportRoute,
+  coverageRoute,
+  taxonomyRoute,
 ]);
 
 export interface AppRouterOptions {

@@ -218,6 +218,18 @@ def test_cabeceras_de_seguridad_del_proxy(infra_stack: list[str]) -> None:
     assert headers["X-Frame-Options"] == "DENY"
 
 
+def test_el_proxy_admite_importaciones_de_hasta_10_mb(infra_stack: list[str]) -> None:
+    # La importación del banco admite archivos de 10 MB (FR-037; 002/T115, H3); el resto de la
+    # API sigue limitado a 2 MB. Sin la API en esta pila, lo que pasa el proxy responde 502.
+    body = {"file": ("banco.json", b"0" * (3 * 1024 * 1024), "application/json")}
+
+    imports = httpx.post(f"{PROXY_URL}/api/v1/content/imports", files=body, timeout=30)
+    other = httpx.post(f"{PROXY_URL}/api/v1/content/media", files=body, timeout=30)
+
+    assert imports.status_code != 413
+    assert other.status_code == 413
+
+
 def test_el_proxy_no_registra_consultas_ni_ip(infra_stack: list[str]) -> None:
     # Las búsquedas de los listados (`?q=`) pueden llevar correos o nombres (T178).
     marker = f"t178-{secrets.token_hex(4)}"
@@ -307,6 +319,27 @@ def test_servicios_healthy_y_migrate_exitoso(infra_stack: list[str]) -> None:
         assert by_service[service]["Health"] == "healthy", (service, by_service[service])
     assert by_service["migrate"]["State"] == "exited"
     assert by_service["migrate"]["ExitCode"] == 0
+
+    # 002/T039: `migrate` carga el banco inicial (46 ítems y consignas) y repetirlo no duplica.
+    count_items = [
+        *infra_stack,
+        "exec",
+        "-T",
+        "db",
+        "psql",
+        "-U",
+        "postgres",
+        "-d",
+        "saber_uli",
+        "-tAc",
+        "SELECT count(*) FROM content.items",
+    ]
+    first = run(count_items, timeout=60)
+    assert first.returncode == 0, first.stderr
+    assert first.stdout.strip() == "46"
+    again = run([*infra_stack, "run", "--rm", "migrate"])
+    assert again.returncode == 0, (again.stdout + again.stderr)[-2000:]
+    assert run(count_items, timeout=60).stdout.strip() == "46"
 
 
 @pytest.mark.full_stack

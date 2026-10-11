@@ -1,4 +1,7 @@
-"""T039: matriz de permisos por rol (FR-023, FR-026, FR-030; research R-22)."""
+"""T039: matriz de permisos por rol (FR-023, FR-026, FR-030; research R-22).
+
+002/T006: permisos del banco de ítems (research 002/R-08).
+"""
 
 from pathlib import Path
 from typing import Any
@@ -31,10 +34,11 @@ def test_estudiante_e_invitado_no_tienen_permisos_de_gestion(role: Role) -> None
     assert permissions_for([role]) == frozenset()
 
 
-def test_docente_gestiona_sus_invitaciones_y_ve_a_sus_estudiantes() -> None:
+def test_docente_gestiona_sus_invitaciones_ve_a_sus_estudiantes_y_escribe_en_el_banco() -> None:
     assert permissions_for([Role.TEACHER]) == {
         Permission.INVITATIONS_MANAGE_OWN,
         Permission.GROUPS_READ_OWN_STUDENTS,
+        Permission.CONTENT_AUTHOR,
     }
 
 
@@ -58,6 +62,9 @@ def test_administrador_tiene_todos_los_permisos() -> None:
         Permission.AUDIT_READ,
         Permission.POLICY_PUBLISH,
         Permission.DELETIONS_READ,
+        # 002: solo los administradores revisan ítems y mantienen la taxonomía (FR-013, FR-045).
+        Permission.CONTENT_REVIEW,
+        Permission.CONTENT_TAXONOMY_MANAGE,
     ],
 )
 def test_los_permisos_de_administracion_son_exclusivos_del_administrador(
@@ -73,7 +80,14 @@ def test_varios_roles_suman_sus_permisos() -> None:
         Permission.INVITATIONS_MANAGE_OWN,
         Permission.GROUPS_READ_OWN_STUDENTS,
         Permission.PROGRAMS_READ_AGGREGATED,
+        Permission.CONTENT_AUTHOR,
     }
+
+
+@pytest.mark.parametrize("role", [Role.STUDENT, Role.GUEST, Role.PROGRAM_DIRECTOR])
+def test_solo_docentes_y_administradores_escriben_en_el_banco(role: Role) -> None:
+    assert Permission.CONTENT_AUTHOR not in permissions_for([role])
+    assert Permission.CONTENT_AUTHOR in permissions_for([Role.ADMIN])
 
 
 def test_sin_roles_no_hay_permisos() -> None:

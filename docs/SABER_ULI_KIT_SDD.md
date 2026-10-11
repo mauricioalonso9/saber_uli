@@ -638,6 +638,13 @@ Al terminar, valida el archivo con backend/schemas/banco_items.schema.json y lis
 con su clave correcta para facilitar la revisión docente.
 ```
 
+La validación usa `backend/schemas/banco_items.schema.json`, que se genera de los mismos modelos
+con que la aplicación lee el archivo: lo que el esquema rechaza, la importación también. Entre
+otras reglas, cada código sigue el formato `LC-0101` o `ING-CTX-P4-002` (`^[A-Z]{2,3}(-[A-Z0-9]+){1,3}$`).
+El lote se carga en la aplicación desde `/banco/importar`: la vista previa repite la validación
+completa (taxonomía, opciones por módulo, duplicados) y nada se guarda hasta confirmar; los ítems
+de origen `ia` entran En revisión.
+
 Metas sugeridas para un banco que soporte simulacros sin repetir ítems con frecuencia:
 unos 150 ítems por módulo de selección múltiple, 225 en Inglés (5 por cada pregunta del examen,
 respetando los pesos por parte) y 20 consignas de escritura.

@@ -132,6 +132,7 @@ historias.**
   - Terminado: T015 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 10 en verde; los tres textos de LC del banco inicial quedan dentro de ±2 de su `palabras`.
 - [x] T017 [P] Prueba: `backend/tests/unit/content/test_item_validation.py`. `ItemVersion.validate(rules)` devuelve problemas con `field`, `rule` y `message`, con `rule` del catálogo `ValidationRule` del contrato:
+  - Requisitos: FR-002, FR-004 y FR-006 (formato y etiquetas por módulo, rúbrica de las consignas, retroalimentación de cada opción).
   - `single_correct_option` con 0 o 2 opciones correctas;
   - `option_count`;
   - `option_feedback_required`;
@@ -147,6 +148,7 @@ historias.**
   - Terminado: la prueba falla.
   - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T018. Incluye la parte 1 de Inglés: exactamente 8 opciones compartidas y máximo 5 ítems por contexto (U1 de analyze).
 - [x] T018 Implementar `content/domain/item.py`, `item_version.py`, `context.py` (con `SharedOption`, `ContextVersion` y validación de `kind`) y `errors.py` para que pase T017 → Qwen
+  - Requisitos: FR-008 (código estable entre versiones, dificultad y estado).
   - Terminado: T017 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 53 en verde. `item_version.py` (tipos, `ItemContent`, `validate_item`), `context.py` (`ContextContent`, `ContextVersion`, `Context`, `validate_context`) y `errors.py`. El agregado `item.py` queda con la máquina de estados en T022.
 - [x] T019 [P] Prueba: `backend/tests/unit/content/test_fingerprint.py` (research R-06):
@@ -271,6 +273,7 @@ nuevos y se versionan los cambiados (quickstart B1 a B4).
 ### Tests for User Story 1 ⚠️
 
 - [x] T036 [P] [US1] Prueba: `backend/tests/integration/content/test_seed_loader.py` (FR-021 a FR-023, R-07). Casos:
+  - Requisitos: FR-019 (el banco inicial entra En revisión con su origen).
   - **Primera carga**: 5 módulos, la taxonomía con `target_weight` de `peso_aprox`, 1 rúbrica, 8 contextos (LC con `word_count`) y 46 ítems En revisión con origen `ai`, `author_id` NULL, evento `seed_loaded` y `seed_hash` guardado.
   - **Segunda carga igual**: 0 agregados y 0 versionados.
   - **Ítem editado por un docente**: queda intacto en la recarga.
@@ -444,6 +447,7 @@ sigue vigente (quickstart B9 a B13).
   - Terminado: la prueba falla.
   - Estado (Opus, 2026-10-09): cerrada. Falló en la recolección antes de T060.
 - [x] T054 [P] [US3] Prueba de componentes: `frontend/src/features/content/ItemEditorPage.test.tsx`, `ItemPreview.test.tsx` y `EditConflictDialog.test.tsx` (msw). Cubre:
+  - Requisitos: FR-025 (vista previa con su contexto, como la verá el estudiante).
   - los campos cambian según módulo y parte (la parte 1 de Inglés pide la clave entre las opciones del contexto; CE pide rúbrica);
   - los errores del cliente y del servidor aparecen junto al campo y se anuncian con `aria-live`;
   - el contador de palabras muestra "501/500";
@@ -580,6 +584,7 @@ y el reporte; confirmar; entran 20 (quickstart B14 y B15).
   - Terminado: T065 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 10 en verde. Desvío de R-04: se abre con data_only=False para que una fórmula llegue como el texto que es (con data_only=True llegaría el último valor que guardó Excel, o nada); nunca se evalúa. Las partes de Inglés se escriben como número (2 a 7) con validación de celda. Más de 1 000 filas corta la lectura con batch-too-large.
 - [x] T072 [US4] Implementar `content/domain/import_job.py` (`ImportRow` y acciones) y la parte de validación y vista previa de `content/application/bank_import.py`, para que pase T066 → Qwen
+  - Requisitos: FR-019 (los ítems de origen IA de un archivo entran En revisión).
   - Terminado: T066 en verde.
   - Estado (Opus, 2026-10-09): cerrada. 9 en verde. El payload es el formato v1 de las entradas válidas más la revisión de cada una al momento de la vista previa; al confirmar se vuelve a leer y a evaluar. Las secciones de módulos y rúbricas de un archivo se ignoran (las administra US9). Las acciones update y unchanged ya se calculan (US5 las prueba a fondo).
 - [x] T073 [US4] Implementar la confirmación en `content/application/bank_import.py` para que pase T067 → Qwen
@@ -749,6 +754,7 @@ B19).
 ### Tests for User Story 8 ⚠️
 
 - [x] T096 [P] [US8] Prueba: `backend/tests/unit/content/test_statistics.py` (FR-041 a FR-043, R-13). Con datos sintéticos de resultado conocido:
+  - Requisitos: FR-017 (estadísticas por versión).
   - porcentaje de acierto y porcentaje por opción;
   - punto-biserial corregida contra el puntaje del resto, comparada con un cálculo de referencia con tolerancia de 1e-6;
   - menos de 30 primeras respuestas da `sufficient_data = false` y cifras nulas;

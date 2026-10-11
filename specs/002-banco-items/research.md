@@ -90,7 +90,9 @@ desde los mismos modelos que validan evita mantener dos definiciones. Pydantic y
 - **Hojas**:
   - `items`: código, módulo, parte, códigos de taxonomía, dificultad, código de contexto, título y
     texto del contexto, enunciado, opciones A a D con su texto y su retroalimentación, clave
-    correcta y explicación.
+    correcta y explicación. Al final, la columna opcional `contexto_subtipo` (agregada en T087:
+    sin ella, reimportar un texto de Lectura crítica perdía su subtipo); una plantilla anterior
+    sin esa columna se sigue leyendo.
   - `instrucciones`: explica cada columna.
   - `listas`: códigos válidos para las validaciones de celda.
 - **Contextos compartidos**: varias filas con el mismo código de contexto lo comparten. El texto se
